@@ -340,7 +340,7 @@ pub async fn download_file(
 }
 
 fn parse_range(range_str: &str, file_size: u64) -> Option<(u64, u64)> {
-    if !range_str.starts_with("bytes=") {
+    if !range_str.starts_with("bytes=") || file_size == 0 {
         return None;
     }
     let range_str = &range_str[6..];
@@ -349,16 +349,27 @@ fn parse_range(range_str: &str, file_size: u64) -> Option<(u64, u64)> {
         return None;
     }
 
-    let start = parts[0].parse::<u64>().ok()?;
-    let end = if parts[1].is_empty() {
-        file_size.saturating_sub(1)
-    } else {
-        parts[1].parse::<u64>().ok()?.min(file_size.saturating_sub(1))
-    };
-
-    if start <= end && start < file_size {
+    if parts[0].is_empty() {
+        // Suffix range: bytes=-500 (request last 500 bytes, commonly sent by iOS WebKit to read MP4 atom)
+        let suffix_len = parts[1].parse::<u64>().ok()?;
+        if suffix_len == 0 {
+            return None;
+        }
+        let start = file_size.saturating_sub(suffix_len);
+        let end = file_size.saturating_sub(1);
         Some((start, end))
     } else {
-        None
+        let start = parts[0].parse::<u64>().ok()?;
+        let end = if parts[1].is_empty() {
+            file_size.saturating_sub(1)
+        } else {
+            parts[1].parse::<u64>().ok()?.min(file_size.saturating_sub(1))
+        };
+
+        if start <= end && start < file_size {
+            Some((start, end))
+        } else {
+            None
+        }
     }
 }

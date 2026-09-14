@@ -58,6 +58,16 @@ async fn test_filesystem_operations_and_trash() {
     // Valid ZIP starts with PK\x03\x04
     assert_eq!(&zip_bytes[0..4], b"PK\x03\x04");
 
+    // 9. Verify Office and Code MediaType classification
+    use kv_files::models::MediaType;
+    assert_eq!(MediaType::from_extension("docx"), MediaType::Doc);
+    assert_eq!(MediaType::from_extension("xlsx"), MediaType::Spreadsheet);
+    assert_eq!(MediaType::from_extension("pptx"), MediaType::Presentation);
+    assert_eq!(MediaType::from_extension("toml"), MediaType::Code);
+    assert_eq!(MediaType::from_extension("yaml"), MediaType::Code);
+    assert_eq!(MediaType::from_extension("ini"), MediaType::Code);
+    assert_eq!(MediaType::from_extension("mp4"), MediaType::Video);
+
     // Clean up
     let _ = std::fs::remove_dir_all(&temp_dir);
 }

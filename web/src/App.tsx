@@ -10,8 +10,10 @@ import { GridView } from './components/views/GridView';
 import { SplitView } from './components/views/SplitView';
 import { QuickLookModal } from './components/preview/QuickLookModal';
 import { AudioPlayerModal } from './components/preview/AudioPlayerModal';
+import { VideoPlayerModal } from './components/preview/VideoPlayerModal';
 import { UploadModal } from './components/modals/UploadModal';
 import { ShareModal } from './components/modals/ShareModal';
+import { ActiveSharesModal } from './components/modals/ActiveSharesModal';
 import { TrashBinModal } from './components/modals/TrashBinModal';
 import { NewFolderModal } from './components/modals/NewFolderModal';
 import { RenameModal } from './components/modals/RenameModal';
@@ -143,10 +145,12 @@ export const App: React.FC = () => {
       <QuickLookModal />
       <UploadModal />
       <ShareModal />
+      <ActiveSharesModal />
       <TrashBinModal />
       <NewFolderModal />
       <RenameModal />
       <SetupLoginModal />
+      <VideoPlayerModal />
 
       {/* 7. Universal Context Menu */}
       <ContextMenu />

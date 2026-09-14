@@ -110,8 +110,32 @@ Welcome to the KV Files demo!
     human_size: '527.3 KB',
     mod_time: new Date(Date.now() - 3600000 * 48).toISOString(),
     extension: 'xlsx',
-    media_type: 'other',
+    media_type: 'spreadsheet',
     mime_type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  },
+  {
+    name: 'Annual_Product_Strategy.docx',
+    path: 'documents/Annual_Product_Strategy.docx',
+    root_name: 'storage',
+    is_dir: false,
+    size: 320000,
+    human_size: '312.5 KB',
+    mod_time: new Date(Date.now() - 3600000 * 30).toISOString(),
+    extension: 'docx',
+    media_type: 'doc',
+    mime_type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  },
+  {
+    name: 'Product_Launch_Deck.pptx',
+    path: 'documents/Product_Launch_Deck.pptx',
+    root_name: 'storage',
+    is_dir: false,
+    size: 1450000,
+    human_size: '1.38 MB',
+    mod_time: new Date(Date.now() - 3600000 * 18).toISOString(),
+    extension: 'pptx',
+    media_type: 'presentation',
+    mime_type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
   },
   {
     name: 'Project_Sprint_Plan.md',
@@ -794,13 +818,32 @@ function MediaTypeFromExt(ext: string): MediaType {
       return 'audio';
     case 'pdf':
       return 'pdf';
+    case 'doc':
+    case 'docx':
+    case 'dot':
+    case 'dotx':
+    case 'odt':
+    case 'rtf':
+    case 'pages':
+      return 'doc';
+    case 'xls':
+    case 'xlsx':
+    case 'xlt':
+    case 'xltx':
+    case 'ods':
+    case 'numbers':
+      return 'spreadsheet';
+    case 'ppt':
+    case 'pptx':
+    case 'pot':
+    case 'potx':
+    case 'odp':
+    case 'keynote':
+      return 'presentation';
     case 'txt':
     case 'md':
     case 'log':
     case 'csv':
-    case 'pages':
-    case 'numbers':
-    case 'keynote':
       return 'text';
     case 'rs':
     case 'ts':
@@ -818,6 +861,13 @@ function MediaTypeFromExt(ext: string): MediaType {
     case 'dart':
     case 'py':
     case 'go':
+    case 'ini':
+    case 'conf':
+    case 'env':
+    case 'sql':
+    case 'sh':
+    case 'bash':
+    case 'zsh':
       return 'code';
     case 'zip':
     case 'tar':

@@ -1,0 +1,84 @@
+<!-- Top Header aligned with Ola Web App TitleBar -->
+<div id="top-header" class="top-header d-print-none ola-header">
+    <div class="header-bar d-flex justify-content-between align-items-center">
+        <!-- Left: Brand & Mobile Sidebar Toggle -->
+        <div class="d-flex align-items-center gap-2">
+            <button id="close-sidebar" class="btn btn-icon btn-soft d-md-none me-1" aria-label="Toggle Menu">
+                <span class="material-icons size-20 menu-icon align-middle">menu</span>
+            </button>
+            <a href='{{ relLangURL "docs/" }}' class="d-flex align-items-center text-decoration-none ola-brand me-3">
+                <span class="ola-brand-icon me-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="22" y1="12" x2="2" y2="12"></line>
+                        <path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path>
+                        <line x1="6" y1="16" x2="6.01" y2="16"></line>
+                        <line x1="10" y1="16" x2="10.01" y2="16"></line>
+                    </svg>
+                </span>
+                <span class="ola-brand-text">Ola</span>
+                <span class="ola-badge ms-2">v2.0</span>
+            </a>
+
+            <!-- Search Pill (Matching TitleBar search bar) -->
+            {{ if or (not (isset .Site.Params.flexsearch "enabled")) (eq .Site.Params.flexsearch.enabled true) -}}
+                <button id="flexsearch-button" class="btn ola-search-pill ms-2" data-bs-toggle="collapse" data-bs-target="#FlexSearchCollapse" aria-expanded="false" aria-controls="FlexSearchCollapse">
+                    <span class="material-icons size-18 text-muted align-middle me-2">search</span>
+                    <span class="ola-search-text text-muted d-none d-sm-inline">Search documentation...</span>
+                    <kbd class="ola-kbd ms-2 d-none d-md-inline-block">Ctrl K</kbd>
+                </button>
+            {{ end -}}
+        </div>
+
+        <!-- Right: Actions, GitHub, Theme Switcher -->
+        <div class="d-flex align-items-center gap-2">
+            <a href="http://localhost:8866" class="btn btn-sm btn-outline-primary ola-btn-app d-none d-lg-inline-flex align-items-center gap-1" target="_blank" rel="noopener">
+                <span class="material-icons size-16 align-middle">open_in_new</span>
+                <span>Open App</span>
+            </a>
+
+            <a href="{{ .Site.Params.social.github | default `https://github.com/vndangkhoa/ola` }}" class="btn btn-icon btn-default ola-nav-btn" aria-label="GitHub" target="_blank" rel="noopener">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77 5.44 5.44 0 0 0 3.5 8.55c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+                </svg>
+            </a>
+
+            {{ if eq .Site.Params.docs.darkMode true -}}
+            <button id="mode" class="btn btn-icon btn-default ola-nav-btn" type="button" aria-label="Toggle dark mode">
+                <span class="toggle-dark">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </span>
+                <span class="toggle-light">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </span>
+            </button>
+            {{ end -}}
+        </div>
+    </div>
+
+    <!-- FlexSearch Dropdown -->
+    {{ if or (not (isset .Site.Params.flexsearch "enabled")) (eq .Site.Params.flexsearch.enabled true) -}}
+    <div class="collapse" id="FlexSearchCollapse">
+        <div class="flexsearch-container p-2">
+            <form class="flexsearch position-relative flex-grow-1">
+                <div class="d-flex flex-row gap-2">
+                    <input id="flexsearch" class="form-control ola-search-input" type="search" placeholder="Type to search documentation..." aria-label="Search" autocomplete="off">
+                    <button id="hideFlexsearch" type="button" class="btn btn-soft">Cancel</button>
+                </div>
+                <div id="suggestions" class="shadow rounded d-none"></div>
+            </form>
+        </div>
+    </div>
+    {{ end }}
+</div>

@@ -1,80 +1,350 @@
 /* ==========================================================================
    Ola Web App Design System Theme Overrides
-   Aligned with:
+   Direct alignment with:
    - web/tailwind.config.js (win: #0078d4, darkBg: #1e1e1e, darkCard: #252526, darkBorder: #333333)
+   - web/src/components/layout/TitleBar.tsx, SidebarTree.tsx, DetailedListView.tsx
    - web/src/index.css (Desktop subtle scrollbars)
-   - Windows Explorer & macOS Finder dual aesthetic
    ========================================================================== */
 
 :root {
-  /* Brand Accents */
+  /* Brand Primary Accents */
   --primary: #0078d4;
   --primary-rgb: 0, 120, 212;
   --primary-hsl: 206, 100%, 42%;
-  --primary-50: #f0f7fd;
-  --primary-100: #d6e8fa;
-  --primary-200: #aed1f5;
-  --primary-300: #75b0ee;
-  --primary-400: #388de6;
+  --primary-50: #eff6fc;
+  --primary-100: #deecf9;
+  --primary-200: #c7e0f4;
+  --primary-300: #71afe5;
+  --primary-400: #2b88d8;
   --primary-500: #0078d4;
-  --primary-600: #0060aa;
-  --primary-700: #004b87;
-  --primary-800: #003661;
-  --primary-900: #00223d;
-
-  --link-color: #0078d4;
-  --link-hover-color: #0060aa;
-  --icon-color: #0078d4;
+  --primary-600: #106ebe;
+  --primary-700: #005a9e;
 
   /* Surfaces - Light Mode (Windows Explorer clean look) */
   --body-bg: #ffffff;
+  --body-color: #1f2937;
   --card-bg: #ffffff;
   --card-border-color: #e5e5e5;
   --card-border-hover-color: #0078d4;
 
-  /* Sidebar */
+  /* Sidebar (macOS Finder / Windows 11 light sidebar) */
   --sidebar-primary: #0078d4;
   --sidebar-bg: #f6f6f6;
-  --top-header-bg: rgba(255, 255, 255, 0.88);
   --sidebar-border-color: #e5e5e5;
   --sidebar-dropdown-hover-bg: #e8e8e8;
   --sidebar-menu-active-bg: rgba(0, 120, 212, 0.08);
   --sidebar-text-color: #4b5563;
+
+  /* Header */
+  --top-header-bg: rgba(255, 255, 255, 0.95);
+  --header-border-color: #e5e5e5;
+
+  /* Links & Accents */
+  --link-color: #0078d4;
+  --link-hover-color: #005a9e;
+  --icon-color: #0078d4;
 }
 
 [data-dark-mode] {
   /* Surfaces - Dark Mode (Ola Dark Palette) */
   --dark: #1e1e1e;
   --body-bg: #1e1e1e;
+  --body-color: #d4d4d4;
   --text-default: #d4d4d4;
   --text-dark: #cccccc;
   --text-light: #e5e5e5;
   --text-muted: #9ca3af;
 
-  /* Elevated Containers */
+  /* Elevated Containers & Cards */
   --card-bg: #252526;
   --card-border-color: #333333;
   --card-border-hover-color: #0078d4;
 
-  /* Sidebar (macOS Finder Dark / Win Dark) */
+  /* Sidebar (macOS Finder Dark #212224 / Win Dark #1e1e1e) */
   --sidebar-bg: #212224;
   --sidebar-border-color: #333333;
   --sidebar-text-color: #9ca3af;
-  --top-header-bg: rgba(30, 30, 30, 0.88);
   --sidebar-dropdown-hover-bg: #2a2d2e;
-  --sidebar-menu-active-bg: rgba(0, 120, 212, 0.2);
+  --sidebar-menu-active-bg: rgba(0, 120, 212, 0.18);
   --sidebar-primary: #388de6;
-  --icon-color: #388de6;
 
-  /* Links */
+  /* Header */
+  --top-header-bg: rgba(37, 37, 38, 0.95);
+  --header-border-color: #333333;
+
+  /* Links & Accents */
   --link-color: #388de6;
   --link-hover-color: #60a5fa;
+  --icon-color: #388de6;
 
   /* Buttons */
   --btn-primary-color: #ffffff;
   --btn-primary-bg: #0078d4;
   --btn-primary-border: #0078d4;
-  --btn-soft-border: #333333;
+}
+
+/* ==========================================================================
+   Top Header & TitleBar Layout
+   ========================================================================== */
+.ola-header {
+  height: 48px !important;
+  min-height: 48px !important;
+  background-color: var(--top-header-bg) !important;
+  border-bottom: 1px solid var(--header-border-color) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 0 1rem;
+}
+
+.ola-brand {
+  color: inherit;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.ola-brand-icon {
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+}
+
+.ola-brand-text {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.ola-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  border-radius: 9999px;
+  background-color: var(--primary-50);
+  color: var(--primary);
+}
+
+[data-dark-mode] .ola-badge {
+  background-color: rgba(0, 120, 212, 0.2);
+  color: #71afe5;
+}
+
+/* Search Pill Input (Matching TitleBar search bar) */
+.ola-search-pill {
+  background-color: #f3f3f3 !important;
+  border: 1px solid var(--header-border-color) !important;
+  border-radius: 9999px !important;
+  padding: 0.25rem 0.75rem !important;
+  font-size: 0.78rem !important;
+  display: flex;
+  align-items: center;
+  color: inherit;
+  transition: all 0.15s ease;
+}
+
+[data-dark-mode] .ola-search-pill {
+  background-color: #1e1e1e !important;
+  border-color: #333333 !important;
+}
+
+.ola-search-pill:hover {
+  border-color: var(--primary) !important;
+}
+
+.ola-kbd {
+  font-size: 0.65rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  background: rgba(125, 125, 125, 0.15);
+  border: 1px solid rgba(125, 125, 125, 0.25);
+  color: inherit;
+}
+
+.ola-btn-app {
+  font-size: 0.75rem !important;
+  padding: 0.25rem 0.65rem !important;
+  border-radius: 6px !important;
+  border-color: var(--primary) !important;
+  color: var(--primary) !important;
+}
+
+.ola-nav-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  color: inherit;
+}
+
+.ola-nav-btn:hover {
+  background-color: var(--sidebar-dropdown-hover-bg);
+}
+
+/* ==========================================================================
+   Sidebar Navigation (Matching SidebarTree.tsx)
+   ========================================================================== */
+#sidebar {
+  background-color: var(--sidebar-bg) !important;
+  border-right: 1px solid var(--sidebar-border-color) !important;
+}
+
+.sidebar-heading {
+  font-size: 0.65rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9ca3af !important;
+  padding: 0.5rem 0.75rem 0.25rem;
+}
+
+.sidebar-dropdown > .btn {
+  padding: 0.35rem 0.65rem !important;
+  font-size: 0.82rem !important;
+  font-weight: 500 !important;
+  border-radius: 6px !important;
+  display: flex;
+  align-items: center;
+}
+
+.sidebar-dropdown > .btn:hover {
+  background-color: var(--sidebar-dropdown-hover-bg) !important;
+}
+
+.sidebar-submenu {
+  padding-left: 0.5rem;
+}
+
+.sidebar-nested-link {
+  display: block;
+  padding: 0.3rem 0.65rem !important;
+  font-size: 0.8rem !important;
+  border-radius: 6px;
+  color: var(--sidebar-text-color) !important;
+  text-decoration: none !important;
+  transition: all 0.12s ease;
+}
+
+.sidebar-nested-link:hover {
+  background-color: var(--sidebar-dropdown-hover-bg);
+  color: var(--body-color) !important;
+}
+
+.sidebar-nested-link.active {
+  background-color: var(--sidebar-menu-active-bg) !important;
+  color: var(--primary) !important;
+  font-weight: 600;
+}
+
+/* Material Icons in Sidebar */
+.sidebar-dropdown .material-icons {
+  font-size: 1.1rem !important;
+  margin-right: 0.5rem !important;
+  vertical-align: middle;
+}
+
+/* ==========================================================================
+   Content Area & Typography
+   ========================================================================== */
+#content {
+  background-color: var(--body-bg) !important;
+}
+
+.docs-content {
+  color: var(--body-color);
+  font-size: 0.92rem;
+  line-height: 1.65;
+}
+
+.docs-content h1,
+.docs-content h2,
+.docs-content h3 {
+  color: inherit;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.docs-content h1 {
+  font-size: 1.85rem;
+  border-bottom: 1px solid var(--sidebar-border-color);
+  padding-bottom: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.docs-content h2 {
+  font-size: 1.35rem;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid var(--sidebar-border-color);
+  padding-bottom: 0.4rem;
+}
+
+.docs-content h3 {
+  font-size: 1.1rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Table styling matching DetailedListView */
+.docs-content table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 1.25rem 0;
+  border: 1px solid var(--card-border-color);
+  border-radius: 6px;
+  overflow: hidden;
+  font-size: 0.82rem;
+}
+
+.docs-content table th {
+  background-color: var(--sidebar-dropdown-hover-bg);
+  padding: 0.5rem 0.75rem;
+  font-weight: 600;
+  text-align: left;
+  border-bottom: 1px solid var(--card-border-color);
+}
+
+.docs-content table td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--card-border-color);
+}
+
+.docs-content table tr:last-child td {
+  border-bottom: none;
+}
+
+.docs-content table tr:hover td {
+  background-color: var(--sidebar-menu-active-bg);
+}
+
+/* Cards */
+.card {
+  background-color: var(--card-bg) !important;
+  border-color: var(--card-border-color) !important;
+  border-radius: 8px !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.card:hover {
+  border-color: var(--card-border-hover-color) !important;
+}
+
+/* Code Blocks */
+pre {
+  background-color: #1e1e1e !important;
+  border: 1px solid #333333 !important;
+  border-radius: 8px !important;
+  padding: 1rem !important;
+  font-size: 0.82rem !important;
+}
+
+code:not(pre code) {
+  background-color: rgba(125, 125, 125, 0.12);
+  border: 1px solid rgba(125, 125, 125, 0.18);
+  padding: 0.15rem 0.35rem;
+  border-radius: 4px;
+  font-size: 0.82em;
+  color: var(--primary);
 }
 
 /* Desktop Scrollbars matching web/src/index.css */
@@ -94,43 +364,4 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(150, 150, 150, 0.7);
-}
-
-/* Sidebar polish for Material Icons */
-.sidebar-submenu .btn,
-.sidebar-dropdown > .btn {
-  display: flex;
-  align-items: center;
-  font-size: 0.92rem;
-  font-weight: 500;
-  border-radius: 6px;
-  transition: background-color 0.15s ease, color 0.15s ease;
-}
-
-.sidebar-dropdown .material-icons,
-.sidebar-dropdown .material-symbols-outlined {
-  font-size: 1.2rem;
-  line-height: 1;
-}
-
-/* Active navigation item highlight */
-.sidebar-nested-link.active,
-.sidebar-menu-active {
-  color: var(--primary) !important;
-  font-weight: 600;
-  background-color: var(--sidebar-menu-active-bg);
-  border-radius: 5px;
-}
-
-/* Navbar blur effect */
-#topnav {
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--sidebar-border-color);
-}
-
-/* Code block modern polish */
-pre {
-  border-radius: 8px;
-  border: 1px solid var(--sidebar-border-color);
 }

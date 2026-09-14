@@ -11,6 +11,9 @@ pub enum MediaType {
     Text,
     Code,
     Archive,
+    Doc,
+    Spreadsheet,
+    Presentation,
     Other,
 }
 
@@ -25,12 +28,13 @@ impl MediaType {
             "mp3" | "wav" | "flac" | "aac" | "ogg" | "m4a" | "wma" | "opus" | "alac" | "aiff"
             | "mid" | "midi" => MediaType::Audio,
             "pdf" => MediaType::Pdf,
-            "txt" | "md" | "markdown" | "log" | "csv" | "rtf" | "pages" | "numbers" | "keynote" => {
-                MediaType::Text
-            }
+            "doc" | "docx" | "dot" | "dotx" | "odt" | "rtf" | "pages" => MediaType::Doc,
+            "xls" | "xlsx" | "xlt" | "xltx" | "ods" | "numbers" => MediaType::Spreadsheet,
+            "ppt" | "pptx" | "pot" | "potx" | "odp" | "keynote" => MediaType::Presentation,
+            "txt" | "md" | "markdown" | "log" | "csv" => MediaType::Text,
             "rs" | "ts" | "tsx" | "js" | "jsx" | "json" | "yaml" | "yml" | "toml" | "html" | "css"
             | "scss" | "go" | "py" | "c" | "cpp" | "h" | "sh" | "bash" | "sql" | "xml" | "env"
-            | "swift" | "kt" | "kts" | "dart" | "vue" | "svelte" | "lua" | "zig" => MediaType::Code,
+            | "swift" | "kt" | "kts" | "dart" | "vue" | "svelte" | "lua" | "zig" | "ini" | "conf" => MediaType::Code,
             "zip" | "tar" | "gz" | "bz2" | "xz" | "7z" | "rar" | "apk" | "aab" | "ipa" | "iso"
             | "dmg" | "pkg" | "deb" | "rpm" => MediaType::Archive,
             _ => MediaType::Other,

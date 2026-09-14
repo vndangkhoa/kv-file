@@ -7,6 +7,7 @@ import {
   FileVideo,
   FileAudio,
   FileArchive,
+  FileSpreadsheet,
   File,
 } from 'lucide-react';
 import { FileItem } from '../../types';
@@ -35,6 +36,12 @@ export const FileIcon: React.FC<FileIconProps> = ({ item, className = '', size =
       return <FileCode size={size} className={`text-blue-500 ${className}`} />;
     case 'archive':
       return <FileArchive size={size} className={`text-yellow-600 ${className}`} />;
+    case 'doc':
+      return <FileText size={size} className={`text-blue-600 ${className}`} />;
+    case 'spreadsheet':
+      return <FileSpreadsheet size={size} className={`text-emerald-600 ${className}`} />;
+    case 'presentation':
+      return <FileText size={size} className={`text-orange-500 ${className}`} />;
     case 'text':
       return <FileText size={size} className={`text-gray-500 ${className}`} />;
     default:

@@ -6,12 +6,16 @@ import {
   HardDrive,
   Star,
   Trash2,
+  Share2,
   FileText,
   Video,
   Music,
+  File,
   X,
 } from 'lucide-react';
 import { useExplorerStore } from '../../stores/useExplorerStore';
+import { useFavoritesStore, FavoriteItem } from '../../stores/useFavoritesStore';
+import { useLongPress } from '../../hooks/useLongPress';
 import { api } from '../../services/api';
 import { TreeNode } from '../../types';
 
@@ -21,7 +25,8 @@ interface TreeItemProps {
 }
 
 const TreeItem: React.FC<TreeItemProps> = ({ node, level }) => {
-  const { currentPath, currentRoot, navigateTo, setSidebarOpen } = useExplorerStore();
+  const { currentPath, currentRoot, navigateTo, setSidebarOpen, openContextMenu } =
+    useExplorerStore();
   const [isOpen, setIsOpen] = useState(false);
   const [children, setChildren] = useState<TreeNode[] | null>(node.children || null);
   const [isLoading, setIsLoading] = useState(false);
@@ -52,10 +57,24 @@ const TreeItem: React.FC<TreeItemProps> = ({ node, level }) => {
     }
   };
 
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    openContextMenu(e.clientX, e.clientY, null, { sidebarNode: node });
+  };
+
+  const longPressProps = useLongPress({
+    onLongPress: (_e, clientX, clientY) => {
+      openContextMenu(clientX, clientY, null, { sidebarNode: node });
+    },
+    onClick: handleSelect,
+  });
+
   return (
     <div>
       <div
-        onClick={handleSelect}
+        {...longPressProps}
+        onContextMenu={handleContextMenu}
         style={{ paddingLeft: `${level * 12 + 8}px` }}
         className={`flex items-center gap-1.5 py-1.5 md:py-1 pr-2 rounded text-xs cursor-pointer transition-colors ${
           isSelected
@@ -100,23 +119,44 @@ export const SidebarTree: React.FC = () => {
     isSidebarOpen,
     setSidebarOpen,
     navigateTo,
+    openContextMenu,
+    setActiveSharesOpen,
   } = useExplorerStore();
 
+  const { favorites } = useFavoritesStore();
   const [rootTrees, setRootTrees] = useState<Record<string, TreeNode>>({});
+  const [isFavOpen, setIsFavOpen] = useState(true);
 
   useEffect(() => {
     if (currentRoot) {
-      api.getTree(currentRoot, '', 1).then((tree) => {
-        setRootTrees((prev) => ({ ...prev, [currentRoot]: tree }));
-      }).catch(console.error);
+      api
+        .getTree(currentRoot, '', 1)
+        .then((tree) => {
+          setRootTrees((prev) => ({ ...prev, [currentRoot]: tree }));
+        })
+        .catch(console.error);
     }
   }, [currentRoot]);
 
-  const handleNavClick = (path: string) => {
-    navigateTo(path);
+  const handleNavFavorite = (fav: FavoriteItem) => {
+    if (fav.root_name !== currentRoot) {
+      setCurrentRoot(fav.root_name);
+    }
+    navigateTo(fav.path);
     if (window.innerWidth < 768) {
       setSidebarOpen(false);
     }
+  };
+
+  const getFavIcon = (fav: FavoriteItem) => {
+    if (fav.is_dir) {
+      if (fav.name.toLowerCase().includes('doc')) return <FileText size={14} className="text-blue-500" />;
+      if (fav.name.toLowerCase().includes('media') || fav.name.toLowerCase().includes('video'))
+        return <Video size={14} className="text-purple-500" />;
+      if (fav.name.toLowerCase().includes('code')) return <Music size={14} className="text-pink-500" />;
+      return <Folder size={14} className="text-amber-500 fill-amber-400/20" />;
+    }
+    return <File size={14} className="text-blue-400" />;
   };
 
   return (
@@ -150,46 +190,50 @@ export const SidebarTree: React.FC = () => {
           </button>
         </div>
 
-        {/* Quick Access Section */}
+        {/* 1. ⭐ Favorites & Pinned Items Section */}
         <div className="p-2">
-          <div className="px-2 py-1 text-[10px] font-bold tracking-wider text-gray-400 uppercase">
-            Quick Access
-          </div>
-          <div className="space-y-0.5 mt-0.5">
-            <button
-              onClick={() => handleNavClick('')}
-              className="w-full flex items-center gap-2 px-2 py-2 md:py-1.5 rounded hover:bg-gray-200/60 dark:hover:bg-[#2a2d2e] text-gray-700 dark:text-gray-300 font-medium text-left"
-            >
-              <Star size={14} className="text-yellow-500" />
-              <span>Home</span>
-            </button>
-            <button
-              onClick={() => handleNavClick('documents')}
-              className="w-full flex items-center gap-2 px-2 py-2 md:py-1.5 rounded hover:bg-gray-200/60 dark:hover:bg-[#2a2d2e] text-gray-700 dark:text-gray-300 text-left"
-            >
-              <FileText size={14} className="text-blue-500" />
-              <span>Documents</span>
-            </button>
-            <button
-              onClick={() => handleNavClick('media')}
-              className="w-full flex items-center gap-2 px-2 py-2 md:py-1.5 rounded hover:bg-gray-200/60 dark:hover:bg-[#2a2d2e] text-gray-700 dark:text-gray-300 text-left"
-            >
-              <Video size={14} className="text-purple-500" />
-              <span>Media</span>
-            </button>
-            <button
-              onClick={() => handleNavClick('code')}
-              className="w-full flex items-center gap-2 px-2 py-2 md:py-1.5 rounded hover:bg-gray-200/60 dark:hover:bg-[#2a2d2e] text-gray-700 dark:text-gray-300 text-left"
-            >
-              <Music size={14} className="text-pink-500" />
-              <span>Code</span>
+          <div
+            onClick={() => setIsFavOpen(!isFavOpen)}
+            className="flex items-center justify-between px-2 py-1 text-[10px] font-bold tracking-wider text-gray-400 uppercase cursor-pointer hover:text-gray-600 dark:hover:text-gray-300"
+          >
+            <div className="flex items-center gap-1">
+              <Star size={11} className="text-amber-500 fill-amber-400" />
+              <span>Favorites</span>
+              <span className="text-[10px] text-gray-400 font-normal">({favorites.length})</span>
+            </div>
+            <button className="text-gray-400">
+              {isFavOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
             </button>
           </div>
+
+          {isFavOpen && (
+            <div className="space-y-0.5 mt-0.5">
+              {favorites.map((fav) => (
+                <button
+                  key={fav.id}
+                  onClick={() => handleNavFavorite(fav)}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openContextMenu(e.clientX, e.clientY, null, { sidebarFavorite: fav });
+                  }}
+                  className="w-full group flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-200/60 dark:hover:bg-[#2a2d2e] text-gray-700 dark:text-gray-300 text-left transition-colors"
+                >
+                  {getFavIcon(fav)}
+                  <span className="truncate flex-1 font-medium">{fav.name}</span>
+                  <Star
+                    size={11}
+                    className="text-amber-400/40 group-hover:text-amber-400 fill-amber-400/30 shrink-0"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="h-[1px] bg-gray-200 dark:bg-[#333333] mx-2 my-1" />
 
-        {/* Storage Drives / Mount Points */}
+        {/* 2. Storage Drives / Mount Points */}
         <div className="p-2 flex-1">
           <div className="px-2 py-1 text-[10px] font-bold tracking-wider text-gray-400 uppercase">
             Storage Drives
@@ -197,7 +241,8 @@ export const SidebarTree: React.FC = () => {
           <div className="space-y-1 mt-0.5">
             {roots.map((r) => {
               const isActive = r.name === currentRoot;
-              const usedPercent = r.total_bytes > 0 ? Math.round((r.used_bytes / r.total_bytes) * 100) : 0;
+              const usedPercent =
+                r.total_bytes > 0 ? Math.round((r.used_bytes / r.total_bytes) * 100) : 0;
 
               return (
                 <div key={r.name} className="space-y-0.5">
@@ -205,6 +250,11 @@ export const SidebarTree: React.FC = () => {
                     onClick={() => {
                       setCurrentRoot(r.name);
                       if (window.innerWidth < 768) setSidebarOpen(false);
+                    }}
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      openContextMenu(e.clientX, e.clientY, null, { sidebarDrive: r.name });
                     }}
                     className={`w-full flex items-center gap-2 px-2 py-2 md:py-1.5 rounded transition-colors text-left ${
                       isActive
@@ -241,14 +291,25 @@ export const SidebarTree: React.FC = () => {
           </div>
         </div>
 
-        {/* Trash Bin */}
-        <div className="p-2 border-t border-gray-200 dark:border-[#333333]">
+        {/* 3. Bottom Utility Hub: Shared Links & Trash Bin */}
+        <div className="p-2 border-t border-gray-200 dark:border-[#333333] space-y-1">
+          <button
+            onClick={() => {
+              setActiveSharesOpen(true);
+              if (window.innerWidth < 768) setSidebarOpen(false);
+            }}
+            className="w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-emerald-50 dark:hover:bg-emerald-950/20 text-gray-700 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors font-medium text-left"
+          >
+            <Share2 size={14} className="text-emerald-500" />
+            <span>Shared Links Hub</span>
+          </button>
+
           <button
             onClick={() => {
               setTrashOpen(true);
               if (window.innerWidth < 768) setSidebarOpen(false);
             }}
-            className="w-full flex items-center gap-2 px-2 py-2 md:py-1.5 rounded hover:bg-red-50 dark:hover:bg-red-950/20 text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors font-medium text-left"
+            className="w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-red-50 dark:hover:bg-red-950/20 text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors font-medium text-left"
           >
             <Trash2 size={14} className="text-gray-500 group-hover:text-red-500" />
             <span>Trash Bin</span>

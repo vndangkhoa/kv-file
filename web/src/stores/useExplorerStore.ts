@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { api } from '../services/api';
-import { DirectoryListing, FileItem, StorageRootInfo, ViewMode } from '../types';
+import { DirectoryListing, FileItem, StorageRootInfo, ViewMode, TreeNode } from '../types';
 
 export interface ColumnLevel {
   path: string;
@@ -51,9 +51,35 @@ interface ExplorerState {
   isRenameOpen: boolean;
 
   // Context Menu
-  contextMenu: { x: number; y: number; item: FileItem | null } | null;
-  openContextMenu: (x: number, y: number, item: FileItem | null) => void;
+  contextMenu: {
+    x: number;
+    y: number;
+    item?: FileItem | null;
+    sidebarNode?: TreeNode | null;
+    sidebarDrive?: string | null;
+    sidebarFavorite?: any | null;
+  } | null;
+  openContextMenu: (
+    x: number,
+    y: number,
+    item?: FileItem | null,
+    options?: {
+      sidebarNode?: TreeNode | null;
+      sidebarDrive?: string | null;
+      sidebarFavorite?: any | null;
+    }
+  ) => void;
   closeContextMenu: () => void;
+
+  // Dedicated Video Player
+  isVideoPlayerOpen: boolean;
+  videoTrack: FileItem | null;
+  playVideo: (item: FileItem) => void;
+  closeVideoPlayer: () => void;
+
+  // Active Shares Hub
+  isActiveSharesOpen: boolean;
+  setActiveSharesOpen: (open: boolean) => void;
 
   // Split View (Dual Pane)
   isSplitView: boolean;
@@ -165,6 +191,9 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
   rightPaneActiveItem: null,
   isCommandPaletteOpen: false,
   audioTrack: null,
+  isVideoPlayerOpen: false,
+  videoTrack: null,
+  isActiveSharesOpen: false,
 
   fetchRoots: async () => {
     try {
@@ -368,8 +397,25 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
   setRenameOpen: (open: boolean) => set({ isRenameOpen: open }),
 
   // Context Menu
-  openContextMenu: (x, y, item) => set({ contextMenu: { x, y, item } }),
+  openContextMenu: (x, y, item = null, options = {}) =>
+    set({
+      contextMenu: {
+        x,
+        y,
+        item,
+        sidebarNode: options.sidebarNode || null,
+        sidebarDrive: options.sidebarDrive || null,
+        sidebarFavorite: options.sidebarFavorite || null,
+      },
+    }),
   closeContextMenu: () => set({ contextMenu: null }),
+
+  // Video Player
+  playVideo: (item) => set({ videoTrack: item, isVideoPlayerOpen: true }),
+  closeVideoPlayer: () => set({ videoTrack: null, isVideoPlayerOpen: false }),
+
+  // Active Shares Hub
+  setActiveSharesOpen: (open) => set({ isActiveSharesOpen: open }),
 
   // Split View
   toggleSplitView: () => {

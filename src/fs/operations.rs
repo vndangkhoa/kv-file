@@ -449,9 +449,12 @@ impl FileOperations {
                         MediaType::Text => "text",
                         MediaType::Code => "code",
                         MediaType::Archive => "archive",
+                        MediaType::Doc => "doc",
+                        MediaType::Spreadsheet => "spreadsheet",
+                        MediaType::Presentation => "presentation",
                         MediaType::Other => if is_dir { "folder" } else { "other" },
                     };
-                    if type_str != ft && !(ft == "doc" && (type_str == "pdf" || type_str == "text")) {
+                    if type_str != ft && !(ft == "doc" && (type_str == "pdf" || type_str == "text" || type_str == "doc" || type_str == "spreadsheet" || type_str == "presentation")) {
                         matches = false;
                     }
                 }

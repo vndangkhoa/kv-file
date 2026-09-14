@@ -1,4 +1,4 @@
-export type MediaType = 'video' | 'image' | 'audio' | 'pdf' | 'text' | 'code' | 'archive' | 'other';
+export type MediaType = 'video' | 'image' | 'audio' | 'pdf' | 'text' | 'code' | 'archive' | 'doc' | 'spreadsheet' | 'presentation' | 'other';
 
 export interface FileItem {
   name: string;
