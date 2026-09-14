@@ -10,6 +10,7 @@ import {
   Film,
   FileText,
   FileSpreadsheet,
+  FileImage,
   ChevronLeft,
   ChevronRight,
   Code,
@@ -163,12 +164,51 @@ export const QuickLookModal: React.FC = () => {
         {/* Content Viewer Body */}
         <div className="flex-1 overflow-auto flex items-center justify-center p-4 bg-gray-50 dark:bg-[#181818]">
           {item.media_type === 'image' ? (
-            <img
-              src={rawUrl}
-              alt={item.name}
-              className="max-w-full max-h-full object-contain select-none rounded shadow-sm"
-            />
-          ) : item.media_type === 'video' || ['mp4', 'mov', 'webm', 'mkv'].includes(ext) ? (
+            ['heic', 'heif'].includes(ext) ? (
+              <div className="w-full h-full flex flex-col items-center justify-center p-4">
+                <img
+                  src={rawUrl}
+                  alt={item.name}
+                  onError={(e) => {
+                    (e.currentTarget as HTMLElement).style.display = 'none';
+                    const el = document.getElementById('heic-msg');
+                    if (el) el.style.display = 'flex';
+                  }}
+                  className="max-w-full max-h-[80%] object-contain select-none rounded shadow-sm"
+                />
+                <div
+                  id="heic-msg"
+                  className="hidden flex-col items-center gap-3 p-6 bg-white dark:bg-[#252526] rounded-2xl shadow-xl border border-gray-200 dark:border-[#333333] max-w-md text-center animate-in zoom-in-95"
+                >
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center text-white shadow-lg shadow-amber-500/20">
+                    <FileImage size={28} />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-sm text-gray-800 dark:text-gray-200">
+                      Apple iPhone HEIC Photo
+                    </h4>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Natively supported on iOS Safari & macOS. For Windows/Linux browsers, download
+                      to view full resolution.
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleDownload}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-md transition-all"
+                  >
+                    <Download size={14} />
+                    <span>Download HEIC ({formatHumanSize(item.size)})</span>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <img
+                src={rawUrl}
+                alt={item.name}
+                className="max-w-full max-h-full object-contain select-none rounded shadow-sm"
+              />
+            )
+          ) : item.media_type === 'video' || ['mp4', 'mov', 'webm', 'mkv', 'm4v', '3gp'].includes(ext) ? (
             <div className="w-full h-full flex flex-col items-center justify-center gap-3">
               <video
                 src={rawUrl}
@@ -215,13 +255,13 @@ export const QuickLookModal: React.FC = () => {
             </div>
           ) : item.media_type === 'pdf' ? (
             <iframe src={rawUrl} title={item.name} className="w-full h-full rounded border-0" />
-          ) : item.media_type === 'doc' || ['doc', 'docx', 'odt', 'rtf'].includes(ext) ? (
-            /* 1. Office Word Document Previewer */
+          ) : item.media_type === 'doc' || ['doc', 'docx', 'odt', 'rtf', 'pages'].includes(ext) ? (
+            /* 1. Office / Apple Document Previewer */
             <div className="w-full h-full flex flex-col bg-white dark:bg-[#1e1e1e] rounded-lg border border-gray-200 dark:border-[#333333] overflow-hidden shadow-inner">
               <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-[#333333] bg-gray-50 dark:bg-[#252526]">
                 <div className="flex items-center gap-2 text-xs font-medium text-blue-600 dark:text-blue-400">
                   <FileText size={16} />
-                  <span>Microsoft Word Document Preview</span>
+                  <span>{ext === 'pages' ? 'Apple Pages Document Preview' : 'Microsoft Word Document Preview'}</span>
                 </div>
                 <button
                   onClick={handleDownload}
@@ -238,7 +278,7 @@ export const QuickLookModal: React.FC = () => {
                     {item.name.replace(/\.[^/.]+$/, '')}
                   </h1>
                   <p className="text-xs text-gray-500 font-mono">
-                    Created with Microsoft Word / OpenXML • {formatHumanSize(item.size)}
+                    Created with {ext === 'pages' ? 'Apple Pages (iWork)' : 'Microsoft Word / OpenXML'} • {formatHumanSize(item.size)}
                   </p>
                   <div className="space-y-3 text-xs leading-relaxed text-gray-700 dark:text-gray-300">
                     <p className="font-semibold text-sm">Executive Overview</p>
@@ -261,13 +301,13 @@ export const QuickLookModal: React.FC = () => {
                 </div>
               </div>
             </div>
-          ) : item.media_type === 'spreadsheet' || ['xls', 'xlsx', 'csv', 'ods'].includes(ext) ? (
-            /* 2. Office Excel Spreadsheet Previewer */
+          ) : item.media_type === 'spreadsheet' || ['xls', 'xlsx', 'csv', 'ods', 'numbers'].includes(ext) ? (
+            /* 2. Office Excel / Apple Numbers Spreadsheet Previewer */
             <div className="w-full h-full flex flex-col bg-white dark:bg-[#1e1e1e] rounded-lg border border-gray-200 dark:border-[#333333] overflow-hidden shadow-inner text-xs">
               <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 dark:border-[#333333] bg-gray-50 dark:bg-[#252526]">
                 <div className="flex items-center gap-2 font-medium text-emerald-600 dark:text-emerald-400">
                   <FileSpreadsheet size={16} />
-                  <span>Microsoft Excel Spreadsheet</span>
+                  <span>{ext === 'numbers' ? 'Apple Numbers Spreadsheet' : 'Microsoft Excel Spreadsheet'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="flex bg-gray-200 dark:bg-[#333333] rounded p-0.5">
@@ -351,13 +391,13 @@ export const QuickLookModal: React.FC = () => {
                 </table>
               </div>
             </div>
-          ) : item.media_type === 'presentation' || ['ppt', 'pptx', 'odp'].includes(ext) ? (
-            /* 3. Office PowerPoint Presentation Viewer */
+          ) : item.media_type === 'presentation' || ['ppt', 'pptx', 'odp', 'keynote', 'key'].includes(ext) ? (
+            /* 3. Office PowerPoint / Apple Keynote Presentation Viewer */
             <div className="w-full h-full flex flex-col bg-white dark:bg-[#1e1e1e] rounded-lg border border-gray-200 dark:border-[#333333] overflow-hidden shadow-inner text-xs">
               <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 dark:border-[#333333] bg-gray-50 dark:bg-[#252526]">
                 <div className="flex items-center gap-2 font-medium text-orange-600 dark:text-orange-400">
                   <Film size={16} />
-                  <span>Microsoft PowerPoint Slide Deck</span>
+                  <span>{['keynote', 'key'].includes(ext) ? 'Apple Keynote Slide Deck' : 'Microsoft PowerPoint Slide Deck'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="flex items-center gap-1 bg-gray-200 dark:bg-[#333333] rounded px-2 py-1 text-xs">

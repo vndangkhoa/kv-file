@@ -242,9 +242,28 @@ pub async fn stream_file(
     let metadata = file.metadata().await?;
     let file_size = metadata.len();
 
-    let mime_type = mime_guess::from_path(&abs_path)
-        .first_or_octet_stream()
-        .to_string();
+    let ext_lower = abs_path
+        .extension()
+        .and_then(|e| e.to_str())
+        .map(|e| e.to_lowercase())
+        .unwrap_or_default();
+
+    let mime_type = match ext_lower.as_str() {
+        "mov" => "video/quicktime".to_string(),
+        "heic" => "image/heic".to_string(),
+        "heif" => "image/heif".to_string(),
+        "m4v" => "video/mp4".to_string(),
+        "m4a" => "audio/mp4".to_string(),
+        "caf" => "audio/x-caf".to_string(),
+        "aif" | "aiff" => "audio/aiff".to_string(),
+        "dng" => "image/x-adobe-dng".to_string(),
+        "pages" => "application/x-iwork-pages-sffpages".to_string(),
+        "numbers" => "application/x-iwork-numbers-sffnumbers".to_string(),
+        "keynote" | "key" => "application/x-iwork-keynote-sffkey".to_string(),
+        _ => mime_guess::from_path(&abs_path)
+            .first_or_octet_stream()
+            .to_string(),
+    };
 
     // Check for HTTP Range header (essential for streaming video/audio seeking)
     if let Some(range_header) = headers.get(header::RANGE) {

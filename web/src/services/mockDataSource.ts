@@ -815,6 +815,10 @@ function MediaTypeFromExt(ext: string): MediaType {
     case 'wma':
     case 'mid':
     case 'midi':
+    case 'caf':
+    case 'aif':
+    case 'aiff':
+    case 'alac':
       return 'audio';
     case 'pdf':
       return 'pdf';
@@ -839,6 +843,7 @@ function MediaTypeFromExt(ext: string): MediaType {
     case 'potx':
     case 'odp':
     case 'keynote':
+    case 'key':
       return 'presentation';
     case 'txt':
     case 'md':
@@ -868,6 +873,8 @@ function MediaTypeFromExt(ext: string): MediaType {
     case 'sh':
     case 'bash':
     case 'zsh':
+    case 'plist':
+    case 'mobileconfig':
       return 'code';
     case 'zip':
     case 'tar':
