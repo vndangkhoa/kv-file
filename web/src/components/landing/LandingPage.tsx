@@ -75,7 +75,7 @@ export const LandingPage: React.FC = () => {
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600 dark:text-slate-300">
             <a href="#features" className="hover:text-blue-600 transition-colors">Features</a>
             <a href="#miller-columns" className="hover:text-blue-600 transition-colors">Miller Columns</a>
-            <a href="/docs/" className="hover:text-blue-600 transition-colors flex items-center gap-1">
+            <a href="docs/" className="hover:text-blue-600 transition-colors flex items-center gap-1">
               <BookOpen className="w-3.5 h-3.5" />
               <span>Documentation</span>
             </a>
@@ -94,17 +94,17 @@ export const LandingPage: React.FC = () => {
             </button>
 
             <a
-              href="/docs/"
+              href="docs/"
               className="hidden sm:inline-flex items-center gap-1 text-xs sm:text-sm font-semibold px-3 py-1.5 text-slate-600 dark:text-slate-300 hover:text-blue-600 transition-colors"
             >
               Docs
             </a>
 
             <a
-              href="/"
+              href="#deploy"
               className="text-xs sm:text-sm font-semibold px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-500/20 transition-all"
             >
-              Open App
+              Get Started
             </a>
           </div>
         </div>
@@ -290,7 +290,7 @@ export const LandingPage: React.FC = () => {
               </a>
 
               <a
-                href="/docs/"
+                href="docs/"
                 className="w-full sm:w-auto px-6 py-4 text-slate-700 dark:text-slate-200 hover:text-slate-950 dark:hover:text-white text-sm sm:text-base font-semibold rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors flex items-center justify-center gap-1.5"
               >
                 <BookOpen className="w-4 h-4" />
@@ -724,10 +724,10 @@ export const LandingPage: React.FC = () => {
             Built by <a href="https://github.com/vndangkhoa" target="_blank" rel="noreferrer" className="text-blue-600 dark:text-blue-400 font-semibold hover:underline">github.com/vndangkhoa</a>
           </p>
           <div className="flex items-center gap-4">
-            <a href="/" className="hover:text-slate-800 dark:hover:text-slate-200 transition-colors">App</a>
-            <a href="#features" className="hover:text-slate-800 dark:hover:text-slate-200 transition-colors">Features</a>
-            <a href="/docs/" className="hover:text-slate-800 dark:hover:text-slate-200 transition-colors">Documentation</a>
             <a href="#deploy" className="hover:text-slate-800 dark:hover:text-slate-200 transition-colors">Deploy</a>
+            <a href="#features" className="hover:text-slate-800 dark:hover:text-slate-200 transition-colors">Features</a>
+            <a href="docs/" className="hover:text-slate-800 dark:hover:text-slate-200 transition-colors">Documentation</a>
+            <a href="https://github.com/vndangkhoa/kv-file" target="_blank" rel="noreferrer" className="hover:text-slate-800 dark:hover:text-slate-200 transition-colors">GitHub</a>
           </div>
         </div>
       </footer>

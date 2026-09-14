@@ -1,4 +1,4 @@
-name: Deploy Documentation to GitHub Pages
+name: Deploy Website & Documentation to GitHub Pages
 
 on:
   push:
@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'docs/**'
+      - 'web/**'
       - '.github/workflows/deploy-docs.yml'
   workflow_dispatch:
 
@@ -27,6 +28,13 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'web/package-lock.json'
+
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
@@ -38,15 +46,36 @@ jobs:
           hugo-version: 'latest'
           extended: true
 
-      - name: Build Hugo Site
+      - name: Build Web Landing Site
+        run: |
+          cd web
+          npm ci
+          npx vite build --base=/kv-file/
+
+      - name: Build Hugo Documentation
         run: |
           cd docs
           hugo --minify --baseURL "https://vndangkhoa.github.io/kv-file/"
 
+      - name: Assemble GitHub Pages Distribution
+        run: |
+          mkdir -p site
+          # 1. Copy Hugo documentation site (docs/, scss/, js/, index.xml, etc.)
+          cp -r docs/public/* site/
+          # 2. Copy Vite landing site assets and branding files into site root
+          cp -r web/dist/assets site/
+          cp -r web/dist/icons site/ || true
+          cp -r web/dist/media site/ || true
+          cp web/dist/favicon.* site/ || true
+          cp web/dist/manifest.* site/ || true
+          cp web/dist/sw.js site/ || true
+          # 3. Serve landing.html as root index.html (the official product website)
+          cp web/dist/landing.html site/index.html
+
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: docs/public
+          path: site
 
   deploy:
     needs: build

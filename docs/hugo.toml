@@ -28,6 +28,8 @@ enableEmoji = true
   secondary_font  = "'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif"
   mono_font       = "'Fira Code', monospace"
 
+  website         = "https://vndangkhoa.github.io/kv-file/"
+
   [params.footer]
     copyright = "© :YEAR: kv-file. Built with [**Lotus Docs**](https://lotusdocs.dev)."
 
@@ -53,6 +55,10 @@ enableEmoji = true
     enabled         = true
 
 [menu]
+[[menu.primary]]
+  name = "Website"
+  url = "https://vndangkhoa.github.io/kv-file/"
+  weight = 5
 [[menu.primary]]
   name = "Docs"
   url = "docs/"

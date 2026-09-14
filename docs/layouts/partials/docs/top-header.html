@@ -31,9 +31,9 @@
 
         <!-- Right: Actions, GitHub, Theme Switcher -->
         <div class="d-flex align-items-center gap-2">
-            <a href="http://localhost:8866" class="btn btn-sm btn-outline-primary ola-btn-app d-none d-lg-inline-flex align-items-center gap-1" target="_blank" rel="noopener">
-                <span class="material-icons size-16 align-middle">open_in_new</span>
-                <span>Open App</span>
+            <a href="{{ .Site.Params.website | default `https://vndangkhoa.github.io/kv-file/` }}" class="btn btn-sm btn-outline-primary ola-btn-app d-inline-flex align-items-center gap-1 text-nowrap" rel="noopener">
+                <span class="material-icons size-16 align-middle">language</span>
+                <span>Website</span>
             </a>
 
             <a href="{{ .Site.Params.social.github | default `https://github.com/vndangkhoa/kv-file` }}" class="btn btn-icon btn-default ola-nav-btn" aria-label="GitHub" target="_blank" rel="noopener">
