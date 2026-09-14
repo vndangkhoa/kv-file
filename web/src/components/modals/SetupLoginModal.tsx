@@ -65,7 +65,7 @@ export const SetupLoginModal: React.FC = () => {
             ) : (
               <>
                 <Lock size={18} className="text-blue-500" />
-                <span>Sign In to Ola</span>
+                <span>Sign In to kv-file</span>
               </>
             )}
           </div>
@@ -81,7 +81,7 @@ export const SetupLoginModal: React.FC = () => {
 
         {isSetupMode && (
           <p className="text-xs text-gray-500 mt-3">
-            Welcome to Ola! Please configure your primary administrator credentials to secure this instance.
+            Welcome to kv-file! Please configure your primary administrator credentials to secure this instance.
           </p>
         )}
 

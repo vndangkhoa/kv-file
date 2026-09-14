@@ -1,4 +1,4 @@
-use ola::fs::sandbox::RootManager;
+use kv_files::fs::sandbox::RootManager;
 
 #[test]
 fn test_sandbox_path_traversal_prevention() {

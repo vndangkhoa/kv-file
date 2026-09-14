@@ -1,12 +1,14 @@
 {
-  "name": "ola-web",
+  "name": "kv-files-web",
   "private": true,
   "version": "2.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "docs:dev": "hugo server -D --source ../docs",
+    "docs:build": "hugo --minify --source ../docs"
   },
   "dependencies": {
     "clsx": "^2.1.1",

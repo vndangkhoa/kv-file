@@ -23,17 +23,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "ola=info,tower_http=info".into()),
+                .unwrap_or_else(|_| "kv_files=info,tower_http=info".into()),
         )
         .with(tracing_subscriber::fmt::layer())
         .init();
 
     let config = Config::parse();
-    info!("Starting Ola File Manager v2.0.0");
+    info!("Starting KV Files v2.0.0");
 
     // Ensure data directory exists
     std::fs::create_dir_all(&config.data_dir)?;
-    let db_path = config.data_dir.join("ola.db");
+    let db_path = config.data_dir.join("kv_files.db");
     info!("SQLite database path: {}", db_path.display());
 
     let database = Database::new(&db_path)?;
@@ -65,14 +65,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let app = api::create_router(state);
 
     let addr: SocketAddr = format!("{}:{}", config.host, config.port).parse()?;
-    info!("🚀 Ola File Manager listening on http://{}", addr);
+    info!("🚀 KV Files listening on http://{}", addr);
 
     let listener = tokio::net::TcpListener::bind(addr).await?;
     axum::serve(listener, app)
         .with_graceful_shutdown(shutdown_signal())
         .await?;
 
-    info!("Ola server shut down gracefully");
+    info!("KV Files server shut down gracefully");
     Ok(())
 }
 

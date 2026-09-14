@@ -1,0 +1,59 @@
+import {
+  DirectoryListing,
+  FileItem,
+  ShareItem,
+  StorageRootInfo,
+  TrashItem,
+  TreeNode,
+  User,
+} from '../types';
+
+export interface FileSystemDataSource {
+  isMock: boolean;
+
+  // Auth
+  checkSetup(): Promise<{ is_initialized: boolean }>;
+  initialSetup(username: string, password: string): Promise<{ success: boolean; token: string; user: User }>;
+  login(username: string, password: string): Promise<{ success: boolean; token: string; user: User }>;
+  getMe(): Promise<User>;
+  logout(): Promise<void>;
+
+  // Filesystem
+  getRoots(): Promise<StorageRootInfo[]>;
+  listDirectory(root: string, path: string): Promise<DirectoryListing>;
+  getTree(root: string, path?: string, depth?: number): Promise<TreeNode>;
+  createFolder(root: string, path: string): Promise<void>;
+  renameItem(root: string, path: string, new_name: string): Promise<void>;
+  copyItem(root: string, source: string, destination: string): Promise<void>;
+  moveItem(root: string, source: string, destination: string): Promise<void>;
+  deleteItem(root: string, path: string, permanent?: boolean): Promise<void>;
+  searchItems(root: string, q: string): Promise<FileItem[]>;
+  uploadFiles(
+    root: string,
+    path: string,
+    files: File[],
+    onProgress?: (progress: number) => void
+  ): Promise<void>;
+
+  // Trash
+  listTrash(): Promise<TrashItem[]>;
+  restoreTrash(id: string): Promise<void>;
+  purgeTrash(id: string): Promise<void>;
+  emptyTrash(): Promise<void>;
+
+  // Shares
+  listShares(): Promise<ShareItem[]>;
+  createShare(
+    root: string,
+    path: string,
+    is_dir: boolean,
+    password?: string,
+    expires_at?: string,
+    allow_download?: boolean
+  ): Promise<ShareItem>;
+  deleteShare(id: string): Promise<void>;
+
+  // URLs
+  getRawFileUrl(root: string, path: string): string;
+  getDownloadUrl(root: string, path: string): string;
+}

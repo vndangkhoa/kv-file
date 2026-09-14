@@ -77,6 +77,11 @@ interface ExplorerState {
   executeSearch: (query: string) => Promise<void>;
   clearSearch: () => void;
 
+  // Sidebar
+  isSidebarOpen: boolean;
+  toggleSidebar: () => void;
+  setSidebarOpen: (open: boolean) => void;
+
   // Modals
   setQuickLookOpen: (open: boolean) => void;
   setShareModalOpen: (open: boolean) => void;
@@ -115,6 +120,7 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
   isUploadOpen: false,
   isNewFolderOpen: false,
   isRenameOpen: false,
+  isSidebarOpen: false,
 
   fetchRoots: async () => {
     try {
@@ -308,6 +314,8 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
 
   clearSearch: () => set({ searchQuery: '', searchResults: null, isSearching: false }),
 
+  toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
+  setSidebarOpen: (open: boolean) => set({ isSidebarOpen: open }),
   setQuickLookOpen: (open: boolean) => set({ isQuickLookOpen: open }),
   setShareModalOpen: (open: boolean) => set({ isShareModalOpen: open }),
   setTrashOpen: (open: boolean) => set({ isTrashOpen: open }),

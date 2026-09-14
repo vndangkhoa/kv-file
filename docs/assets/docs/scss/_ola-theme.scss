@@ -1,0 +1,136 @@
+/* ==========================================================================
+   Ola Web App Design System Theme Overrides
+   Aligned with:
+   - web/tailwind.config.js (win: #0078d4, darkBg: #1e1e1e, darkCard: #252526, darkBorder: #333333)
+   - web/src/index.css (Desktop subtle scrollbars)
+   - Windows Explorer & macOS Finder dual aesthetic
+   ========================================================================== */
+
+:root {
+  /* Brand Accents */
+  --primary: #0078d4;
+  --primary-rgb: 0, 120, 212;
+  --primary-hsl: 206, 100%, 42%;
+  --primary-50: #f0f7fd;
+  --primary-100: #d6e8fa;
+  --primary-200: #aed1f5;
+  --primary-300: #75b0ee;
+  --primary-400: #388de6;
+  --primary-500: #0078d4;
+  --primary-600: #0060aa;
+  --primary-700: #004b87;
+  --primary-800: #003661;
+  --primary-900: #00223d;
+
+  --link-color: #0078d4;
+  --link-hover-color: #0060aa;
+  --icon-color: #0078d4;
+
+  /* Surfaces - Light Mode (Windows Explorer clean look) */
+  --body-bg: #ffffff;
+  --card-bg: #ffffff;
+  --card-border-color: #e5e5e5;
+  --card-border-hover-color: #0078d4;
+
+  /* Sidebar */
+  --sidebar-primary: #0078d4;
+  --sidebar-bg: #f6f6f6;
+  --top-header-bg: rgba(255, 255, 255, 0.88);
+  --sidebar-border-color: #e5e5e5;
+  --sidebar-dropdown-hover-bg: #e8e8e8;
+  --sidebar-menu-active-bg: rgba(0, 120, 212, 0.08);
+  --sidebar-text-color: #4b5563;
+}
+
+[data-dark-mode] {
+  /* Surfaces - Dark Mode (Ola Dark Palette) */
+  --dark: #1e1e1e;
+  --body-bg: #1e1e1e;
+  --text-default: #d4d4d4;
+  --text-dark: #cccccc;
+  --text-light: #e5e5e5;
+  --text-muted: #9ca3af;
+
+  /* Elevated Containers */
+  --card-bg: #252526;
+  --card-border-color: #333333;
+  --card-border-hover-color: #0078d4;
+
+  /* Sidebar (macOS Finder Dark / Win Dark) */
+  --sidebar-bg: #212224;
+  --sidebar-border-color: #333333;
+  --sidebar-text-color: #9ca3af;
+  --top-header-bg: rgba(30, 30, 30, 0.88);
+  --sidebar-dropdown-hover-bg: #2a2d2e;
+  --sidebar-menu-active-bg: rgba(0, 120, 212, 0.2);
+  --sidebar-primary: #388de6;
+  --icon-color: #388de6;
+
+  /* Links */
+  --link-color: #388de6;
+  --link-hover-color: #60a5fa;
+
+  /* Buttons */
+  --btn-primary-color: #ffffff;
+  --btn-primary-bg: #0078d4;
+  --btn-primary-border: #0078d4;
+  --btn-soft-border: #333333;
+}
+
+/* Desktop Scrollbars matching web/src/index.css */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(150, 150, 150, 0.4);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(150, 150, 150, 0.7);
+}
+
+/* Sidebar polish for Material Icons */
+.sidebar-submenu .btn,
+.sidebar-dropdown > .btn {
+  display: flex;
+  align-items: center;
+  font-size: 0.92rem;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.sidebar-dropdown .material-icons,
+.sidebar-dropdown .material-symbols-outlined {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+/* Active navigation item highlight */
+.sidebar-nested-link.active,
+.sidebar-menu-active {
+  color: var(--primary) !important;
+  font-weight: 600;
+  background-color: var(--sidebar-menu-active-bg);
+  border-radius: 5px;
+}
+
+/* Navbar blur effect */
+#topnav {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--sidebar-border-color);
+}
+
+/* Code block modern polish */
+pre {
+  border-radius: 8px;
+  border: 1px solid var(--sidebar-border-color);
+}

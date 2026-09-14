@@ -1,7 +1,7 @@
-use ola::db::Database;
-use ola::fs::operations::FileOperations;
-use ola::fs::sandbox::RootManager;
-use ola::fs::trash::TrashManager;
+use kv_files::db::Database;
+use kv_files::fs::operations::FileOperations;
+use kv_files::fs::sandbox::RootManager;
+use kv_files::fs::trash::TrashManager;
 
 #[tokio::test]
 async fn test_filesystem_operations_and_trash() {

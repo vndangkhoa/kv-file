@@ -72,7 +72,7 @@ export const DetailedListView: React.FC = () => {
       <div className="grid grid-cols-12 gap-2 px-3 py-2 border-b border-gray-200 dark:border-[#333333] text-gray-500 font-medium shrink-0 bg-gray-50 dark:bg-[#252526]">
         <div
           onClick={() => handleSort('name')}
-          className="col-span-6 flex items-center gap-1 cursor-pointer hover:text-gray-900 dark:hover:text-gray-200"
+          className="col-span-8 sm:col-span-6 flex items-center gap-1 cursor-pointer hover:text-gray-900 dark:hover:text-gray-200"
         >
           <span>Name</span>
           <ArrowUpDown size={12} />
@@ -80,7 +80,7 @@ export const DetailedListView: React.FC = () => {
 
         <div
           onClick={() => handleSort('mod_time')}
-          className="col-span-3 flex items-center gap-1 cursor-pointer hover:text-gray-900 dark:hover:text-gray-200"
+          className="hidden sm:flex sm:col-span-3 items-center gap-1 cursor-pointer hover:text-gray-900 dark:hover:text-gray-200"
         >
           <span>Date Modified</span>
           <ArrowUpDown size={12} />
@@ -88,7 +88,7 @@ export const DetailedListView: React.FC = () => {
 
         <div
           onClick={() => handleSort('type')}
-          className="col-span-2 flex items-center gap-1 cursor-pointer hover:text-gray-900 dark:hover:text-gray-200"
+          className="hidden md:flex md:col-span-2 items-center gap-1 cursor-pointer hover:text-gray-900 dark:hover:text-gray-200"
         >
           <span>Type</span>
           <ArrowUpDown size={12} />
@@ -96,7 +96,7 @@ export const DetailedListView: React.FC = () => {
 
         <div
           onClick={() => handleSort('size')}
-          className="col-span-1 flex items-center justify-end gap-1 cursor-pointer hover:text-gray-900 dark:hover:text-gray-200 text-right"
+          className="col-span-4 sm:col-span-3 md:col-span-1 flex items-center justify-end gap-1 cursor-pointer hover:text-gray-900 dark:hover:text-gray-200 text-right"
         >
           <span>Size</span>
           <ArrowUpDown size={12} />
@@ -118,26 +118,26 @@ export const DetailedListView: React.FC = () => {
                 key={item.path}
                 onClick={(e) => handleItemClick(e, item)}
                 onDoubleClick={() => handleDoubleClick(item)}
-                className={`grid grid-cols-12 gap-2 px-3 py-1.5 cursor-pointer items-center border-b border-gray-100 dark:border-[#2a2a2a] transition-colors ${
+                className={`grid grid-cols-12 gap-2 px-3 py-2 md:py-1.5 cursor-pointer items-center border-b border-gray-100 dark:border-[#2a2a2a] transition-colors ${
                   isSelected
                     ? 'bg-blue-100 text-blue-900 dark:bg-[#0078d4]/30 dark:text-blue-200'
                     : 'hover:bg-gray-50 dark:hover:bg-[#252526] text-gray-800 dark:text-gray-300'
                 }`}
               >
-                <div className="col-span-6 flex items-center gap-2 truncate">
+                <div className="col-span-8 sm:col-span-6 flex items-center gap-2 truncate">
                   <FileIcon item={item} size={16} />
                   <span className="truncate">{item.name}</span>
                 </div>
 
-                <div className="col-span-3 text-gray-500 truncate">
+                <div className="hidden sm:block sm:col-span-3 text-gray-500 truncate">
                   {formatDate(item.mod_time)}
                 </div>
 
-                <div className="col-span-2 text-gray-500 truncate capitalize">
+                <div className="hidden md:block md:col-span-2 text-gray-500 truncate capitalize">
                   {item.is_dir ? 'Folder' : item.extension ? `${item.extension.toUpperCase()} File` : 'File'}
                 </div>
 
-                <div className="col-span-1 text-right text-gray-500 truncate font-mono">
+                <div className="col-span-4 sm:col-span-3 md:col-span-1 text-right text-gray-500 truncate font-mono">
                   {item.is_dir ? '--' : item.human_size}
                 </div>
               </div>

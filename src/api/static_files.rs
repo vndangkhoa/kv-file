@@ -13,8 +13,14 @@ pub async fn static_handler(uri: Uri) -> impl IntoResponse {
     let path = uri.path().trim_start_matches('/');
 
     // Check if the requested file exists in embedded assets
-    if let Some(content) = Assets::get(path) {
-        let mime = mime_guess::from_path(path).first_or_octet_stream();
+    let target_path = match path {
+        "landing" => "landing.html",
+        "docs" => "docs.html",
+        _ => path,
+    };
+
+    if let Some(content) = Assets::get(target_path) {
+        let mime = mime_guess::from_path(target_path).first_or_octet_stream();
         return (
             StatusCode::OK,
             [(header::CONTENT_TYPE, mime.as_ref())],

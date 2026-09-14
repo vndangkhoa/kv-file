@@ -898,6 +898,35 @@ dependencies = [
 ]
 
 [[package]]
+name = "kv-files"
+version = "2.0.0"
+dependencies = [
+ "argon2",
+ "async-stream",
+ "axum",
+ "chrono",
+ "clap",
+ "dunce",
+ "futures-util",
+ "libc",
+ "mime_guess",
+ "notify",
+ "rusqlite",
+ "rust-embed",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+ "tokio-util",
+ "tower",
+ "tower-http",
+ "tracing",
+ "tracing-subscriber",
+ "uuid",
+ "zip",
+]
+
+[[package]]
 name = "lazy_static"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1084,35 +1113,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "071dfc062690e90b734c0b2273ce72ad0ffa95f0c74596bc250dcfd960262841"
 dependencies = [
  "autocfg",
-]
-
-[[package]]
-name = "ola"
-version = "2.0.0"
-dependencies = [
- "argon2",
- "async-stream",
- "axum",
- "chrono",
- "clap",
- "dunce",
- "futures-util",
- "libc",
- "mime_guess",
- "notify",
- "rusqlite",
- "rust-embed",
- "serde",
- "serde_json",
- "thiserror",
- "tokio",
- "tokio-util",
- "tower",
- "tower-http",
- "tracing",
- "tracing-subscriber",
- "uuid",
- "zip",
 ]
 
 [[package]]

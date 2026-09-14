@@ -46,12 +46,12 @@ export const MillerColumnsView: React.FC = () => {
   return (
     <div
       ref={containerRef}
-      className="flex-1 flex flex-row overflow-x-auto overflow-y-hidden bg-white dark:bg-[#1e1e1e] select-none scrollbar-subtle"
+      className="flex-1 flex flex-row overflow-x-auto overflow-y-hidden bg-white dark:bg-[#1e1e1e] select-none scrollbar-subtle snap-x snap-mandatory md:snap-none"
     >
       {columns.map((col, colIdx) => (
         <div
           key={`${col.path}-${colIdx}`}
-          className="w-64 min-w-[16rem] max-w-[16rem] border-r border-gray-200 dark:border-[#333333] flex flex-col h-full shrink-0"
+          className="w-[82vw] min-w-[82vw] max-w-[82vw] md:w-64 md:min-w-[16rem] md:max-w-[16rem] snap-start border-r border-gray-200 dark:border-[#333333] flex flex-col h-full shrink-0"
         >
           {col.isLoading ? (
             <div className="flex-1 flex items-center justify-center text-gray-400 text-xs gap-2">
@@ -101,7 +101,7 @@ export const MillerColumnsView: React.FC = () => {
 
       {/* Terminal Inspector Column when a File is Selected */}
       {activeItem && !activeItem.is_dir && (
-        <div className="w-80 min-w-[20rem] max-w-[20rem] border-r border-gray-200 dark:border-[#333333] flex flex-col h-full shrink-0 bg-gray-50/50 dark:bg-[#252526]/50 p-4 overflow-y-auto">
+        <div className="w-[85vw] min-w-[85vw] max-w-[85vw] md:w-80 md:min-w-[20rem] md:max-w-[20rem] snap-start border-r border-gray-200 dark:border-[#333333] flex flex-col h-full shrink-0 bg-gray-50/50 dark:bg-[#252526]/50 p-4 overflow-y-auto">
           {/* Large Preview / Icon */}
           <div className="w-full h-40 bg-white dark:bg-[#1e1e1e] rounded-lg border border-gray-200 dark:border-[#3c3c3c] flex items-center justify-center overflow-hidden mb-4 shadow-sm">
             {activeItem.media_type === 'image' ? (
