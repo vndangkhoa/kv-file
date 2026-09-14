@@ -27,11 +27,14 @@ Most web file managers force you to choose between slow, bloated enterprise inte
 
 - 🚀 **Blazing Fast**: Single static binary written in pure Rust (Axum + Tokio) with zero external runtime dependencies.
 - 🗂️ **Familiar Navigation**: Switch effortlessly between **macOS Miller Columns** (with keyboard navigation `↑`/`↓`/`←`/`→`), **Windows Explorer** detailed list, compact grid, and dual-pane split view.
+- 🌐 **Dedicated Public Share Portal**: Generate expiring public share links with optional password protection. Directs visitors to a branded `/share/{token}` landing page with interactive in-browser preview (code/text, images, media, PDFs) and 1-click file/zip download.
+- 🏷️ **NAS & Server Intelligent Badges**: Automatically detects and contextualizes directory structures across **Synology DSM**, **TrueNAS CORE/SCALE**, **Unraid**, and **Linux VPS** Docker stacks. Features a **"Simple Mode"** toggle to hide OS internal plumbing for non-technical users.
+- 💾 **Multi-Drive Architecture**: Mount and manage multiple named roots (`root`, `storage`, `stacks`) and server shortcut places simultaneously.
 - 📱 **Installable PWA & Mobile First**: Full Progressive Web App with off-canvas touch navigation, mobile thumb-zone FAB, and swipe-snap columns.
 - 🎵 **Native Lockscreen Playcards**: Full integration with the **W3C Media Session API** gives iOS Dynamic Island / Control Center and Android Notifications rich play/pause, scrub, and artwork controls for audio and video streaming.
 - 🍎 **Apple & iPhone Ecosystem**: First-class preview for iPhone media (`.mov`, `.heic`, `.heif`, `.caf`, `.m4a`) and Apple iWork documents (`.pages`, `.numbers`, `.keynote`).
 - 🔒 **Hardened Security**: Argon2id password hashing, RFC 6238 TOTP Two-Factor Authentication (2FA) with live QR codes, and strict filesystem sandboxing.
-- ⚡ **Real-Time Synchronization**: Kernel-level `inotify` watcher broadcasts remote changes instantly over WebSockets.
+- ⚡ **Real-Time Synchronization**: Kernel-level `inotify` watcher broadcasts remote changes instantly over WebSockets with zero UI flickering.
 - 📦 **Zero-Friction Operations**: Drag-and-drop multi-file upload overlay, on-the-fly zip folder streaming, recycle bin with restore/purge, and expiring public share links.
 
 ---
@@ -234,7 +237,13 @@ Recycle Bin & Shares
   GET    /api/v1/shares                 # List active shares
   POST   /api/v1/shares                 # Create share link (with expiry & password)
   DELETE /api/v1/shares                 # Revoke share link
-  GET    /api/v1/public/share/{token}   # Public share download interface
+  GET    /api/v1/public/share/{token}   # Public share metadata (auto-redirects browsers to /share/{token})
+  GET    /api/v1/public/share/{token}/raw      # Public share inline streaming (preview)
+  GET    /api/v1/public/share/{token}/download # Public share attachment download (or on-the-fly zip)
+
+Public Web Landing Routes
+  GET    /share/{token}                 # Dedicated public share viewer with interactive preview
+  GET    /s/{token}                     # Short-link alias for public share viewer
 
 Real-Time Events
   GET    /api/v1/ws                     # WebSocket feed for live inotify filesystem events

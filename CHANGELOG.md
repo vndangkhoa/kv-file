@@ -36,6 +36,23 @@ Version 2.0.0 represents a complete architectural overhaul and major feature exp
   - Added [TwoFactorSetupModal.tsx](file:///mnt/data/Projects/kv-file/web/src/components/modals/TwoFactorSetupModal.tsx) with interactive 6-digit verification code inputs and emergency recovery instructions.
   - Hardened authentication flow supporting multi-step `pre_auth_token` login verification.
 
+- **Public Share Landing Page & Interactive Preview / Download Portal**:
+  - Added [PublicSharePage.tsx](file:///mnt/data/Projects/kv-file/web/src/components/public/PublicSharePage.tsx) standalone public landing page for share links at `/share/{token}` and `/s/{token}`.
+  - Interactive in-browser live preview for code and text files (YAML, Docker Compose, JSON, Markdown, Python, Shell scripts, Configs) with syntax styling, line numbers, and copy-content action.
+  - In-browser media playback for images, HTML5 video/audio, and embedded PDF documents.
+  - 1-Click direct file download and on-the-fly zip archive folder download.
+  - Password protection unlock screen for password-secured shared links.
+  - Automatic HTTP 307 temporary redirect from backend `/api/v1/public/share/{token}` to `/share/{token}` when accessed from a web browser.
+  - Added dedicated `/api/v1/public/share/{token}/raw` endpoint for inline streaming.
+
+- **Server & NAS Intelligent Folder Badges & Beginner Navigation**:
+  - Automatically identifies and annotates folders across **Synology DSM** (`volume1`, `@appstore`, `docker`, `photos`, etc.), **TrueNAS CORE/SCALE** (`ix-applications`, `tank`, `pool`), **Unraid** (`user`, `appdata`, `domains`), and **Linux VPS / Docker** (`/opt/dockhand/stacks`).
+  - Added **Simple Mode ("Hide OS Internals")** toggle in Detailed List and Miller Columns views to filter out 15+ low-level Linux system plumbing directories (`bin`, `boot`, `proc`, `sys`, `lib`, etc.) for beginners.
+  - Added **Server Places & 1-Click Shortcuts** in the sidebar for Docker Stacks, System Configuration (`/etc`), System Logs (`/var/log`), Root User Home (`/root`), and Personal Storage.
+
+- **Host Root Filesystem & Multi-Drive Mounts**:
+  - Supported mounting host root filesystem (`root`), dedicated storage volume (`storage`), and docker stacks drive (`stacks`).
+
 - **File Operations & Transfer Enhancements**:
   - **External Drag-and-Drop Overlay**: Fullscreen drop zone overlay when dragging files from desktop OS into the browser.
   - **Floating Upload Status Pill**: Animated non-blocking progress pill with percentage indicator, active file counter, and dismiss control.
@@ -70,6 +87,15 @@ Version 2.0.0 represents a complete architectural overhaul and major feature exp
 - **Improved Explorer Navigation**:
   - Enhanced Miller Columns with smooth scroll snapping, active column indicators, and responsive terminal inspector pane.
   - Added 1-click instant playback for audio and video files across detailed list, grid, and search result views.
+
+### Fixed
+- **Two-Factor Authentication RFC 3548 Base32 Secret Parsing**:
+  - Resolved `ParseBase32` error when scanning QR codes into Google Authenticator or Apple Passwords by generating canonical RFC 3548 Base32 secrets while preserving backwards compatibility with hexadecimal secrets.
+- **Zero-Flicker inotify File Watching**:
+  - Resolved automatic view reset and UI flickering caused by SQLite WAL / SHM and temp log writes (`-wal`, `-shm`, `beszel_data`).
+  - WebSocket event handlers now retain user's active file selection, expanded tree branches, open columns, and active modal previewers without interruption.
+- **Public Share Direct Link Resolution**:
+  - Fixed public share URLs resolving to raw JSON in browsers by introducing dedicated frontend routes (`/share/{token}`) and automatic HTTP 307 browser redirection.
 
 ### Security
 - Passwords hashed using Argon2id with random unique salts.
