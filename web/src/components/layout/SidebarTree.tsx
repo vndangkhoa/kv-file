@@ -22,6 +22,8 @@ import {
 } from 'lucide-react';
 import { useExplorerStore } from '../../stores/useExplorerStore';
 import { useFavoritesStore, FavoriteItem } from '../../stores/useFavoritesStore';
+import { useSettingsStore } from '../../stores/useSettingsStore';
+import { FileIcon } from '../common/FileIcon';
 import { useLongPress } from '../../hooks/useLongPress';
 import { api, getDataSourceMode, setDataSourceMode } from '../../services/api';
 import { TreeNode, StorageRootInfo } from '../../types';
@@ -53,7 +55,8 @@ const TreeItem: React.FC<TreeItemProps> = ({ node, level }) => {
     if (!isOpen && !children) {
       setIsLoading(true);
       try {
-        const loaded = await api.getTree(currentRoot, node.path, 1);
+        const showHidden = useSettingsStore.getState().preferences.showHiddenFiles;
+        const loaded = await api.getTree(currentRoot, node.path, 1, showHidden);
         setChildren(loaded.children || []);
       } catch (err) {
         console.error('Failed to load subfolders:', err);
@@ -182,7 +185,11 @@ const TreeItem: React.FC<TreeItemProps> = ({ node, level }) => {
           )}
         </button>
 
-        <Folder size={15} className="text-amber-500 fill-amber-400/20 shrink-0" />
+        <FileIcon
+          item={{ name: node.name, is_dir: true, is_system: node.is_system }}
+          size={15}
+          className="shrink-0"
+        />
         <span className="truncate text-sm md:text-xs">{node.name}</span>
       </div>
 
@@ -507,19 +514,20 @@ export const SidebarTree: React.FC = () => {
   } = useExplorerStore();
 
   const { favorites } = useFavoritesStore();
+  const showHiddenFiles = useSettingsStore((s) => s.preferences.showHiddenFiles);
   const [rootTrees, setRootTrees] = useState<Record<string, TreeNode>>({});
   const [isFavOpen, setIsFavOpen] = useState(true);
 
   useEffect(() => {
     if (currentRoot) {
       api
-        .getTree(currentRoot, '', 1)
+        .getTree(currentRoot, '', 1, showHiddenFiles)
         .then((tree) => {
           setRootTrees((prev) => ({ ...prev, [currentRoot]: tree }));
         })
         .catch(console.error);
     }
-  }, [currentRoot]);
+  }, [currentRoot, showHiddenFiles]);
 
   const handleNavFavorite = (fav: FavoriteItem) => {
     if (fav.root_name !== currentRoot) {
@@ -663,58 +671,102 @@ export const SidebarTree: React.FC = () => {
 
         <div className="h-[1px] bg-gray-200 dark:bg-[#333333] mx-2 my-1" />
 
-        {/* 1.5 ⚡ Server Shortcuts */}
+        {/* 1.5 ⚡ Quick Access: Server Places (VPS) or NAS Shared Folders */}
         <div className="p-2">
           <div className="px-2 py-1 text-[10px] font-bold tracking-wider text-gray-400 uppercase flex items-center justify-between">
             <div className="flex items-center gap-1.5">
               <Zap size={11} className="text-amber-500 fill-amber-400" />
-              <span>Server Places</span>
+              <span>{roots.some((r) => r.name === 'root') ? 'Server Places' : 'Quick Shares'}</span>
             </div>
           </div>
           <div className="space-y-0.5 mt-0.5">
-            <button
-              onClick={() => handleNavQuickPlace('root', 'opt/dockhand/stacks')}
-              className="w-full group flex items-center gap-2.5 px-3 py-2 md:py-1.5 rounded-xl md:rounded text-left hover:bg-blue-50 dark:hover:bg-blue-950/30 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all text-xs"
-            >
-              <Layers size={14} className="text-indigo-500 shrink-0" />
-              <span className="truncate flex-1 font-medium">Docker Stacks</span>
-              <span className="text-[9px] px-1.5 py-0.2 rounded bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-semibold border border-indigo-200 dark:border-indigo-800">
-                Apps
-              </span>
-            </button>
+            {roots.some((r) => r.name === 'root') ? (
+              <>
+                <button
+                  onClick={() => handleNavQuickPlace('root', 'opt/dockhand/stacks')}
+                  className="w-full group flex items-center gap-2.5 px-3 py-2 md:py-1.5 rounded-xl md:rounded text-left hover:bg-blue-50 dark:hover:bg-blue-950/30 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all text-xs"
+                >
+                  <Layers size={14} className="text-indigo-500 shrink-0" />
+                  <span className="truncate flex-1 font-medium">Docker Stacks</span>
+                  <span className="text-[9px] px-1.5 py-0.2 rounded bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-semibold border border-indigo-200 dark:border-indigo-800">
+                    Apps
+                  </span>
+                </button>
 
-            <button
-              onClick={() => handleNavQuickPlace('root', 'etc')}
-              className="w-full group flex items-center gap-2.5 px-3 py-2 md:py-1.5 rounded-xl md:rounded text-left hover:bg-amber-50 dark:hover:bg-amber-950/30 text-gray-700 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-400 transition-all text-xs"
-            >
-              <Settings size={14} className="text-amber-500 shrink-0" />
-              <span className="truncate flex-1 font-medium">Configurations</span>
-              <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 font-semibold border border-amber-200 dark:border-amber-800">
-                /etc
-              </span>
-            </button>
+                <button
+                  onClick={() => handleNavQuickPlace('root', 'etc')}
+                  className="w-full group flex items-center gap-2.5 px-3 py-2 md:py-1.5 rounded-xl md:rounded text-left hover:bg-amber-50 dark:hover:bg-amber-950/30 text-gray-700 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-400 transition-all text-xs"
+                >
+                  <Settings size={14} className="text-amber-500 shrink-0" />
+                  <span className="truncate flex-1 font-medium">Configurations</span>
+                  <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 font-semibold border border-amber-200 dark:border-amber-800">
+                    /etc
+                  </span>
+                </button>
 
-            <button
-              onClick={() => handleNavQuickPlace('root', 'var/log')}
-              className="w-full group flex items-center gap-2.5 px-3 py-2 md:py-1.5 rounded-xl md:rounded text-left hover:bg-cyan-50 dark:hover:bg-cyan-950/30 text-gray-700 dark:text-gray-300 hover:text-cyan-600 dark:hover:text-cyan-400 transition-all text-xs"
-            >
-              <FileText size={14} className="text-cyan-500 shrink-0" />
-              <span className="truncate flex-1 font-medium">Server Logs</span>
-              <span className="text-[9px] px-1.5 py-0.2 rounded bg-cyan-100 dark:bg-cyan-950/60 text-cyan-700 dark:text-cyan-300 font-semibold border border-cyan-200 dark:border-cyan-800">
-                Logs
-              </span>
-            </button>
+                <button
+                  onClick={() => handleNavQuickPlace('root', 'var/log')}
+                  className="w-full group flex items-center gap-2.5 px-3 py-2 md:py-1.5 rounded-xl md:rounded text-left hover:bg-cyan-50 dark:hover:bg-cyan-950/30 text-gray-700 dark:text-gray-300 hover:text-cyan-600 dark:hover:text-cyan-400 transition-all text-xs"
+                >
+                  <FileText size={14} className="text-cyan-500 shrink-0" />
+                  <span className="truncate flex-1 font-medium">Server Logs</span>
+                  <span className="text-[9px] px-1.5 py-0.2 rounded bg-cyan-100 dark:bg-cyan-950/60 text-cyan-700 dark:text-cyan-300 font-semibold border border-cyan-200 dark:border-cyan-800">
+                    Logs
+                  </span>
+                </button>
 
-            <button
-              onClick={() => handleNavQuickPlace('root', 'root')}
-              className="w-full group flex items-center gap-2.5 px-3 py-2 md:py-1.5 rounded-xl md:rounded text-left hover:bg-purple-50 dark:hover:bg-purple-950/30 text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-all text-xs"
-            >
-              <Lock size={14} className="text-purple-500 shrink-0" />
-              <span className="truncate flex-1 font-medium">Admin Home</span>
-              <span className="text-[9px] px-1.5 py-0.2 rounded bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-semibold border border-purple-200 dark:border-purple-800">
-                /root
-              </span>
-            </button>
+                <button
+                  onClick={() => handleNavQuickPlace('root', 'root')}
+                  className="w-full group flex items-center gap-2.5 px-3 py-2 md:py-1.5 rounded-xl md:rounded text-left hover:bg-purple-50 dark:hover:bg-purple-950/30 text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-all text-xs"
+                >
+                  <Lock size={14} className="text-purple-500 shrink-0" />
+                  <span className="truncate flex-1 font-medium">Admin Home</span>
+                  <span className="text-[9px] px-1.5 py-0.2 rounded bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-semibold border border-purple-200 dark:border-purple-800">
+                    /root
+                  </span>
+                </button>
+              </>
+            ) : (
+              (() => {
+                const userShares = (rootTrees[currentRoot]?.children || []).filter((c) => !c.is_system);
+                if (userShares.length === 0) {
+                  return (
+                    <div className="px-3 py-2 text-[11px] text-gray-400 dark:text-gray-500 italic">
+                      No user shares detected
+                    </div>
+                  );
+                }
+                return userShares.slice(0, 8).map((share) => {
+                  const isSelected = currentPath === share.path;
+                  return (
+                    <button
+                      key={share.path}
+                      onClick={() => {
+                        navigateTo(share.path);
+                        if (window.innerWidth < 768) setSidebarOpen(false);
+                      }}
+                      className={`w-full group flex items-center gap-2.5 px-3 py-2 md:py-1.5 rounded-xl md:rounded text-left transition-all text-xs ${
+                        isSelected
+                          ? 'bg-blue-50 text-blue-800 dark:bg-[#0078d4]/20 dark:text-blue-300 font-semibold'
+                          : 'hover:bg-gray-100 dark:hover:bg-[#2a2d2e] text-gray-700 dark:text-gray-300'
+                      }`}
+                    >
+                      <FileIcon
+                        item={{ name: share.name, is_dir: true, is_system: false }}
+                        size={14}
+                        className="shrink-0"
+                      />
+                      <span className="truncate flex-1 font-medium capitalize">
+                        {share.name}
+                      </span>
+                      <span className="text-[9px] px-1.5 py-0.2 rounded bg-gray-200/60 dark:bg-gray-800 text-gray-500 dark:text-gray-400 font-normal">
+                        Share
+                      </span>
+                    </button>
+                  );
+                });
+              })()
+            )}
           </div>
         </div>
 

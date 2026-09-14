@@ -7,6 +7,16 @@ use chrono::{DateTime, Utc};
 use std::ffi::CString;
 use std::path::{Path, PathBuf};
 
+pub fn is_system_name(name: &str) -> bool {
+    name.starts_with('.')
+        || name.starts_with('@')
+        || name == "#recycle"
+        || name == ".recycle"
+        || name == "$RECYCLE.BIN"
+        || name == "System Volume Information"
+        || name == "lost+found"
+}
+
 pub struct FileOperations;
 
 impl FileOperations {
@@ -14,6 +24,7 @@ impl FileOperations {
         roots: &RootManager,
         root_name: &str,
         relative_path: &str,
+        show_hidden: bool,
     ) -> Result<DirectoryListing> {
         let abs_path = roots.resolve_safe(root_name, relative_path)?;
         let root_dir = roots
@@ -33,12 +44,14 @@ impl FileOperations {
         let mut total_size = 0u64;
         let mut total_folders = 0usize;
         let mut total_files = 0usize;
+        let mut hidden_count = 0usize;
 
         while let Some(entry) = read_dir.next_entry().await? {
             let file_name = entry.file_name().to_string_lossy().to_string();
 
-            // Ignore hidden files and internal directories like .trash
-            if file_name.starts_with('.') {
+            let is_system = is_system_name(&file_name);
+            if is_system && !show_hidden {
+                hidden_count += 1;
                 continue;
             }
 
@@ -108,6 +121,7 @@ impl FileOperations {
                 media_type,
                 mime_type,
                 item_count: None,
+                is_system,
             });
         }
 
@@ -130,6 +144,7 @@ impl FileOperations {
             total_files,
             total_size,
             items,
+            hidden_count,
         })
     }
 
@@ -138,6 +153,7 @@ impl FileOperations {
         root_name: &str,
         relative_path: &str,
         max_depth: usize,
+        show_hidden: bool,
     ) -> Result<TreeNode> {
         let abs_path = roots.resolve_safe(root_name, relative_path)?;
         let name = if relative_path.is_empty() || relative_path == "/" {
@@ -150,12 +166,15 @@ impl FileOperations {
                 .to_string()
         };
 
+        let is_system = is_system_name(&name);
+
         let mut node = TreeNode {
             name,
             path: relative_path.trim_matches('/').to_string(),
             root_name: root_name.to_string(),
             has_children: false,
             children: None,
+            is_system,
         };
 
         if max_depth > 0 && abs_path.is_dir() {
@@ -167,7 +186,7 @@ impl FileOperations {
             let mut children = Vec::new();
             while let Ok(Some(entry)) = read_dir.next_entry().await {
                 let fname = entry.file_name().to_string_lossy().to_string();
-                if fname.starts_with('.') {
+                if is_system_name(&fname) && !show_hidden {
                     continue;
                 }
                 if let Ok(meta) = entry.metadata().await {
@@ -188,6 +207,7 @@ impl FileOperations {
                             root_name,
                             &child_rel,
                             max_depth - 1,
+                            show_hidden,
                         ))
                         .await?;
                         children.push(child_node);
@@ -401,7 +421,7 @@ impl FileOperations {
 
             while let Ok(Some(entry)) = read_dir.next_entry().await {
                 let name = entry.file_name().to_string_lossy().to_string();
-                if name.starts_with('.') {
+                if is_system_name(&name) {
                     continue;
                 }
 
@@ -519,6 +539,7 @@ impl FileOperations {
                                 .to_string()
                         },
                         item_count: None,
+                        is_system: false,
                     });
 
                     if results.len() >= max_results {

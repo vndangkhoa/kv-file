@@ -17,15 +17,30 @@ async fn test_filesystem_operations_and_trash() {
     FileOperations::create_folder(&root_manager, "storage", "documents").await.unwrap();
     assert!(storage_dir.join("documents").is_dir());
 
-    // 2. Create sample file
+    // 2. Create sample file and system items (@ and .)
     let file_path = storage_dir.join("documents").join("test.txt");
     std::fs::write(&file_path, "Hello Ola Rust!").unwrap();
+    let sys_dir = storage_dir.join("documents").join("@appstore");
+    std::fs::create_dir_all(&sys_dir).unwrap();
+    let dot_file = storage_dir.join("documents").join(".hidden");
+    std::fs::write(&dot_file, "secret").unwrap();
 
-    // 3. List directory
-    let listing = FileOperations::list_directory(&root_manager, "storage", "documents").await.unwrap();
+    // 3. List directory (hidden=false: should hide @appstore and .hidden)
+    let listing = FileOperations::list_directory(&root_manager, "storage", "documents", false).await.unwrap();
     assert_eq!(listing.items.len(), 1);
     assert_eq!(listing.items[0].name, "test.txt");
     assert_eq!(listing.items[0].size, 15);
+    assert_eq!(listing.hidden_count, 2);
+
+    // 3b. List directory (hidden=true: should include @appstore and .hidden)
+    let listing_all = FileOperations::list_directory(&root_manager, "storage", "documents", true).await.unwrap();
+    assert_eq!(listing_all.items.len(), 3);
+    assert!(listing_all.items.iter().any(|i| i.name == "@appstore" && i.is_system));
+    assert!(listing_all.items.iter().any(|i| i.name == ".hidden" && i.is_system));
+
+    // Cleanup extra test items before proceeding
+    std::fs::remove_dir_all(&sys_dir).unwrap();
+    std::fs::remove_file(&dot_file).unwrap();
 
     // 4. Rename item
     FileOperations::rename_item(&root_manager, "storage", "documents/test.txt", "renamed.txt").await.unwrap();

@@ -57,6 +57,8 @@ pub struct FileItem {
     pub mime_type: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub item_count: Option<usize>,
+    #[serde(default)]
+    pub is_system: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -75,6 +77,8 @@ pub struct DirectoryListing {
     pub total_folders: usize,
     pub total_files: usize,
     pub total_size: u64,
+    #[serde(default)]
+    pub hidden_count: usize,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -85,6 +89,8 @@ pub struct TreeNode {
     pub has_children: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub children: Option<Vec<TreeNode>>,
+    #[serde(default)]
+    pub is_system: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

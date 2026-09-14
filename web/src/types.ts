@@ -12,6 +12,7 @@ export interface FileItem {
   media_type: MediaType;
   mime_type: string;
   item_count?: number;
+  is_system?: boolean;
 }
 
 export interface BreadcrumbItem {
@@ -28,6 +29,7 @@ export interface DirectoryListing {
   total_folders: number;
   total_files: number;
   total_size: number;
+  hidden_count?: number;
 }
 
 export interface TreeNode {
@@ -36,6 +38,7 @@ export interface TreeNode {
   root_name: string;
   has_children: boolean;
   children?: TreeNode[];
+  is_system?: boolean;
 }
 
 export interface StorageRootInfo {

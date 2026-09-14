@@ -111,12 +111,18 @@ export const apiDataSource: FileSystemDataSource = {
   async getRoots(): Promise<StorageRootInfo[]> {
     return request('/fs/roots');
   },
-  async listDirectory(root: string, path: string): Promise<DirectoryListing> {
+  async listDirectory(root: string, path: string, showHidden?: boolean): Promise<DirectoryListing> {
     const params = new URLSearchParams({ root, path });
+    if (showHidden !== undefined) {
+      params.set('show_hidden', showHidden ? 'true' : 'false');
+    }
     return request(`/fs/list?${params.toString()}`);
   },
-  async getTree(root: string, path: string = '', depth: number = 2): Promise<TreeNode> {
+  async getTree(root: string, path: string = '', depth: number = 2, showHidden?: boolean): Promise<TreeNode> {
     const params = new URLSearchParams({ root, path, depth: depth.toString() });
+    if (showHidden !== undefined) {
+      params.set('show_hidden', showHidden ? 'true' : 'false');
+    }
     return request(`/fs/tree?${params.toString()}`);
   },
   async createFolder(root: string, path: string): Promise<void> {

@@ -571,14 +571,24 @@ class MockFileSystem implements FileSystemDataSource {
     ];
   }
 
-  async listDirectory(root: string, path: string): Promise<DirectoryListing> {
+  async listDirectory(root: string, path: string, showHidden: boolean = false): Promise<DirectoryListing> {
     const cleanPath = path.replace(/^\/+|\/+$/g, '');
+    const isSystemItem = (name: string) =>
+      name.startsWith('.') || name.startsWith('@') || name === '#recycle' || name === 'lost+found';
+
     const directChildren = this.items.filter((item) => {
       if (item.root_name !== root) return false;
       const itemParent = item.path.includes('/')
         ? item.path.substring(0, item.path.lastIndexOf('/'))
         : '';
       return itemParent === cleanPath;
+    });
+
+    const hiddenCount = directChildren.filter((i) => isSystemItem(i.name) && !showHidden).length;
+    const visibleChildren = directChildren.filter((i) => {
+      if (isSystemItem(i.name) && !showHidden) return false;
+      i.is_system = isSystemItem(i.name);
+      return true;
     });
 
     const breadcrumbs: BreadcrumbItem[] = [{ name: 'Home', path: '' }];
@@ -590,38 +600,43 @@ class MockFileSystem implements FileSystemDataSource {
       }
     }
 
-    const totalFolders = directChildren.filter((i) => i.is_dir).length;
-    const totalFiles = directChildren.filter((i) => !i.is_dir).length;
-    const totalSize = directChildren.reduce((acc, i) => acc + i.size, 0);
+    const totalFolders = visibleChildren.filter((i) => i.is_dir).length;
+    const totalFiles = visibleChildren.filter((i) => !i.is_dir).length;
+    const totalSize = visibleChildren.reduce((acc, i) => acc + i.size, 0);
 
     return {
       root_name: root,
       current_path: cleanPath,
       breadcrumbs,
-      items: directChildren,
-      total_items: directChildren.length,
+      items: visibleChildren,
+      total_items: visibleChildren.length,
       total_folders: totalFolders,
       total_files: totalFiles,
       total_size: totalSize,
+      hidden_count: hiddenCount,
     };
   }
 
-  async getTree(root: string, path: string = '', depth: number = 2): Promise<TreeNode> {
+  async getTree(root: string, path: string = '', depth: number = 2, showHidden: boolean = false): Promise<TreeNode> {
     const cleanPath = path.replace(/^\/+|\/+$/g, '');
     const name = cleanPath.includes('/')
       ? cleanPath.substring(cleanPath.lastIndexOf('/') + 1)
       : cleanPath || root;
+    const isSystemItem = (n: string) =>
+      n.startsWith('.') || n.startsWith('@') || n === '#recycle' || n === 'lost+found';
 
     const node: TreeNode = {
       name,
       path: cleanPath,
       root_name: root,
       has_children: false,
+      is_system: isSystemItem(name),
     };
 
     if (depth > 0) {
       const children = this.items.filter((i) => {
         if (!i.is_dir || i.root_name !== root) return false;
+        if (isSystemItem(i.name) && !showHidden) return false;
         const parent = i.path.includes('/') ? i.path.substring(0, i.path.lastIndexOf('/')) : '';
         return parent === cleanPath;
       });
@@ -629,7 +644,7 @@ class MockFileSystem implements FileSystemDataSource {
       if (children.length > 0) {
         node.has_children = true;
         node.children = await Promise.all(
-          children.map((c) => this.getTree(root, c.path, depth - 1))
+          children.map((c) => this.getTree(root, c.path, depth - 1, showHidden))
         );
       }
     }

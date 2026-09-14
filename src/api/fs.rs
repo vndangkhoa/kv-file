@@ -21,6 +21,7 @@ use tokio_util::io::ReaderStream;
 pub struct ListParams {
     pub root: Option<String>,
     pub path: Option<String>,
+    pub show_hidden: Option<bool>,
 }
 
 #[derive(Deserialize)]
@@ -28,6 +29,7 @@ pub struct TreeParams {
     pub root: Option<String>,
     pub path: Option<String>,
     pub depth: Option<usize>,
+    pub show_hidden: Option<bool>,
 }
 
 #[derive(Deserialize)]
@@ -94,8 +96,9 @@ pub async fn list_directory(
         .root
         .unwrap_or_else(|| state.roots.get_first_root_name());
     let path = params.path.unwrap_or_default();
+    let show_hidden = params.show_hidden.unwrap_or(false);
 
-    let listing = FileOperations::list_directory(&state.roots, &root_name, &path).await?;
+    let listing = FileOperations::list_directory(&state.roots, &root_name, &path, show_hidden).await?;
     Ok(Json(listing))
 }
 
@@ -108,8 +111,9 @@ pub async fn get_tree(
         .unwrap_or_else(|| state.roots.get_first_root_name());
     let path = params.path.unwrap_or_default();
     let depth = params.depth.unwrap_or(2);
+    let show_hidden = params.show_hidden.unwrap_or(false);
 
-    let tree = FileOperations::get_tree(&state.roots, &root_name, &path, depth).await?;
+    let tree = FileOperations::get_tree(&state.roots, &root_name, &path, depth, show_hidden).await?;
     Ok(Json(tree))
 }
 

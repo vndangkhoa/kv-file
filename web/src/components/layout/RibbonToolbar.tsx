@@ -11,10 +11,12 @@ import {
   List,
   LayoutGrid,
   Eye,
+  EyeOff,
   Download,
 } from 'lucide-react';
 import { useExplorerStore } from '../../stores/useExplorerStore';
 import { useDownloadStore } from '../../stores/useDownloadStore';
+import { useSettingsStore } from '../../stores/useSettingsStore';
 import { api } from '../../services/api';
 
 export const RibbonToolbar: React.FC = () => {
@@ -36,8 +38,10 @@ export const RibbonToolbar: React.FC = () => {
     isSplitView,
     toggleSplitView,
     openContextMenu,
+    toggleShowHidden,
   } = useExplorerStore();
 
+  const showHiddenFiles = useSettingsStore((s) => s.preferences.showHiddenFiles);
   const { startDownload } = useDownloadStore();
 
   const hasSelection = selectedItems.length > 0;
@@ -220,8 +224,32 @@ export const RibbonToolbar: React.FC = () => {
         </button>
       </div>
 
-      {/* Right side: View Mode Switcher */}
+      {/* Right side: System folder toggle & View Mode Switcher */}
       <div className="flex items-center gap-2">
+        {/* Toggle System / Hidden Folders */}
+        <button
+          onClick={toggleShowHidden}
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-medium transition-colors shrink-0 min-h-[32px] text-xs ${
+            showHiddenFiles
+              ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-200 border border-amber-300 dark:border-amber-700'
+              : 'hover:bg-gray-100 dark:hover:bg-[#333333] text-gray-600 dark:text-gray-300'
+          }`}
+          title={
+            showHiddenFiles
+              ? 'System folders (@/.) are visible. Click to hide.'
+              : 'System folders (@/.) are hidden. Click to show.'
+          }
+        >
+          {showHiddenFiles ? (
+            <Eye size={14} className="text-amber-600 dark:text-amber-400" />
+          ) : (
+            <EyeOff size={14} className="text-gray-400" />
+          )}
+          <span className="hidden min-[700px]:inline">
+            {showHiddenFiles ? 'System: Shown' : 'System: Hidden'}
+          </span>
+        </button>
+
         {/* View Mode Switcher (Columns / List / Grid) */}
         <div className="flex items-center bg-gray-100 dark:bg-[#1e1e1e] p-0.5 rounded border border-gray-200 dark:border-[#3c3c3c]">
           <button

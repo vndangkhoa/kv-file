@@ -37,8 +37,8 @@ export interface FileSystemDataSource {
 
   // Filesystem
   getRoots(): Promise<StorageRootInfo[]>;
-  listDirectory(root: string, path: string): Promise<DirectoryListing>;
-  getTree(root: string, path?: string, depth?: number): Promise<TreeNode>;
+  listDirectory(root: string, path: string, showHidden?: boolean): Promise<DirectoryListing>;
+  getTree(root: string, path?: string, depth?: number, showHidden?: boolean): Promise<TreeNode>;
   createFolder(root: string, path: string): Promise<void>;
   renameItem(root: string, path: string, new_name: string): Promise<void>;
   copyItem(root: string, source: string, destination: string): Promise<void>;

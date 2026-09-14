@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { api } from '../services/api';
 import { DirectoryListing, FileItem, StorageRootInfo, ViewMode, TreeNode } from '../types';
+import { useSettingsStore } from './useSettingsStore';
 
 export interface ColumnLevel {
   path: string;
@@ -136,6 +137,7 @@ interface ExplorerState {
   goForward: () => Promise<void>;
   goUp: () => Promise<void>;
   refresh: (preserveSelection?: boolean) => Promise<void>;
+  toggleShowHidden: () => Promise<void>;
 
   // Selection
   setViewMode: (mode: ViewMode) => void;
@@ -242,11 +244,12 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
     if (!root) return;
 
     const cleanPath = path.trim().replace(/^\/+|\/+$/g, '');
+    const showHidden = useSettingsStore.getState().preferences.showHiddenFiles;
 
     set({ isLoading: true, error: null });
 
     try {
-      const listing = await api.listDirectory(root, cleanPath);
+      const listing = await api.listDirectory(root, cleanPath, showHidden);
 
       // Manage history
       let { history, historyIndex } = get();
@@ -261,7 +264,7 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
       const cols: ColumnLevel[] = [];
 
       // First column is root folder
-      const rootListing = cleanPath === '' ? listing : await api.listDirectory(root, '');
+      const rootListing = cleanPath === '' ? listing : await api.listDirectory(root, '', showHidden);
       cols.push({
         path: '',
         items: rootListing.items,
@@ -274,7 +277,7 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
       for (let i = 0; i < segments.length; i++) {
         curAcc = curAcc ? `${curAcc}/${segments[i]}` : segments[i];
         const isCurrent = curAcc === cleanPath;
-        const colListing = isCurrent ? listing : await api.listDirectory(root, curAcc);
+        const colListing = isCurrent ? listing : await api.listDirectory(root, curAcc, showHidden);
         cols.push({
           path: curAcc,
           items: colListing.items,
@@ -330,7 +333,8 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
     if (!currentRoot) return;
 
     try {
-      const listing = await api.listDirectory(currentRoot, currentPath);
+      const showHidden = useSettingsStore.getState().preferences.showHiddenFiles;
+      const listing = await api.listDirectory(currentRoot, currentPath, showHidden);
 
       let updatedSelected = selectedItems;
       let updatedActive = activeItem;
@@ -376,6 +380,12 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
     } catch (err: any) {
       console.warn('Silent refresh error:', err);
     }
+  },
+
+  toggleShowHidden: async () => {
+    const current = useSettingsStore.getState().preferences.showHiddenFiles;
+    useSettingsStore.getState().updatePreferences({ showHiddenFiles: !current });
+    await get().refresh();
   },
 
   setViewMode: (mode: ViewMode) => set({ viewMode: mode }),
@@ -442,7 +452,8 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
       set({ columns: newCols, currentPath: cleanPath });
 
       try {
-        const childListing = await api.listDirectory(currentRoot, cleanPath);
+        const showHidden = useSettingsStore.getState().preferences.showHiddenFiles;
+        const childListing = await api.listDirectory(currentRoot, cleanPath, showHidden);
         newCols[columnIndex + 1].items = childListing.items;
         newCols[columnIndex + 1].isLoading = false;
         set({ columns: [...newCols], listing: childListing });
@@ -575,7 +586,8 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
     if (!root) return;
     const cleanPath = path.trim().replace(/^\/+|\/+$/g, '');
     try {
-      const listing = await api.listDirectory(root, cleanPath);
+      const showHidden = useSettingsStore.getState().preferences.showHiddenFiles;
+      const listing = await api.listDirectory(root, cleanPath, showHidden);
       set({
         rightPanePath: cleanPath,
         rightPaneListing: listing,

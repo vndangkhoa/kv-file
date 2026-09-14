@@ -7,9 +7,11 @@ interface StatusBarProps {
 }
 
 export const StatusBar: React.FC<StatusBarProps> = ({ wsConnected }) => {
-  const { listing, selectedItems, roots, currentRoot, openContextMenu } = useExplorerStore();
+  const { listing, selectedItems, roots, currentRoot, openContextMenu, toggleShowHidden } =
+    useExplorerStore();
 
   const totalItems = listing?.total_items || 0;
+  const hiddenCount = listing?.hidden_count || 0;
   const selectedCount = selectedItems.length;
   const selectedSize = selectedItems.reduce((acc, i) => acc + i.size, 0);
 
@@ -27,7 +29,21 @@ export const StatusBar: React.FC<StatusBarProps> = ({ wsConnected }) => {
     >
       {/* Items & Selection */}
       <div className="flex items-center gap-3">
-        <span>{totalItems} {totalItems === 1 ? 'item' : 'items'}</span>
+        <span>
+          {totalItems} {totalItems === 1 ? 'item' : 'items'}
+        </span>
+        {hiddenCount > 0 && (
+          <>
+            <span>|</span>
+            <button
+              onClick={toggleShowHidden}
+              className="text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-1 font-medium cursor-pointer"
+              title="Click to toggle system & hidden files"
+            >
+              <span>{hiddenCount} system items hidden</span>
+            </button>
+          </>
+        )}
         {selectedCount > 0 && (
           <>
             <span>|</span>
