@@ -7,6 +7,7 @@ import {
   Columns,
   List,
   LayoutGrid,
+  Play,
 } from 'lucide-react';
 import { useExplorerStore } from '../../stores/useExplorerStore';
 import { FileItem } from '../../types';
@@ -23,8 +24,6 @@ export const SplitView: React.FC = () => {
     viewMode,
     setViewMode,
 
-    activePane,
-    setActivePane,
     rightPanePath,
     rightPaneListing,
     rightPaneViewMode,
@@ -32,6 +31,9 @@ export const SplitView: React.FC = () => {
     rightPaneSelectedItems,
     selectRightPaneItem,
     navigateRightPane,
+
+    activePane,
+    setActivePane,
 
     copyToOtherPane,
     moveToOtherPane,
@@ -49,10 +51,18 @@ export const SplitView: React.FC = () => {
 
   const handleItemClick = (pane: 'left' | 'right', item: FileItem, e: React.MouseEvent) => {
     setActivePane(pane);
+    const isMulti = e.ctrlKey || e.metaKey || e.shiftKey;
     if (pane === 'left') {
-      selectItem(item, e.ctrlKey || e.metaKey);
+      selectItem(item, isMulti);
     } else {
-      selectRightPaneItem(item, e.ctrlKey || e.metaKey);
+      selectRightPaneItem(item, isMulti);
+    }
+    if (!isMulti && !item.is_dir) {
+      if (item.media_type === 'video') {
+        playVideo(item);
+      } else if (item.media_type === 'audio') {
+        playAudio(item);
+      }
     }
   };
 
@@ -116,8 +126,15 @@ export const SplitView: React.FC = () => {
                     : 'border-gray-200/60 dark:border-[#333333] hover:bg-gray-50 dark:hover:bg-[#2a2d2e]'
                 }`}
               >
-                <div className="mb-2 transition-transform group-hover:scale-105">
+                <div className="relative mb-2 transition-transform group-hover:scale-105">
                   <FileIcon item={item} size={36} />
+                  {(item.media_type === 'video' || item.media_type === 'audio') && (
+                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 flex items-center justify-center rounded-lg transition-colors">
+                      <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-md">
+                        <Play size={10} className="translate-x-0.5" />
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <span className="text-xs font-medium text-gray-800 dark:text-gray-200 truncate w-full">
                   {item.name}
@@ -167,6 +184,11 @@ export const SplitView: React.FC = () => {
                 <div className="flex items-center gap-2.5 min-w-0">
                   <FileIcon item={item} size={16} />
                   <span className="font-medium truncate">{item.name}</span>
+                  {(item.media_type === 'video' || item.media_type === 'audio') && (
+                    <span className="shrink-0 text-[9px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 font-medium">
+                      {item.media_type === 'video' ? '▶ Video' : '♫ Audio'}
+                    </span>
+                  )}
                 </div>
                 <div className="flex items-center gap-4 shrink-0 text-gray-400 font-mono text-[11px]">
                   <span>{item.is_dir ? '—' : item.human_size}</span>

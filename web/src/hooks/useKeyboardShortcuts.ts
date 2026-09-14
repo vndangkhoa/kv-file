@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useExplorerStore } from '../stores/useExplorerStore';
+import { useSettingsStore } from '../stores/useSettingsStore';
 
 export function useKeyboardShortcuts() {
   const {
@@ -26,6 +27,7 @@ export function useKeyboardShortcuts() {
     copyToOtherPane,
     moveToOtherPane,
   } = useExplorerStore();
+  const { isOpen: isSettingsOpen, openSettings } = useSettingsStore();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -33,6 +35,13 @@ export function useKeyboardShortcuts() {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         setCommandPaletteOpen(!isCommandPaletteOpen);
+        return;
+      }
+
+      // 0a. Ctrl+, or Cmd+, -> Open Settings
+      if ((e.ctrlKey || e.metaKey) && e.key === ',') {
+        e.preventDefault();
+        openSettings();
         return;
       }
 
@@ -54,7 +63,8 @@ export function useKeyboardShortcuts() {
         isTrashOpen ||
         isNewFolderOpen ||
         isRenameOpen ||
-        isCommandPaletteOpen;
+        isCommandPaletteOpen ||
+        isSettingsOpen;
 
       // 0b. Alt+S -> Toggle Split View
       if (e.altKey && e.key.toLowerCase() === 's' && !anyModalOpen) {

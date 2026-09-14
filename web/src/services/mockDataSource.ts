@@ -424,6 +424,16 @@ class MockFileSystem implements FileSystemDataSource {
       created_at: new Date(Date.now() - 3600000 * 48).toISOString(),
     },
   ];
+  private users: User[] = [
+    { id: 'usr-1', username: 'demo_admin', role: 'admin', created_at: new Date('2026-01-01').toISOString() },
+    { id: 'usr-2', username: 'alex_editor', role: 'editor', created_at: new Date('2026-02-15').toISOString() },
+    { id: 'usr-3', username: 'sarah_viewer', role: 'viewer', created_at: new Date('2026-03-10').toISOString() },
+  ];
+  private settings: Record<string, string> = {
+    trash_retention_days: '30',
+    max_upload_size_mb: '1024',
+    site_title: 'KV Files Storage',
+  };
 
   async checkSetup(): Promise<{ is_initialized: boolean }> {
     return { is_initialized: true };
@@ -444,6 +454,42 @@ class MockFileSystem implements FileSystemDataSource {
   }
 
   async logout(): Promise<void> {}
+
+  async changePassword(_current_password: string, new_password: string): Promise<void> {
+    if (new_password.length < 6) {
+      throw new Error('Password must be at least 6 characters');
+    }
+  }
+
+  async listUsers(): Promise<User[]> {
+    return [...this.users];
+  }
+
+  async createUser(username: string, _password: string, role: string = 'viewer'): Promise<User> {
+    if (this.users.some((u) => u.username.toLowerCase() === username.toLowerCase())) {
+      throw new Error('User already exists');
+    }
+    const newUser: User = {
+      id: `usr-${Date.now()}`,
+      username,
+      role,
+      created_at: new Date().toISOString(),
+    };
+    this.users.push(newUser);
+    return newUser;
+  }
+
+  async deleteUser(id: string): Promise<void> {
+    this.users = this.users.filter((u) => u.id !== id);
+  }
+
+  async getSettings(): Promise<Record<string, string>> {
+    return { ...this.settings };
+  }
+
+  async updateSettings(settings: Record<string, string>): Promise<void> {
+    this.settings = { ...this.settings, ...settings };
+  }
 
   async getRoots(): Promise<StorageRootInfo[]> {
     return [

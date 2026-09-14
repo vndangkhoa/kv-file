@@ -1,4 +1,5 @@
 import React from 'react';
+import { Play } from 'lucide-react';
 import { useExplorerStore } from '../../stores/useExplorerStore';
 import { FileIcon } from '../common/FileIcon';
 import { FileItem } from '../../types';
@@ -19,8 +20,15 @@ export const GridView: React.FC = () => {
   const items = listing?.items || [];
 
   const handleItemClick = (e: React.MouseEvent, item: FileItem) => {
-    const isMulti = e.ctrlKey || e.metaKey;
+    const isMulti = e.ctrlKey || e.metaKey || e.shiftKey;
     selectItem(item, isMulti);
+    if (!isMulti && !item.is_dir) {
+      if (item.media_type === 'video') {
+        playVideo(item);
+      } else if (item.media_type === 'audio') {
+        playAudio(item);
+      }
+    }
   };
 
   const handleDoubleClick = (item: FileItem) => {
@@ -70,7 +78,7 @@ export const GridView: React.FC = () => {
                 }`}
               >
                 {/* Thumbnail / Icon Container */}
-                <div className="w-16 h-16 rounded flex items-center justify-center mb-1 overflow-hidden bg-gray-50 dark:bg-[#2a2a2a]/40">
+                <div className="relative w-16 h-16 rounded flex items-center justify-center mb-1 overflow-hidden bg-gray-50 dark:bg-[#2a2a2a]/40">
                   {item.media_type === 'image' ? (
                     <img
                       src={api.getRawFileUrl(item.root_name, item.path)}
@@ -80,6 +88,13 @@ export const GridView: React.FC = () => {
                     />
                   ) : (
                     <FileIcon item={item} size={36} />
+                  )}
+                  {(item.media_type === 'video' || item.media_type === 'audio') && (
+                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 flex items-center justify-center transition-colors">
+                      <div className="w-7 h-7 rounded-full bg-blue-600/90 text-white flex items-center justify-center shadow-md transform group-hover:scale-110 transition-transform">
+                        <Play size={12} className="translate-x-0.5" />
+                      </div>
+                    </div>
                   )}
                 </div>
 

@@ -11,8 +11,10 @@ import {
   Sliders,
   Sparkles,
   FolderOpen,
+  Settings,
 } from 'lucide-react';
 import { useExplorerStore } from '../../stores/useExplorerStore';
+import { useSettingsStore } from '../../stores/useSettingsStore';
 import { FileItem } from '../../types';
 import { FileIcon } from '../common/FileIcon';
 import { api } from '../../services/api';
@@ -52,6 +54,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
     playAudio,
     playVideo,
   } = useExplorerStore();
+  const { openSettings } = useSettingsStore();
 
   // Global Escape key capture listener to guarantee escape works regardless of focus
   useEffect(() => {
@@ -140,6 +143,37 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
       action: () => {
         onClose();
         setTrashOpen(true);
+      },
+    },
+    {
+      id: 'cmd-settings',
+      title: 'Open Settings',
+      subtitle: 'Preferences, appearances, and account management',
+      icon: <Settings size={16} className="text-gray-500" />,
+      action: () => {
+        onClose();
+        openSettings();
+      },
+      shortcut: 'Ctrl+,',
+    },
+    {
+      id: 'cmd-settings-account',
+      title: 'Settings: Account Management',
+      subtitle: 'Manage user profiles, passwords, and permissions',
+      icon: <Settings size={16} className="text-blue-500" />,
+      action: () => {
+        onClose();
+        openSettings('account');
+      },
+    },
+    {
+      id: 'cmd-settings-storage',
+      title: 'Settings: Storage Roots',
+      subtitle: 'Inspect mounted drives and disk quota usage',
+      icon: <Settings size={16} className="text-emerald-500" />,
+      action: () => {
+        onClose();
+        openSettings('storage');
       },
     },
   ];

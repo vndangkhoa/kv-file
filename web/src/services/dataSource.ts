@@ -11,12 +11,20 @@ import {
 export interface FileSystemDataSource {
   isMock: boolean;
 
-  // Auth
+  // Auth & User Management
   checkSetup(): Promise<{ is_initialized: boolean }>;
   initialSetup(username: string, password: string): Promise<{ success: boolean; token: string; user: User }>;
   login(username: string, password: string): Promise<{ success: boolean; token: string; user: User }>;
   getMe(): Promise<User>;
   logout(): Promise<void>;
+  changePassword(current_password: string, new_password: string): Promise<void>;
+  listUsers(): Promise<User[]>;
+  createUser(username: string, password: string, role?: string): Promise<User>;
+  deleteUser(id: string): Promise<void>;
+
+  // System Settings
+  getSettings(): Promise<Record<string, string>>;
+  updateSettings(settings: Record<string, string>): Promise<void>;
 
   // Filesystem
   getRoots(): Promise<StorageRootInfo[]>;

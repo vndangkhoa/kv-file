@@ -53,6 +53,19 @@ export interface User {
   created_at: string;
 }
 
+export interface CreateUserRequest {
+  username: string;
+  password: string;
+  role?: string;
+}
+
+export interface ChangePasswordRequest {
+  current_password: string;
+  new_password: string;
+}
+
+export type ServerSettings = Record<string, string>;
+
 export interface ShareItem {
   id: string;
   token: string;

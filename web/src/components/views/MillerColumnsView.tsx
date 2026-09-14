@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { ChevronRight, Download, Share2, Eye, Trash2, Music, Film } from 'lucide-react';
+import { ChevronRight, Download, Share2, Eye, Trash2, Music, Film, Play } from 'lucide-react';
 import { useExplorerStore } from '../../stores/useExplorerStore';
 import { useDownloadStore } from '../../stores/useDownloadStore';
 import { FileIcon } from '../common/FileIcon';
@@ -76,7 +76,16 @@ export const MillerColumnsView: React.FC = () => {
                 return (
                   <div
                     key={item.path}
-                    onClick={() => selectColumnItem(colIdx, item)}
+                    onClick={() => {
+                      selectColumnItem(colIdx, item);
+                      if (!item.is_dir) {
+                        if (item.media_type === 'video') {
+                          playVideo(item);
+                        } else if (item.media_type === 'audio') {
+                          playAudio(item);
+                        }
+                      }
+                    }}
                     onDoubleClick={() => {
                       if (!item.is_dir) {
                         if (item.media_type === 'audio') {
@@ -103,6 +112,17 @@ export const MillerColumnsView: React.FC = () => {
                     <div className="flex items-center gap-2 truncate">
                       <FileIcon item={item} size={15} />
                       <span className="truncate">{item.name}</span>
+                      {(item.media_type === 'video' || item.media_type === 'audio') && (
+                        <span
+                          className={`shrink-0 text-[9px] px-1 py-0.5 rounded font-medium ${
+                            isSelected
+                              ? 'bg-white/20 text-white'
+                              : 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                          }`}
+                        >
+                          {item.media_type === 'video' ? '▶ Video' : '♫ Audio'}
+                        </span>
+                      )}
                     </div>
 
                     {item.is_dir && (
@@ -131,11 +151,32 @@ export const MillerColumnsView: React.FC = () => {
                 className="w-full h-full object-contain"
               />
             ) : activeItem.media_type === 'video' ? (
-              <video
-                src={api.getRawFileUrl(activeItem.root_name, activeItem.path)}
-                className="w-full h-full object-contain"
-                controls={false}
-              />
+              <div
+                onClick={() => playVideo(activeItem)}
+                className="relative w-full h-full flex items-center justify-center cursor-pointer group/vid"
+                title="Click to play in Video Player"
+              >
+                <video
+                  src={api.getRawFileUrl(activeItem.root_name, activeItem.path)}
+                  className="w-full h-full object-contain"
+                  controls={false}
+                />
+                <div className="absolute inset-0 bg-black/20 group-hover/vid:bg-black/40 flex items-center justify-center transition-colors">
+                  <div className="w-12 h-12 rounded-full bg-blue-600/90 group-hover/vid:bg-blue-600 text-white flex items-center justify-center shadow-lg transform group-hover/vid:scale-110 transition-transform">
+                    <Play size={20} className="translate-x-0.5" />
+                  </div>
+                </div>
+              </div>
+            ) : activeItem.media_type === 'audio' ? (
+              <div
+                onClick={() => playAudio(activeItem)}
+                className="relative w-full h-full flex items-center justify-center cursor-pointer group/aud"
+                title="Click to play in Music Player"
+              >
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-purple-600 to-pink-500 flex items-center justify-center text-white shadow-lg group-hover/aud:scale-105 transition-transform">
+                  <Music size={32} />
+                </div>
+              </div>
             ) : (
               <FileIcon item={activeItem} size={64} />
             )}

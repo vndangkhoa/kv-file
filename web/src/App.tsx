@@ -18,11 +18,13 @@ import { TrashBinModal } from './components/modals/TrashBinModal';
 import { NewFolderModal } from './components/modals/NewFolderModal';
 import { RenameModal } from './components/modals/RenameModal';
 import { SetupLoginModal } from './components/modals/SetupLoginModal';
+import { SettingsModal } from './components/modals/SettingsModal';
 import { ContextMenu } from './components/common/ContextMenu';
 import { DownloadManager } from './components/download/DownloadManager';
 import { CommandPalette } from './components/search/CommandPalette';
 import { useExplorerStore } from './stores/useExplorerStore';
 import { useAuthStore } from './stores/useAuthStore';
+import { useSettingsStore } from './stores/useSettingsStore';
 import { useWebSocket } from './hooks/useWebSocket';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { FileIcon } from './components/common/FileIcon';
@@ -45,16 +47,21 @@ export const App: React.FC = () => {
     playAudio,
     playVideo,
     closeAudioPlayer,
+    setViewMode,
   } = useExplorerStore();
 
   const { checkAuth } = useAuthStore();
+  const { preferences } = useSettingsStore();
   const { isConnected: wsConnected } = useWebSocket();
   useKeyboardShortcuts();
 
   useEffect(() => {
     fetchRoots();
     checkAuth();
-  }, [fetchRoots, checkAuth]);
+    if (preferences.defaultViewMode) {
+      setViewMode(preferences.defaultViewMode);
+    }
+  }, [fetchRoots, checkAuth, preferences.defaultViewMode, setViewMode]);
 
   return (
     <div className="flex flex-col h-screen w-screen bg-[#f3f3f3] dark:bg-[#1e1e1e] text-gray-900 dark:text-gray-100 overflow-hidden font-sans">
@@ -95,7 +102,16 @@ export const App: React.FC = () => {
                 {searchResults.map((item) => (
                   <div
                     key={item.path}
-                    onClick={() => selectItem(item, false)}
+                    onClick={() => {
+                      selectItem(item, false);
+                      if (!item.is_dir) {
+                        if (item.media_type === 'video') {
+                          playVideo(item);
+                        } else if (item.media_type === 'audio') {
+                          playAudio(item);
+                        }
+                      }
+                    }}
                     onDoubleClick={async () => {
                       clearSearch();
                       if (item.is_dir) {
@@ -159,6 +175,7 @@ export const App: React.FC = () => {
       <NewFolderModal />
       <RenameModal />
       <SetupLoginModal />
+      <SettingsModal />
       <VideoPlayerModal />
 
       {/* 7. Universal Context Menu */}

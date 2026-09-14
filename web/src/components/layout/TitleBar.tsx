@@ -10,9 +10,11 @@ import {
   Menu,
   Database,
   FlaskConical,
+  Settings,
 } from 'lucide-react';
 import { useExplorerStore } from '../../stores/useExplorerStore';
 import { useAuthStore } from '../../stores/useAuthStore';
+import { useSettingsStore } from '../../stores/useSettingsStore';
 import { getDataSourceMode, setDataSourceMode } from '../../services/api';
 
 export const TitleBar: React.FC = () => {
@@ -26,6 +28,7 @@ export const TitleBar: React.FC = () => {
   } = useExplorerStore();
 
   const { user, logout, setAuthModalOpen } = useAuthStore();
+  const { openSettings } = useSettingsStore();
   const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
   const currentMode = getDataSourceMode();
 
@@ -148,11 +151,23 @@ export const TitleBar: React.FC = () => {
           {isDark ? <Sun size={15} /> : <Moon size={15} />}
         </button>
 
+        <button
+          onClick={() => openSettings('account')}
+          title="Settings (Ctrl+,)"
+          className="p-1.5 rounded text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#333333] transition-colors"
+        >
+          <Settings size={15} />
+        </button>
+
         {user ? (
           <div className="flex items-center gap-1.5 pl-1.5 border-l border-gray-200 dark:border-gray-700">
-            <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold uppercase">
+            <button
+              onClick={() => openSettings('account')}
+              title={`Logged in as ${user.username} (${user.role}) - Click for Account Settings`}
+              className="w-6 h-6 rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center text-[10px] font-bold uppercase transition-transform active:scale-95"
+            >
               {user.username.slice(0, 2)}
-            </div>
+            </button>
             <button
               onClick={logout}
               title="Logout"

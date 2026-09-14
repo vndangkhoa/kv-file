@@ -57,8 +57,15 @@ export const DetailedListView: React.FC = () => {
   });
 
   const handleItemClick = (e: React.MouseEvent, item: FileItem) => {
-    const isMulti = e.ctrlKey || e.metaKey;
+    const isMulti = e.ctrlKey || e.metaKey || e.shiftKey;
     selectItem(item, isMulti);
+    if (!isMulti && !item.is_dir) {
+      if (item.media_type === 'video') {
+        playVideo(item);
+      } else if (item.media_type === 'audio') {
+        playAudio(item);
+      }
+    }
   };
 
   const handleDoubleClick = (item: FileItem) => {
@@ -146,6 +153,11 @@ export const DetailedListView: React.FC = () => {
                 <div className="col-span-8 sm:col-span-6 flex items-center gap-2 truncate">
                   <FileIcon item={item} size={16} />
                   <span className="truncate">{item.name}</span>
+                  {(item.media_type === 'video' || item.media_type === 'audio') && (
+                    <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 font-medium">
+                      {item.media_type === 'video' ? '▶ Video' : '♫ Audio'}
+                    </span>
+                  )}
                 </div>
 
                 <div className="hidden sm:block sm:col-span-3 text-gray-500 truncate">

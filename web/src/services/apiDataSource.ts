@@ -55,6 +55,33 @@ export const apiDataSource: FileSystemDataSource = {
   async logout(): Promise<void> {
     return request('/auth/logout', { method: 'POST' });
   },
+  async changePassword(current_password: string, new_password: string): Promise<void> {
+    await request('/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify({ current_password, new_password }),
+    });
+  },
+  async listUsers(): Promise<User[]> {
+    return request('/users');
+  },
+  async createUser(username: string, password: string, role?: string): Promise<User> {
+    return request('/users', {
+      method: 'POST',
+      body: JSON.stringify({ username, password, role }),
+    });
+  },
+  async deleteUser(id: string): Promise<void> {
+    await request(`/users/${id}`, { method: 'DELETE' });
+  },
+  async getSettings(): Promise<Record<string, string>> {
+    return request('/settings');
+  },
+  async updateSettings(settings: Record<string, string>): Promise<void> {
+    await request('/settings', {
+      method: 'PUT',
+      body: JSON.stringify(settings),
+    });
+  },
 
   async getRoots(): Promise<StorageRootInfo[]> {
     return request('/fs/roots');
