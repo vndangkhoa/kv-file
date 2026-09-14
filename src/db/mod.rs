@@ -276,6 +276,16 @@ impl Database {
         Ok(())
     }
 
+    pub async fn update_totp_secret(&self, user_id: &str, secret: &str) -> Result<()> {
+        let conn = self.conn.lock().await;
+        conn.execute(
+            "UPDATE users SET totp_secret = ?1 WHERE id = ?2",
+            params![secret, user_id],
+        )
+        .map_err(|e| AppError::Db(format!("Failed to update 2FA secret: {}", e)))?;
+        Ok(())
+    }
+
     pub async fn disable_totp(&self, user_id: &str) -> Result<()> {
         let conn = self.conn.lock().await;
         conn.execute(

@@ -360,6 +360,29 @@ pub async fn delete_user(
     Ok(Json(json!({ "success": true, "message": "User deleted" })).into_response())
 }
 
+fn parse_totp_secret(secret_str: &str) -> Result<Secret> {
+    let clean = secret_str.trim().replace(' ', "");
+    // 1. Try standard Base32 (canonical RFC4648)
+    if let Ok(sec) = Secret::try_from_base32(&clean.to_uppercase()) {
+        return Ok(sec);
+    }
+    // 2. Fallback for legacy 40-character hex strings
+    if clean.len() == 40 && clean.chars().all(|c| c.is_ascii_hexdigit()) {
+        let mut bytes = Vec::with_capacity(20);
+        for i in 0..20 {
+            if let Ok(byte) = u8::from_str_radix(&clean[i * 2..i * 2 + 2], 16) {
+                bytes.push(byte);
+            } else {
+                break;
+            }
+        }
+        if bytes.len() == 20 {
+            return Ok(Secret::from(bytes));
+        }
+    }
+    Err(AppError::Internal("Invalid secret format".to_string()))
+}
+
 pub async fn setup_2fa(
     headers: HeaderMap,
     State(state): State<AppState>,
@@ -372,7 +395,7 @@ pub async fn setup_2fa(
         .ok_or_else(|| AppError::Unauthorized("Session expired".to_string()))?;
 
     let secret = Secret::generate();
-    let secret_encoded = secret.to_string();
+    let secret_encoded = secret.to_base32();
     let secret_bytes = secret.to_bytes().map_err(|e| AppError::Internal(e.to_string()))?;
 
     let totp = Totp::new(
@@ -431,8 +454,7 @@ pub async fn enable_2fa(
         .await?
         .ok_or_else(|| AppError::BadRequest("No 2FA setup in progress. Please start setup first.".to_string()))?;
 
-    let secret = Secret::try_from_base32(&secret_str)
-        .map_err(|e| AppError::Internal(format!("Invalid secret format: {:?}", e)))?;
+    let secret = parse_totp_secret(&secret_str)?;
     let secret_bytes = secret.to_bytes().map_err(|e| AppError::Internal(e.to_string()))?;
 
     let totp = Totp::new(
@@ -452,6 +474,7 @@ pub async fn enable_2fa(
     }
 
     state.db.enable_totp(&user.id).await?;
+    let _ = state.db.update_totp_secret(&user.id, &secret.to_base32()).await;
 
     user.is_totp_enabled = true;
     let mut sessions = state.sessions.write().await;
@@ -475,7 +498,7 @@ pub async fn verify_2fa_login(
     // Check TOTP code if 6 digits
     if code.len() == 6 && code.chars().all(|c| c.is_ascii_digit()) {
         if let Some(secret_str) = state.db.get_totp_secret(&user.id).await? {
-            if let Ok(secret) = Secret::try_from_base32(&secret_str) {
+            if let Ok(secret) = parse_totp_secret(&secret_str) {
                 if let Ok(secret_bytes) = secret.to_bytes() {
                     if let Ok(totp) = Totp::new(
                         Algorithm::SHA1,
@@ -589,4 +612,28 @@ pub fn extract_token(headers: &HeaderMap) -> Option<String> {
     }
 
     None
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_totp_secret_base32_and_hex() {
+        let secret = Secret::generate();
+        let b32 = secret.to_base32();
+        let hex = secret.to_string();
+
+        let parsed_b32 = parse_totp_secret(&b32).expect("Must parse Base32");
+        let parsed_hex = parse_totp_secret(&hex).expect("Must parse Hex");
+
+        assert_eq!(parsed_b32.as_bytes(), secret.as_bytes());
+        assert_eq!(parsed_hex.as_bytes(), secret.as_bytes());
+
+        let totp1 = Totp::new(Algorithm::SHA1, 6, 1, 30, parsed_b32.to_bytes().unwrap(), None, "test".into()).unwrap();
+        let totp2 = Totp::new(Algorithm::SHA1, 6, 1, 30, parsed_hex.to_bytes().unwrap(), None, "test".into()).unwrap();
+
+        let code1 = totp1.generate_current();
+        assert!(totp2.check_current(&code1.to_string()).is_some(), "Hex and Base32 secrets must generate matching TOTP tokens");
+    }
 }
