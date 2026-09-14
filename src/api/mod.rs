@@ -60,6 +60,7 @@ pub fn create_router(state: AppState) -> Router {
         .route("/api/v1/shares", delete(shares::delete_share))
         .route("/api/v1/public/share/{token}", get(shares::get_public_share))
         .route("/api/v1/public/share/{token}/download", get(shares::download_public_share))
+        .route("/api/v1/public/share/{token}/raw", get(shares::raw_public_share))
         // Real-time WebSocket
         .route("/api/v1/ws", get(ws::ws_handler))
         .with_state(state);

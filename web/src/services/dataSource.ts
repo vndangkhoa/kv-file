@@ -3,6 +3,7 @@ import {
   DirectoryListing,
   FileItem,
   Setup2faResponse,
+  PublicShareInfo,
   ShareItem,
   StorageRootInfo,
   TrashItem,
@@ -68,6 +69,9 @@ export interface FileSystemDataSource {
     allow_download?: boolean
   ): Promise<ShareItem>;
   deleteShare(id: string): Promise<void>;
+  getPublicShareInfo(token: string, password?: string): Promise<PublicShareInfo>;
+  getPublicShareDownloadUrl(token: string, password?: string): string;
+  getPublicShareRawUrl(token: string, password?: string): string;
 
   // URLs
   getRawFileUrl(root: string, path: string): string;

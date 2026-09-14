@@ -101,7 +101,7 @@ export const ShareModal: React.FC = () => {
   };
 
   const shareUrl = createdShare
-    ? `${window.location.origin}/api/v1/public/share/${createdShare.token}`
+    ? `${window.location.origin}/share/${createdShare.token}`
     : '';
 
   const handleCopyLink = () => {

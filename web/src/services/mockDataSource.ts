@@ -6,6 +6,7 @@ import {
   FileItem,
   MediaType,
   Setup2faResponse,
+  PublicShareInfo,
   ShareItem,
   StorageRootInfo,
   TrashItem,
@@ -856,6 +857,39 @@ class MockFileSystem implements FileSystemDataSource {
 
   async deleteShare(id: string): Promise<void> {
     this.shares = this.shares.filter((s) => s.id !== id);
+  }
+
+  async getPublicShareInfo(token: string, _password?: string): Promise<PublicShareInfo> {
+    const share = this.shares.find((s) => s.token === token);
+    if (!share) throw new Error('Shared link not found');
+    const name = share.path.split('/').pop() || 'file';
+    return {
+      id: share.id,
+      token: share.token,
+      name,
+      path: share.path,
+      is_dir: share.is_dir,
+      size: 1024,
+      human_size: '1.0 KB',
+      mime_type: 'application/octet-stream',
+      media_type: 'other',
+      has_password: share.has_password,
+      requires_password: false,
+      allow_download: share.allow_download,
+      expires_at: share.expires_at,
+      view_count: share.view_count,
+      created_at: share.created_at,
+    };
+  }
+
+  getPublicShareDownloadUrl(token: string, password?: string): string {
+    const qs = password ? `?password=${encodeURIComponent(password)}` : '';
+    return `/api/v1/public/share/${token}/download${qs}`;
+  }
+
+  getPublicShareRawUrl(token: string, password?: string): string {
+    const qs = password ? `?password=${encodeURIComponent(password)}` : '';
+    return `/api/v1/public/share/${token}/raw${qs}`;
   }
 
   getRawFileUrl(root: string, path: string): string {

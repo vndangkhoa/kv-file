@@ -4,6 +4,7 @@ import {
   DirectoryListing,
   FileItem,
   Setup2faResponse,
+  PublicShareInfo,
   ShareItem,
   StorageRootInfo,
   TrashItem,
@@ -235,6 +236,27 @@ export const apiDataSource: FileSystemDataSource = {
   },
   async deleteShare(id: string): Promise<void> {
     return request(`/shares?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+  },
+
+  async getPublicShareInfo(token: string, password?: string): Promise<PublicShareInfo> {
+    const params = new URLSearchParams();
+    if (password) params.set('password', password);
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    return request(`/public/share/${token}${qs}`);
+  },
+
+  getPublicShareDownloadUrl(token: string, password?: string): string {
+    const params = new URLSearchParams();
+    if (password) params.set('password', password);
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    return `${BASE_URL}/public/share/${token}/download${qs}`;
+  },
+
+  getPublicShareRawUrl(token: string, password?: string): string {
+    const params = new URLSearchParams();
+    if (password) params.set('password', password);
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    return `${BASE_URL}/public/share/${token}/raw${qs}`;
   },
 
   getRawFileUrl(root: string, path: string): string {

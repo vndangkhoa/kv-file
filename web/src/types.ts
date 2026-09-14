@@ -95,6 +95,25 @@ export interface ShareItem {
   created_at: string;
 }
 
+export interface PublicShareInfo {
+  id: string;
+  token: string;
+  name: string;
+  path: string;
+  is_dir: boolean;
+  size: number;
+  human_size: string;
+  mime_type: string;
+  media_type: 'video' | 'image' | 'audio' | 'pdf' | 'text' | 'code' | 'archive' | 'doc' | 'spreadsheet' | 'presentation' | 'other';
+  extension?: string;
+  has_password: boolean;
+  requires_password?: boolean;
+  allow_download: boolean;
+  expires_at?: string;
+  view_count: number;
+  created_at: string;
+}
+
 export interface TrashItem {
   id: string;
   root_name: string;

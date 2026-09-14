@@ -31,6 +31,7 @@ import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { FileIcon } from './components/common/FileIcon';
 import { UploadCloud, CheckCircle2, X } from 'lucide-react';
 import { useWindowFileDrop } from './hooks/useWindowFileDrop';
+import { PublicSharePage } from './components/public/PublicSharePage';
 
 export const App: React.FC = () => {
   const {
@@ -70,18 +71,27 @@ export const App: React.FC = () => {
   const { isConnected: wsConnected } = useWebSocket();
   useKeyboardShortcuts();
 
+  const isShareRoute =
+    typeof window !== 'undefined' &&
+    (window.location.pathname.startsWith('/share/') || window.location.pathname.startsWith('/s/'));
+  const shareToken = isShareRoute
+    ? window.location.pathname.replace(/^\/(share|s)\//, '').split('/')[0]
+    : null;
+
   useEffect(() => {
+    if (isShareRoute) return;
     fetchRoots();
     checkAuth();
     if (preferences.defaultViewMode) {
       setViewMode(preferences.defaultViewMode);
     }
-  }, [fetchRoots, checkAuth, preferences.defaultViewMode, setViewMode]);
+  }, [fetchRoots, checkAuth, preferences.defaultViewMode, setViewMode, isShareRoute]);
 
   // Global right-click interceptor:
   // Disables default browser context menu everywhere across the app,
   // while preserving native copy/cut/paste on editable inputs/textareas.
   useEffect(() => {
+    if (isShareRoute) return;
     const handleGlobalContextMenu = (e: MouseEvent) => {
       const target = e.target as HTMLElement | null;
       if (target) {
@@ -103,7 +113,11 @@ export const App: React.FC = () => {
 
     window.addEventListener('contextmenu', handleGlobalContextMenu);
     return () => window.removeEventListener('contextmenu', handleGlobalContextMenu);
-  }, []);
+  }, [isShareRoute]);
+
+  if (isShareRoute && shareToken) {
+    return <PublicSharePage token={shareToken} />;
+  }
 
   return (
     <div className="flex flex-col h-screen h-[100dvh] max-h-[100dvh] w-screen bg-[#f3f3f3] dark:bg-[#1e1e1e] text-gray-900 dark:text-gray-100 overflow-hidden font-sans pb-[env(safe-area-inset-bottom,0px)]">

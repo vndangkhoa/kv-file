@@ -10,10 +10,13 @@ import {
   FileSpreadsheet,
   File,
 } from 'lucide-react';
-import { FileItem } from '../../types';
+import { MediaType } from '../../types';
 
 interface FileIconProps {
-  item: FileItem;
+  item: {
+    media_type?: MediaType | string;
+    is_dir?: boolean;
+  };
   className?: string;
   size?: number;
 }

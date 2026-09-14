@@ -31,7 +31,7 @@ export const ActiveSharesModal: React.FC = () => {
   if (!isActiveSharesOpen) return null;
 
   const handleCopy = (token: string) => {
-    const url = `${window.location.origin}/api/v1/public/share/${token}`;
+    const url = `${window.location.origin}/share/${token}`;
     navigator.clipboard.writeText(url);
     setCopiedId(token);
     setTimeout(() => setCopiedId(null), 2000);
