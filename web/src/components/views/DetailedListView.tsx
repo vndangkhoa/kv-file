@@ -3,9 +3,10 @@ import { useExplorerStore } from '../../stores/useExplorerStore';
 import { FileIcon } from '../common/FileIcon';
 import { FileItem } from '../../types';
 import { formatDate } from '../../utils/format';
-import { ArrowUpDown, MoreVertical, Check } from 'lucide-react';
+import { ArrowUpDown, MoreVertical, Check, ShieldAlert, ChevronDown, ChevronUp } from 'lucide-react';
 import { useLongPress } from '../../hooks/useLongPress';
 import { api } from '../../services/api';
+import { getSystemFolderHint } from '../../utils/systemFolders';
 
 type SortKey = 'name' | 'mod_time' | 'size' | 'type';
 
@@ -13,6 +14,7 @@ interface DetailedListItemProps {
   item: FileItem;
   isSelected: boolean;
   currentRoot: string;
+  isAtRoot?: boolean;
   selectedItems: FileItem[];
   startDirectUpload: (root: string, path: string, files: File[]) => Promise<void>;
   refresh: () => Promise<void>;
@@ -25,6 +27,7 @@ const DetailedListItem: React.FC<DetailedListItemProps> = ({
   item,
   isSelected,
   currentRoot,
+  isAtRoot = false,
   selectedItems,
   startDirectUpload,
   refresh,
@@ -34,6 +37,7 @@ const DetailedListItem: React.FC<DetailedListItemProps> = ({
 }) => {
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
   const [isDropTarget, setIsDropTarget] = useState(false);
+  const hint = getSystemFolderHint(item.name, isAtRoot);
 
   const longPressProps = useLongPress({
     onLongPress: (_e, clientX, clientY) => {
@@ -103,16 +107,20 @@ const DetailedListItem: React.FC<DetailedListItemProps> = ({
       e.dataTransfer.files.length > 0 &&
       !e.dataTransfer.types.includes('application/x-kv-file')
     ) {
-      await startDirectUpload(currentRoot, item.path, Array.from(e.dataTransfer.files));
+      const files = Array.from(e.dataTransfer.files);
+      await startDirectUpload(currentRoot, item.path, files);
       return;
     }
 
-    // 2. Internal files dragged onto folder
-    const raw = e.dataTransfer.getData('application/x-kv-file');
-    if (!raw) return;
+    // 2. Internal move / copy
+    const rawData = e.dataTransfer.getData('application/x-kv-file');
+    if (!rawData) return;
 
     try {
-      const payload: { root: string; items: FileItem[] } = JSON.parse(raw);
+      const payload = JSON.parse(rawData) as {
+        root: string;
+        items: { name: string; path: string }[];
+      };
       const isCopy = e.ctrlKey || e.altKey;
 
       for (const src of payload.items) {
@@ -166,7 +174,7 @@ const DetailedListItem: React.FC<DetailedListItemProps> = ({
               ? 'bg-blue-600 border-blue-600 text-white'
               : 'border-gray-300 dark:border-gray-600 hover:border-blue-500 opacity-0 group-hover/row:opacity-100'
           }`}
-          title={isSelected ? 'Deselect item' : 'Select item'}
+          title="Select item"
         >
           {isSelected && <Check size={11} className="stroke-[3]" />}
         </div>
@@ -176,13 +184,24 @@ const DetailedListItem: React.FC<DetailedListItemProps> = ({
           <FileIcon item={item} size={isMobile ? 22 : 16} />
         </div>
 
-        {/* 2-Line Text on mobile */}
+        {/* 2-Line Text on mobile / Title + Badge on desktop */}
         <div className="flex flex-col truncate min-w-0">
-          <span className="truncate text-sm md:text-xs font-semibold md:font-medium text-gray-900 dark:text-gray-100">
-            {item.name}
-          </span>
-          <span className="md:hidden text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
-            {item.is_dir ? 'Folder' : item.human_size} • {formatDate(item.mod_time)}
+          <div className="flex items-center gap-1.5 truncate">
+            <span className="truncate text-sm md:text-xs font-semibold md:font-medium text-gray-900 dark:text-gray-100">
+              {item.name}
+            </span>
+            {hint && (
+              <span className={`text-[9px] px-1.5 py-0.2 rounded border font-semibold truncate ${hint.badgeColor}`}>
+                {hint.badge}
+              </span>
+            )}
+          </div>
+          <span className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
+            {hint
+              ? hint.friendlyName
+              : isMobile
+              ? `${item.is_dir ? 'Folder' : item.human_size} • ${formatDate(item.mod_time)}`
+              : null}
           </span>
         </div>
       </div>
@@ -219,6 +238,7 @@ const DetailedListItem: React.FC<DetailedListItemProps> = ({
 export const DetailedListView: React.FC = () => {
   const {
     currentRoot,
+    currentPath,
     listing,
     selectedItems,
     activeItem,
@@ -237,6 +257,7 @@ export const DetailedListView: React.FC = () => {
 
   const [sortKey, setSortKey] = useState<SortKey>('name');
   const [sortAsc, setSortAsc] = useState(true);
+  const [showAllSystemFolders, setShowAllSystemFolders] = useState(false);
 
   const items = listing?.items || [];
 
@@ -377,33 +398,74 @@ export const DetailedListView: React.FC = () => {
 
       {/* Table Rows */}
       <div className="flex-1 overflow-y-auto pb-24 md:pb-0">
-        {sortedItems.length === 0 ? (
-          <div className="h-full flex items-center justify-center text-gray-400 italic">
-            This folder is empty
-          </div>
-        ) : (
-          sortedItems.map((item) => {
-            const isSelected = selectedItems.some((i) => i.path === item.path);
+        {(() => {
+          const isAtRoot = currentPath === '' && (currentRoot === 'root' || currentRoot === 'rootfs');
+          const userItems = sortedItems.filter((i) => {
+            const hint = getSystemFolderHint(i.name, isAtRoot);
+            return !hint?.isInternal;
+          });
+          const internalItems = sortedItems.filter((i) => {
+            const hint = getSystemFolderHint(i.name, isAtRoot);
+            return hint?.isInternal === true;
+          });
+          const shouldFilter = isAtRoot && internalItems.length > 0 && !showAllSystemFolders;
+          const displayedItems = shouldFilter ? userItems : sortedItems;
 
+          if (displayedItems.length === 0) {
             return (
-              <DetailedListItem
-                key={item.path}
-                item={item}
-                isSelected={isSelected}
-                currentRoot={currentRoot}
-                selectedItems={selectedItems}
-                startDirectUpload={startDirectUpload}
-                refresh={refresh}
-                onSelect={handleItemClick}
-                onOpen={handleOpenItem}
-                onContextMenu={(x, y, item) => {
-                  selectItem(item, false);
-                  openContextMenu(x, y, item);
-                }}
-              />
+              <div className="h-full flex items-center justify-center text-gray-400 italic">
+                This folder is empty
+              </div>
             );
-          })
-        )}
+          }
+
+          return (
+            <>
+              {displayedItems.map((item) => {
+                const isSelected = selectedItems.some((i) => i.path === item.path);
+
+                return (
+                  <DetailedListItem
+                    key={item.path}
+                    item={item}
+                    isSelected={isSelected}
+                    currentRoot={currentRoot}
+                    isAtRoot={isAtRoot}
+                    selectedItems={selectedItems}
+                    startDirectUpload={startDirectUpload}
+                    refresh={refresh}
+                    onSelect={handleItemClick}
+                    onOpen={handleOpenItem}
+                    onContextMenu={(x, y, item) => {
+                      selectItem(item, false);
+                      openContextMenu(x, y, item);
+                    }}
+                  />
+                );
+              })}
+
+              {/* OS Internals Collapsible Toggle for Root */}
+              {isAtRoot && internalItems.length > 0 && (
+                <div className="p-3 border-t border-gray-100 dark:border-[#2a2a2a]">
+                  <button
+                    onClick={() => setShowAllSystemFolders(!showAllSystemFolders)}
+                    className="w-full px-3 py-2 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 bg-gray-100/80 dark:bg-[#252526] hover:bg-gray-200 dark:hover:bg-[#2d2d2d] transition-all flex items-center justify-between border border-dashed border-gray-300 dark:border-gray-700"
+                  >
+                    <div className="flex items-center gap-2">
+                      <ShieldAlert size={14} className="text-amber-500 shrink-0" />
+                      <span>
+                        {showAllSystemFolders
+                          ? `Hide ${internalItems.length} OS internal folders`
+                          : `Show ${internalItems.length} OS internal folders (bin, proc, sys...)`}
+                      </span>
+                    </div>
+                    {showAllSystemFolders ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                  </button>
+                </div>
+              )}
+            </>
+          );
+        })()}
       </div>
     </div>
   );

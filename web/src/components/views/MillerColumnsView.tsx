@@ -1,11 +1,12 @@
-import React, { useEffect, useRef } from 'react';
-import { ChevronRight, Download, Share2, Eye, Trash2, Music, Film, Play, MoreVertical } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { ChevronRight, Download, Share2, Eye, Trash2, Music, Film, Play, MoreVertical, ShieldAlert, ChevronDown, ChevronUp } from 'lucide-react';
 import { useExplorerStore } from '../../stores/useExplorerStore';
 import { useDownloadStore } from '../../stores/useDownloadStore';
 import { FileIcon } from '../common/FileIcon';
 import { FileItem } from '../../types';
 import { api } from '../../services/api';
 import { formatDate } from '../../utils/format';
+import { getSystemFolderHint } from '../../utils/systemFolders';
 
 export const MillerColumnsView: React.FC = () => {
   const {
@@ -19,7 +20,10 @@ export const MillerColumnsView: React.FC = () => {
     navigateTo,
     playAudio,
     playVideo,
+    currentRoot,
   } = useExplorerStore();
+
+  const [showAllSystemFolders, setShowAllSystemFolders] = useState(false);
 
   const { startDownload } = useDownloadStore();
 
@@ -79,69 +83,124 @@ export const MillerColumnsView: React.FC = () => {
             <div className="flex-1 flex items-center justify-center text-gray-400 text-xs italic">
               Folder is empty
             </div>
-          ) : (
-            <div className="flex-1 overflow-y-auto py-1">
-              {col.items.map((item) => {
-                const isSelected = col.selectedName === item.name;
+          ) : (() => {
+            const isAtRoot = col.path === '' && (currentRoot === 'root' || currentRoot === 'rootfs');
+            const userItems = col.items.filter((i) => {
+              const hint = getSystemFolderHint(i.name, isAtRoot);
+              return !hint?.isInternal;
+            });
+            const internalItems = col.items.filter((i) => {
+              const hint = getSystemFolderHint(i.name, isAtRoot);
+              return hint?.isInternal === true;
+            });
+            const shouldFilter = isAtRoot && internalItems.length > 0 && !showAllSystemFolders;
+            const displayedItems = shouldFilter ? userItems : col.items;
 
-                return (
-                  <div
-                    key={item.path}
-                    onClick={() => selectColumnItem(colIdx, item)}
-                    onDoubleClick={() => {
-                      if (!item.is_dir) {
-                        if (item.media_type === 'audio') {
-                          playAudio(item);
-                        } else if (item.media_type === 'video') {
-                          playVideo(item);
-                        } else {
-                          setQuickLookOpen(true);
+            return (
+              <div className="flex-1 overflow-y-auto py-1">
+                {displayedItems.map((item) => {
+                  const isSelected = col.selectedName === item.name;
+                  const hint = getSystemFolderHint(item.name, isAtRoot);
+
+                  return (
+                    <div
+                      key={item.path}
+                      onClick={() => selectColumnItem(colIdx, item)}
+                      onDoubleClick={() => {
+                        if (!item.is_dir) {
+                          if (item.media_type === 'audio') {
+                            playAudio(item);
+                          } else if (item.media_type === 'video') {
+                            playVideo(item);
+                          } else {
+                            setQuickLookOpen(true);
+                          }
                         }
-                      }
-                    }}
-                    onContextMenu={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      selectColumnItem(colIdx, item);
-                      openContextMenu(e.clientX, e.clientY, item);
-                    }}
-                    className={`flex items-center justify-between px-3 py-3 sm:py-1.5 min-h-[48px] sm:min-h-0 text-sm sm:text-xs cursor-pointer transition-colors border-b border-gray-100/50 dark:border-gray-800/50 sm:border-0 ${
-                      isSelected
-                        ? 'bg-[#0062d2] text-white font-medium'
-                        : 'text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#2a2d2e]'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5 truncate">
-                      <FileIcon item={item} size={18} />
-                      <span className="truncate font-medium">{item.name}</span>
-                    </div>
+                      }}
+                      onContextMenu={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        selectColumnItem(colIdx, item);
+                        openContextMenu(e.clientX, e.clientY, item);
+                      }}
+                      className={`flex items-center justify-between px-3 py-2 sm:py-1.5 min-h-[48px] sm:min-h-0 text-sm sm:text-xs cursor-pointer transition-colors border-b border-gray-100/50 dark:border-gray-800/50 sm:border-0 ${
+                        isSelected
+                          ? 'bg-[#0062d2] text-white font-medium'
+                          : 'text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#2a2d2e]'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 truncate min-w-0 flex-1">
+                        <FileIcon item={item} size={18} />
+                        <div className="flex flex-col truncate min-w-0">
+                          <div className="flex items-center gap-1.5 truncate">
+                            <span className="truncate font-medium">{item.name}</span>
+                            {hint && (
+                              <span
+                                className={`text-[9px] px-1.5 py-0.2 rounded border font-semibold truncate ${
+                                  isSelected
+                                    ? 'bg-white/20 text-white border-white/30'
+                                    : hint.badgeColor
+                                }`}
+                              >
+                                {hint.badge}
+                              </span>
+                            )}
+                          </div>
+                          {hint && !isSelected && (
+                            <span className="text-[10px] text-gray-400 dark:text-gray-500 truncate">
+                              {hint.friendlyName}
+                            </span>
+                          )}
+                        </div>
+                      </div>
 
-                    <div className="flex items-center gap-1">
-                      {item.is_dir ? (
-                        <ChevronRight
-                          size={18}
-                          className={isSelected ? 'text-white' : 'text-gray-400'}
-                        />
-                      ) : (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            selectColumnItem(colIdx, item);
-                            openContextMenu(e.clientX, e.clientY, item);
-                          }}
-                          className={`md:hidden p-1.5 rounded min-w-[32px] min-h-[32px] flex items-center justify-center ${
-                            isSelected ? 'text-white/80 hover:text-white' : 'text-gray-400 hover:text-gray-600'
-                          }`}
-                        >
-                          <MoreVertical size={16} />
-                        </button>
-                      )}
+                      <div className="flex items-center gap-1">
+                        {item.is_dir ? (
+                          <ChevronRight
+                            size={18}
+                            className={isSelected ? 'text-white' : 'text-gray-400'}
+                          />
+                        ) : (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              selectColumnItem(colIdx, item);
+                              openContextMenu(e.clientX, e.clientY, item);
+                            }}
+                            className={`md:hidden p-1.5 rounded min-w-[32px] min-h-[32px] flex items-center justify-center ${
+                              isSelected ? 'text-white/80 hover:text-white' : 'text-gray-400 hover:text-gray-600'
+                            }`}
+                          >
+                            <MoreVertical size={16} />
+                          </button>
+                        )}
+                      </div>
                     </div>
+                  );
+                })}
+
+                {/* OS Internals Collapsible Toggle for Root */}
+                {isAtRoot && internalItems.length > 0 && (
+                  <div className="p-2 border-t border-gray-100 dark:border-[#2a2a2a] mt-1">
+                    <button
+                      onClick={() => setShowAllSystemFolders(!showAllSystemFolders)}
+                      className="w-full px-2.5 py-1.5 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 bg-gray-100/80 dark:bg-[#252526] hover:bg-gray-200 dark:hover:bg-[#2d2d2d] transition-all flex items-center justify-between border border-dashed border-gray-300 dark:border-gray-700"
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <ShieldAlert size={12} className="text-amber-500 shrink-0" />
+                        <span>
+                          {showAllSystemFolders
+                            ? `Hide ${internalItems.length} OS internal folders`
+                            : `Show ${internalItems.length} OS internal folders (bin, proc...)`}
+                        </span>
+                      </div>
+                      {showAllSystemFolders ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                    </button>
                   </div>
-                );
-              })}
-            </div>
-          )}
+                )}
+              </div>
+            );
+          })()}
         </div>
       ))}
 

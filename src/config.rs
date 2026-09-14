@@ -30,12 +30,17 @@ impl Config {
     pub fn parse_roots(&self) -> Vec<(String, PathBuf)> {
         let mut roots = Vec::new();
         for r in &self.storage_roots {
-            let path = PathBuf::from(r);
-            let name = path
-                .file_name()
-                .and_then(|n| n.to_str())
-                .unwrap_or("storage")
-                .to_string();
+            let (name, path) = if let Some((n, p)) = r.split_once('=') {
+                (n.trim().to_string(), PathBuf::from(p.trim()))
+            } else {
+                let path = PathBuf::from(r);
+                let name = path
+                    .file_name()
+                    .and_then(|n| n.to_str())
+                    .unwrap_or("storage")
+                    .to_string();
+                (name, path)
+            };
             roots.push((name, path));
         }
         if roots.is_empty() {
