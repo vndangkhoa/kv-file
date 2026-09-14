@@ -46,5 +46,5 @@ export RUST_LOG="kv_file=debug,tower_http=info"
 ## 📂 Configuration Topics
 
 Explore in-depth topics below:
-- **[Storage Roots & Security](/docs/configuration/security-and-roots/)**: How to mount multiple drives, strict path sandboxing with `dunce::canonicalize`, and Argon2id authentication.
-- **[Database, Backups & Maintenance](/docs/configuration/backup-and-maintenance/)**: SQLite WAL mode checkpointing, safe live database backups, data migration, and troubleshooting.
+- **[Storage Roots & Security](security-and-roots/)**: How to mount multiple drives, strict path sandboxing with `dunce::canonicalize`, and Argon2id authentication.
+- **[Database, Backups & Maintenance](backup-and-maintenance/)**: SQLite WAL mode checkpointing, safe live database backups, data migration, and troubleshooting.

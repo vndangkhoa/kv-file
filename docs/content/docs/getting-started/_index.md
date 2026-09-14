@@ -49,6 +49,6 @@ When started, kv-file will automatically:
 
 Select your preferred production environment:
 
-- **[Installation Guide](/docs/getting-started/installation/)**: Compile from source using the Rust toolchain, install native binaries, or configure a Linux `systemd` service.
-- **[Docker & Docker Compose](/docs/getting-started/docker/)**: Run pre-built container images with persistent volume mounts, custom ports, and user permissions.
-- **[Running Behind a Reverse Proxy](/docs/getting-started/reverse-proxy/)**: Production configurations for **Nginx**, **Caddy**, and **Traefik**, including WebSocket proxying (`/api/v1/ws`) and HTTP Range streaming support.
+- **[Installation Guide](installation/)**: Compile from source using the Rust toolchain, install native binaries, or configure a Linux `systemd` service.
+- **[Docker & Docker Compose](docker/)**: Run pre-built container images with persistent volume mounts, custom ports, and user permissions.
+- **[Running Behind a Reverse Proxy](reverse-proxy/)**: Production configurations for **Nginx**, **Caddy**, and **Traefik**, including WebSocket proxying (`/api/v1/ws`) and HTTP Range streaming support.

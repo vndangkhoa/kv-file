@@ -22,7 +22,7 @@ kv-file delivers full feature parity with **FileBrowser Quantum** while introduc
         <h5 class="mb-0">Getting Started</h5>
       </div>
       <p class="text-muted small mb-3">Quickstart guide, source compilation, Docker setup, and production reverse proxy configurations (Nginx, Caddy, Traefik).</p>
-      <a href="/docs/getting-started/" class="btn btn-sm btn-primary">Get Started &rarr;</a>
+      <a href="getting-started/" class="btn btn-sm btn-primary">Get Started &rarr;</a>
     </div>
   </div>
   <div class="col-md-6 mb-3">
@@ -32,7 +32,7 @@ kv-file delivers full feature parity with **FileBrowser Quantum** while introduc
         <h5 class="mb-0">Core Features</h5>
       </div>
       <p class="text-muted small mb-3">macOS Miller Columns, Windows Explorer table, Spacebar Quick Look, Split View, Download Manager, 2FA, and Inotify sync.</p>
-      <a href="/docs/features/" class="btn btn-sm btn-primary">Explore Features &rarr;</a>
+      <a href="features/" class="btn btn-sm btn-primary">Explore Features &rarr;</a>
     </div>
   </div>
   <div class="col-md-6 mb-3">
@@ -42,7 +42,7 @@ kv-file delivers full feature parity with **FileBrowser Quantum** while introduc
         <h5 class="mb-0">Configuration</h5>
       </div>
       <p class="text-muted small mb-3">Environment variables, multi-root storage mounts, SQLite WAL database, security hardening, and backups.</p>
-      <a href="/docs/configuration/" class="btn btn-sm btn-primary">Configuration Guide &rarr;</a>
+      <a href="configuration/" class="btn btn-sm btn-primary">Configuration Guide &rarr;</a>
     </div>
   </div>
   <div class="col-md-6 mb-3">
@@ -52,7 +52,7 @@ kv-file delivers full feature parity with **FileBrowser Quantum** while introduc
         <h5 class="mb-0">API Reference</h5>
       </div>
       <p class="text-muted small mb-3">Complete REST endpoints catalog with curl examples, request/response JSON schemas, and real-time WebSocket streams.</p>
-      <a href="/docs/api/" class="btn btn-sm btn-primary">API Specs &rarr;</a>
+      <a href="api/" class="btn btn-sm btn-primary">API Specs &rarr;</a>
     </div>
   </div>
 </div>

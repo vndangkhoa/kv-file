@@ -18,7 +18,7 @@ Below is a complete directory of kv-file's feature suite:
         <h5 class="mb-0">Hybrid Views & Split Mode</h5>
       </div>
       <p class="text-muted small mb-3">macOS Miller Columns, Windows Explorer table, Grid thumbnails, and Dual-Pane Split View.</p>
-      <a href="/docs/features/views/" class="btn btn-sm btn-primary">View Modes &rarr;</a>
+      <a href="views/" class="btn btn-sm btn-primary">View Modes &rarr;</a>
     </div>
   </div>
   <div class="col-md-6 mb-3">
@@ -28,7 +28,7 @@ Below is a complete directory of kv-file's feature suite:
         <h5 class="mb-0">Quick Look & Media Player</h5>
       </div>
       <p class="text-muted small mb-3">Spacebar instant file previews, Range 206 video scrubbing, and persistent docked audio player.</p>
-      <a href="/docs/features/preview-and-media/" class="btn btn-sm btn-primary">Media Previews &rarr;</a>
+      <a href="preview-and-media/" class="btn btn-sm btn-primary">Media Previews &rarr;</a>
     </div>
   </div>
   <div class="col-md-6 mb-3">
@@ -38,7 +38,7 @@ Below is a complete directory of kv-file's feature suite:
         <h5 class="mb-0">Download Manager & ZIP Archiving</h5>
       </div>
       <p class="text-muted small mb-3">Multi-task concurrent downloads, live progress bars, pause/cancel, and streaming on-the-fly ZIP generation.</p>
-      <a href="/docs/features/download-manager/" class="btn btn-sm btn-primary">Download Manager &rarr;</a>
+      <a href="download-manager/" class="btn btn-sm btn-primary">Download Manager &rarr;</a>
     </div>
   </div>
   <div class="col-md-6 mb-3">
@@ -48,7 +48,7 @@ Below is a complete directory of kv-file's feature suite:
         <h5 class="mb-0">Tools & Keyboard Shortcuts</h5>
       </div>
       <p class="text-muted small mb-3">Command Palette (Ctrl+K), Ribbon Toolbar, Context Menu, and 20+ desktop hotkey shortcuts.</p>
-      <a href="/docs/features/file-operations/" class="btn btn-sm btn-primary">Tools & Shortcuts &rarr;</a>
+      <a href="file-operations/" class="btn btn-sm btn-primary">Tools & Shortcuts &rarr;</a>
     </div>
   </div>
   <div class="col-md-6 mb-3">
@@ -58,7 +58,7 @@ Below is a complete directory of kv-file's feature suite:
         <h5 class="mb-0">Search & Command Palette</h5>
       </div>
       <p class="text-muted small mb-3">Instant filesystem search, fuzzy matching across mounted roots, and Search Results Overlay.</p>
-      <a href="/docs/features/search/" class="btn btn-sm btn-primary">Search Engine &rarr;</a>
+      <a href="search/" class="btn btn-sm btn-primary">Search Engine &rarr;</a>
     </div>
   </div>
   <div class="col-md-6 mb-3">
@@ -68,7 +68,7 @@ Below is a complete directory of kv-file's feature suite:
         <h5 class="mb-0">Real-Time Inotify Sync</h5>
       </div>
       <p class="text-muted small mb-3">Kernel filesystem watcher broadcasting live changes over WebSockets with zero polling.</p>
-      <a href="/docs/features/realtime-sync/" class="btn btn-sm btn-primary">Real-Time Engine &rarr;</a>
+      <a href="realtime-sync/" class="btn btn-sm btn-primary">Real-Time Engine &rarr;</a>
     </div>
   </div>
   <div class="col-md-6 mb-3">
@@ -78,7 +78,7 @@ Below is a complete directory of kv-file's feature suite:
         <h5 class="mb-0">Public Sharing & Trash Bin</h5>
       </div>
       <p class="text-muted small mb-3">Expiring password-protected share links, soft-delete quarantine, and 1-click restore.</p>
-      <a href="/docs/features/sharing-and-trash/" class="btn btn-sm btn-primary">Shares & Trash &rarr;</a>
+      <a href="sharing-and-trash/" class="btn btn-sm btn-primary">Shares & Trash &rarr;</a>
     </div>
   </div>
   <div class="col-md-6 mb-3">
@@ -88,7 +88,7 @@ Below is a complete directory of kv-file's feature suite:
         <h5 class="mb-0">Security & 2FA</h5>
       </div>
       <p class="text-muted small mb-3">Time-based One-Time Passwords (TOTP), recovery backup codes, and Argon2id password encryption.</p>
-      <a href="/docs/features/security-and-2fa/" class="btn btn-sm btn-primary">Security & 2FA &rarr;</a>
+      <a href="security-and-2fa/" class="btn btn-sm btn-primary">Security & 2FA &rarr;</a>
     </div>
   </div>
   <div class="col-md-6 mb-3">
@@ -98,7 +98,7 @@ Below is a complete directory of kv-file's feature suite:
         <h5 class="mb-0">Settings & Customization</h5>
       </div>
       <p class="text-muted small mb-3">Appearance themes (Dark/Light/System), accent colors, UI density, and disk quotas.</p>
-      <a href="/docs/features/settings-customization/" class="btn btn-sm btn-primary">Settings Guide &rarr;</a>
+      <a href="settings-customization/" class="btn btn-sm btn-primary">Settings Guide &rarr;</a>
     </div>
   </div>
   <div class="col-md-6 mb-3">
@@ -108,7 +108,7 @@ Below is a complete directory of kv-file's feature suite:
         <h5 class="mb-0">Mobile Experience & Touch</h5>
       </div>
       <p class="text-muted small mb-3">Mobile Floating Action Button (FAB), touch gestures, off-canvas drawer, and mobile streaming.</p>
-      <a href="/docs/features/mobile-and-touch/" class="btn btn-sm btn-primary">Mobile Experience &rarr;</a>
+      <a href="mobile-and-touch/" class="btn btn-sm btn-primary">Mobile Experience &rarr;</a>
     </div>
   </div>
 </div>

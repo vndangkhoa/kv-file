@@ -24,7 +24,7 @@ toc: true
         <h6 class="mb-0 fw-bold">Authentication & 2FA</h6>
       </div>
       <p class="text-muted small mb-3">Setup status, login sessions, user verification, password updates, and TOTP 2FA.</p>
-      <a href="/docs/api/authentication/" class="btn btn-sm btn-primary">Auth API &rarr;</a>
+      <a href="authentication/" class="btn btn-sm btn-primary">Auth API &rarr;</a>
     </div>
   </div>
   <div class="col-md-4 mb-3">
@@ -34,7 +34,7 @@ toc: true
         <h6 class="mb-0 fw-bold">User Management</h6>
       </div>
       <p class="text-muted small mb-3">List accounts, provision users with roles (admin/user), and account deletion.</p>
-      <a href="/docs/api/users/" class="btn btn-sm btn-primary">Users API &rarr;</a>
+      <a href="users/" class="btn btn-sm btn-primary">Users API &rarr;</a>
     </div>
   </div>
   <div class="col-md-4 mb-3">
@@ -44,7 +44,7 @@ toc: true
         <h6 class="mb-0 fw-bold">Settings & System</h6>
       </div>
       <p class="text-muted small mb-3">Read and update system-wide preferences, theme keys, and retention policies.</p>
-      <a href="/docs/api/settings/" class="btn btn-sm btn-primary">Settings API &rarr;</a>
+      <a href="settings/" class="btn btn-sm btn-primary">Settings API &rarr;</a>
     </div>
   </div>
   <div class="col-md-4 mb-3">
@@ -54,7 +54,7 @@ toc: true
         <h6 class="mb-0 fw-bold">Filesystem & Streaming</h6>
       </div>
       <p class="text-muted small mb-3">Roots listing, directory trees, file CRUD, Range 206 streaming, and uploads.</p>
-      <a href="/docs/api/filesystem/" class="btn btn-sm btn-primary">Filesystem API &rarr;</a>
+      <a href="filesystem/" class="btn btn-sm btn-primary">Filesystem API &rarr;</a>
     </div>
   </div>
   <div class="col-md-4 mb-3">
@@ -64,7 +64,7 @@ toc: true
         <h6 class="mb-0 fw-bold">Shares & Recycle Bin</h6>
       </div>
       <p class="text-muted small mb-3">Expiring links with Argon2id passwords, quarantine listing, and 1-click restore.</p>
-      <a href="/docs/api/shares-and-trash/" class="btn btn-sm btn-primary">Shares & Trash &rarr;</a>
+      <a href="shares-and-trash/" class="btn btn-sm btn-primary">Shares & Trash &rarr;</a>
     </div>
   </div>
   <div class="col-md-4 mb-3">
@@ -74,7 +74,7 @@ toc: true
         <h6 class="mb-0 fw-bold">WebSocket Stream</h6>
       </div>
       <p class="text-muted small mb-3">Real-time push event stream for kernel inotify filesystem change events.</p>
-      <a href="/docs/api/websocket/" class="btn btn-sm btn-primary">WebSocket Specs &rarr;</a>
+      <a href="websocket/" class="btn btn-sm btn-primary">WebSocket Specs &rarr;</a>
     </div>
   </div>
 </div>

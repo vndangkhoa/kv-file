@@ -86,7 +86,7 @@ export const AboutTab: React.FC = () => {
         <span>© 2026 KV Files Project. Open source under MIT license.</span>
         <div className="flex items-center gap-4">
           <a
-            href="/docs"
+            href="/docs/"
             target="_blank"
             rel="noreferrer"
             className="flex items-center gap-1 hover:text-blue-600 dark:hover:text-blue-400 hover:underline"
