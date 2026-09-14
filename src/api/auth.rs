@@ -614,6 +614,35 @@ pub fn extract_token(headers: &HeaderMap) -> Option<String> {
     None
 }
 
+pub async fn auth_middleware(
+    State(state): State<AppState>,
+    request: axum::extract::Request,
+    next: axum::middleware::Next,
+) -> core::result::Result<Response, AppError> {
+    let headers = request.headers();
+    let token = extract_token(headers).or_else(|| {
+        request.uri().query().and_then(|q| {
+            for pair in q.split('&') {
+                if let Some(t) = pair.strip_prefix("token=") {
+                    return Some(t.to_string());
+                }
+            }
+            None
+        })
+    });
+
+    let token = token.ok_or_else(|| AppError::Unauthorized("Authentication required".to_string()))?;
+    let user = state
+        .get_session_user(&token)
+        .await
+        .ok_or_else(|| AppError::Unauthorized("Session expired or invalid".to_string()))?;
+
+    let mut request = request;
+    request.extensions_mut().insert(user);
+
+    Ok(next.run(request).await)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

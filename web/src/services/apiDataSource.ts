@@ -220,7 +220,8 @@ export const apiDataSource: FileSystemDataSource = {
     is_dir: boolean,
     password?: string,
     expires_at?: string,
-    allow_download: boolean = true
+    allow_download: boolean = true,
+    paths?: string[]
   ): Promise<ShareItem> {
     return request('/shares', {
       method: 'POST',
@@ -231,6 +232,7 @@ export const apiDataSource: FileSystemDataSource = {
         password: password || undefined,
         expires_at: expires_at || undefined,
         allow_download,
+        paths: paths && paths.length > 0 ? paths : undefined,
       }),
     });
   },
@@ -245,16 +247,18 @@ export const apiDataSource: FileSystemDataSource = {
     return request(`/public/share/${token}${qs}`);
   },
 
-  getPublicShareDownloadUrl(token: string, password?: string): string {
+  getPublicShareDownloadUrl(token: string, password?: string, item?: string): string {
     const params = new URLSearchParams();
     if (password) params.set('password', password);
+    if (item) params.set('item', item);
     const qs = params.toString() ? `?${params.toString()}` : '';
     return `${BASE_URL}/public/share/${token}/download${qs}`;
   },
 
-  getPublicShareRawUrl(token: string, password?: string): string {
+  getPublicShareRawUrl(token: string, password?: string, item?: string): string {
     const params = new URLSearchParams();
     if (password) params.set('password', password);
+    if (item) params.set('item', item);
     const qs = params.toString() ? `?${params.toString()}` : '';
     return `${BASE_URL}/public/share/${token}/raw${qs}`;
   },

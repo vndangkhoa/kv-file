@@ -109,6 +109,20 @@ pub struct ShareItem {
     pub view_count: i64,
     pub allow_download: bool,
     pub created_at: String,
+    #[serde(default)]
+    pub items_json: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PublicShareBundleItem {
+    pub name: String,
+    pub path: String,
+    pub is_dir: bool,
+    pub size: u64,
+    pub human_size: String,
+    pub mime_type: String,
+    pub media_type: MediaType,
+    pub extension: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

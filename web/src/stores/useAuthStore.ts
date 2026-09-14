@@ -45,8 +45,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const user = await api.getMe();
       set({ user, isLoading: false, isAuthModalOpen: false });
     } catch {
-      // Not logged in or unauthorized
-      set({ user: null, isLoading: false });
+      // Not logged in or unauthorized: prompt login modal
+      set({ user: null, isLoading: false, isAuthModalOpen: true, authMode: 'login' });
     }
   },
 

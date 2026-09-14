@@ -5,7 +5,7 @@ use crate::models::{
 };
 use chrono::{DateTime, Utc};
 use std::ffi::CString;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 pub struct FileOperations;
 
@@ -565,6 +565,58 @@ impl FileOperations {
                         let data = tokio::fs::read(&path).await?;
                         zip.write_all(&data)
                             .map_err(|e| AppError::Internal(e.to_string()))?;
+                    }
+                }
+            }
+            zip.finish().map_err(|e| AppError::Internal(e.to_string()))?;
+        }
+        Ok(buffer)
+    }
+
+    pub async fn create_zip_archive_items(items: &[(String, PathBuf)]) -> Result<Vec<u8>> {
+        use std::io::Write;
+        use zip::write::SimpleFileOptions;
+
+        let mut buffer = Vec::new();
+        {
+            let mut zip = zip::ZipWriter::new(std::io::Cursor::new(&mut buffer));
+            let options = SimpleFileOptions::default()
+                .compression_method(zip::CompressionMethod::Deflated);
+
+            for (archive_name, abs_path) in items {
+                if abs_path.is_file() {
+                    zip.start_file(archive_name, options)
+                        .map_err(|e| AppError::Internal(e.to_string()))?;
+                    let data = tokio::fs::read(abs_path).await?;
+                    zip.write_all(&data)
+                        .map_err(|e| AppError::Internal(e.to_string()))?;
+                } else if abs_path.is_dir() {
+                    zip.add_directory(archive_name, options)
+                        .map_err(|e| AppError::Internal(e.to_string()))?;
+
+                    let mut stack = vec![(abs_path.clone(), archive_name.clone())];
+                    while let Some((curr_dir, curr_prefix)) = stack.pop() {
+                        let mut entries = tokio::fs::read_dir(&curr_dir).await?;
+                        while let Some(entry) = entries.next_entry().await? {
+                            let file_name = entry.file_name().to_string_lossy().to_string();
+                            if file_name.starts_with('.') {
+                                continue;
+                            }
+                            let child_path = entry.path();
+                            let child_rel = format!("{}/{}", curr_prefix.trim_end_matches('/'), file_name);
+
+                            if child_path.is_dir() {
+                                zip.add_directory(&child_rel, options)
+                                    .map_err(|e| AppError::Internal(e.to_string()))?;
+                                stack.push((child_path, child_rel));
+                            } else if child_path.is_file() {
+                                zip.start_file(&child_rel, options)
+                                    .map_err(|e| AppError::Internal(e.to_string()))?;
+                                let data = tokio::fs::read(&child_path).await?;
+                                zip.write_all(&data)
+                                    .map_err(|e| AppError::Internal(e.to_string()))?;
+                            }
+                        }
                     }
                 }
             }

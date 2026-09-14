@@ -66,12 +66,13 @@ export interface FileSystemDataSource {
     is_dir: boolean,
     password?: string,
     expires_at?: string,
-    allow_download?: boolean
+    allow_download?: boolean,
+    paths?: string[]
   ): Promise<ShareItem>;
   deleteShare(id: string): Promise<void>;
   getPublicShareInfo(token: string, password?: string): Promise<PublicShareInfo>;
-  getPublicShareDownloadUrl(token: string, password?: string): string;
-  getPublicShareRawUrl(token: string, password?: string): string;
+  getPublicShareDownloadUrl(token: string, password?: string, item?: string): string;
+  getPublicShareRawUrl(token: string, password?: string, item?: string): string;
 
   // URLs
   getRawFileUrl(root: string, path: string): string;

@@ -22,6 +22,7 @@ import { ShareItem } from '../../types';
 
 export const ShareModal: React.FC = () => {
   const { isShareModalOpen, setShareModalOpen, activeItem, selectedItems } = useExplorerStore();
+  const isMulti = selectedItems.length > 1;
   const item = activeItem || (selectedItems.length > 0 ? selectedItems[0] : null);
 
   // Tabs: 'external' (public link) | 'internal' (local users)
@@ -49,7 +50,7 @@ export const ShareModal: React.FC = () => {
   const [copiedMd, setCopiedMd] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  if (!isShareModalOpen || !item) return null;
+  if (!isShareModalOpen || (!item && !isMulti)) return null;
 
   const handlePresetExpiration = (hours: number) => {
     if (hours === 0) {
@@ -76,14 +77,29 @@ export const ShareModal: React.FC = () => {
   const handleCreateShare = async () => {
     setIsLoading(true);
     try {
-      const share = await api.createShare(
-        item.root_name,
-        item.path,
-        item.is_dir,
-        enablePassword && password ? password : undefined,
-        expiresAt || undefined,
-        allowDownload
-      );
+      let share: ShareItem;
+      if (isMulti) {
+        share = await api.createShare(
+          selectedItems[0].root_name,
+          selectedItems[0].path,
+          true,
+          enablePassword && password ? password : undefined,
+          expiresAt || undefined,
+          allowDownload,
+          selectedItems.map((i) => i.path)
+        );
+      } else if (item) {
+        share = await api.createShare(
+          item.root_name,
+          item.path,
+          item.is_dir,
+          enablePassword && password ? password : undefined,
+          expiresAt || undefined,
+          allowDownload
+        );
+      } else {
+        return;
+      }
       setCreatedShare(share);
     } catch (err: any) {
       alert(`Failed to create share: ${err.message}`);
@@ -111,7 +127,8 @@ export const ShareModal: React.FC = () => {
   };
 
   const handleCopyMarkdown = () => {
-    const md = `[${item.name}](${shareUrl})`;
+    const title = isMulti ? `Shared Bundle (${selectedItems.length} items)` : (item?.name || 'File');
+    const md = `[${title}](${shareUrl})`;
     navigator.clipboard.writeText(md);
     setCopiedMd(true);
     setTimeout(() => setCopiedMd(false), 2000);
@@ -144,10 +161,12 @@ export const ShareModal: React.FC = () => {
             </div>
             <div>
               <h3 className="font-semibold text-sm text-gray-900 dark:text-gray-100">
-                Share "{item.name}"
+                {isMulti ? `Share ${selectedItems.length} items (Bundle)` : `Share "${item?.name}"`}
               </h3>
               <p className="text-xs text-gray-400">
-                Configure internal access or generate public token links
+                {isMulti
+                  ? 'Create a unified share link for all selected files & folders'
+                  : 'Configure internal access or generate public token links'}
               </p>
             </div>
           </div>
@@ -266,6 +285,22 @@ export const ShareModal: React.FC = () => {
           ) : activeTab === 'external' ? (
             /* External Public Share Configuration */
             <div className="space-y-4">
+              {isMulti && (
+                <div className="p-3 bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/70 dark:border-emerald-800/40 rounded-xl space-y-2">
+                  <div className="flex items-center justify-between text-xs text-emerald-800 dark:text-emerald-300 font-medium">
+                    <span>Bundle of {selectedItems.length} selected items:</span>
+                  </div>
+                  <div className="max-h-28 overflow-y-auto space-y-1 pr-1 text-xs">
+                    {selectedItems.map((si, idx) => (
+                      <div key={idx} className="flex items-center justify-between py-0.5 text-gray-700 dark:text-gray-300">
+                        <span className="truncate max-w-[280px] font-mono text-[11px]">{si.name}</span>
+                        <span className="text-[11px] text-gray-400 shrink-0">{si.is_dir ? 'Folder' : si.human_size}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Collapsible Advanced Accordion */}
               <div className="border border-gray-200 dark:border-[#333333] rounded-xl overflow-hidden">
                 <button
@@ -384,7 +419,7 @@ export const ShareModal: React.FC = () => {
                         </select>
                       </div>
 
-                      {item.is_dir && (
+                      {item?.is_dir && (
                         <div className="flex items-center justify-between">
                           <label
                             htmlFor="allow-up"

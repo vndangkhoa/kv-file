@@ -837,7 +837,8 @@ class MockFileSystem implements FileSystemDataSource {
     is_dir: boolean,
     password?: string,
     expires_at?: string,
-    allow_download: boolean = true
+    allow_download: boolean = true,
+    paths?: string[]
   ): Promise<ShareItem> {
     const share: ShareItem = {
       id: `share-${Date.now()}`,
@@ -850,6 +851,7 @@ class MockFileSystem implements FileSystemDataSource {
       view_count: 0,
       allow_download,
       created_at: new Date().toISOString(),
+      items_json: paths && paths.length > 0 ? JSON.stringify(paths) : undefined,
     };
     this.shares.push(share);
     return share;
@@ -869,6 +871,7 @@ class MockFileSystem implements FileSystemDataSource {
       name,
       path: share.path,
       is_dir: share.is_dir,
+      is_bundle: Boolean(share.items_json),
       size: 1024,
       human_size: '1.0 KB',
       mime_type: 'application/octet-stream',
@@ -882,13 +885,19 @@ class MockFileSystem implements FileSystemDataSource {
     };
   }
 
-  getPublicShareDownloadUrl(token: string, password?: string): string {
-    const qs = password ? `?password=${encodeURIComponent(password)}` : '';
+  getPublicShareDownloadUrl(token: string, password?: string, item?: string): string {
+    const params = new URLSearchParams();
+    if (password) params.set('password', password);
+    if (item) params.set('item', item);
+    const qs = params.toString() ? `?${params.toString()}` : '';
     return `/api/v1/public/share/${token}/download${qs}`;
   }
 
-  getPublicShareRawUrl(token: string, password?: string): string {
-    const qs = password ? `?password=${encodeURIComponent(password)}` : '';
+  getPublicShareRawUrl(token: string, password?: string, item?: string): string {
+    const params = new URLSearchParams();
+    if (password) params.set('password', password);
+    if (item) params.set('item', item);
+    const qs = params.toString() ? `?${params.toString()}` : '';
     return `/api/v1/public/share/${token}/raw${qs}`;
   }
 

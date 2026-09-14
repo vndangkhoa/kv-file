@@ -22,13 +22,25 @@ async fn test_db_user_and_shares() {
 
     // 4. Create Share
     let share = db
-        .create_share("storage", "documents/report.pdf", false, None, None, true)
+        .create_share("storage", "documents/report.pdf", false, None, None, true, None)
         .await
         .unwrap();
     assert_eq!(share.path, "documents/report.pdf");
+    assert!(share.items_json.is_none());
 
     let queried_share = db.get_share_by_token(&share.token).await.unwrap();
     assert!(queried_share.is_some());
+
+    // 4b. Create Bundle Share
+    let bundle_json = serde_json::to_string(&vec!["photos/a.jpg", "photos/b.png"]).unwrap();
+    let bundle_share = db
+        .create_share("storage", "photos", true, None, None, true, Some(bundle_json.clone()))
+        .await
+        .unwrap();
+    assert_eq!(bundle_share.items_json.as_deref(), Some(bundle_json.as_str()));
+    let queried_bundle = db.get_share_by_token(&bundle_share.token).await.unwrap();
+    assert!(queried_bundle.is_some());
+    assert_eq!(queried_bundle.unwrap().0.items_json.as_deref(), Some(bundle_json.as_str()));
 
     // 5. Trash item
     let trash_item = db

@@ -60,7 +60,8 @@ impl Database {
                 expires_at TEXT,
                 view_count INTEGER NOT NULL DEFAULT 0,
                 allow_download INTEGER NOT NULL DEFAULT 1,
-                created_at TEXT NOT NULL
+                created_at TEXT NOT NULL,
+                items_json TEXT
             );
 
             CREATE TABLE IF NOT EXISTS trash (
@@ -109,6 +110,20 @@ impl Database {
         }
         if !columns.contains(&"backup_codes".to_string()) {
             conn.execute("ALTER TABLE users ADD COLUMN backup_codes TEXT", [])
+                .map_err(|e| AppError::Db(e.to_string()))?;
+        }
+
+        let mut stmt_shares = conn
+            .prepare("PRAGMA table_info(shares)")
+            .map_err(|e| AppError::Db(e.to_string()))?;
+        let share_columns: Vec<String> = stmt_shares
+            .query_map([], |row| row.get(1))
+            .map_err(|e| AppError::Db(e.to_string()))?
+            .filter_map(|r| r.ok())
+            .collect();
+
+        if !share_columns.contains(&"items_json".to_string()) {
+            conn.execute("ALTER TABLE shares ADD COLUMN items_json TEXT", [])
                 .map_err(|e| AppError::Db(e.to_string()))?;
         }
 
@@ -357,6 +372,7 @@ impl Database {
         password_hash: Option<String>,
         expires_at: Option<String>,
         allow_download: bool,
+        items_json: Option<String>,
     ) -> Result<ShareItem> {
         let id = Uuid::new_v4().to_string();
         let token = Uuid::new_v4().to_string().replace('-', "")[..12].to_string();
@@ -364,8 +380,8 @@ impl Database {
 
         let conn = self.conn.lock().await;
         conn.execute(
-            "INSERT INTO shares (id, token, root_name, path, is_dir, password_hash, expires_at, view_count, allow_download, created_at)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, 0, ?8, ?9)",
+            "INSERT INTO shares (id, token, root_name, path, is_dir, password_hash, expires_at, view_count, allow_download, created_at, items_json)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, 0, ?8, ?9, ?10)",
             params![
                 id,
                 token,
@@ -375,7 +391,8 @@ impl Database {
                 password_hash,
                 expires_at,
                 allow_download as i32,
-                created_at
+                created_at,
+                items_json
             ],
         )
         .map_err(|e| AppError::Db(format!("Failed to create share: {}", e)))?;
@@ -391,13 +408,14 @@ impl Database {
             view_count: 0,
             allow_download,
             created_at,
+            items_json,
         })
     }
 
     pub async fn get_share_by_token(&self, token: &str) -> Result<Option<(ShareItem, Option<String>)>> {
         let conn = self.conn.lock().await;
         let mut stmt = conn
-            .prepare("SELECT id, token, root_name, path, is_dir, password_hash, expires_at, view_count, allow_download, created_at FROM shares WHERE token = ?1")
+            .prepare("SELECT id, token, root_name, path, is_dir, password_hash, expires_at, view_count, allow_download, created_at, items_json FROM shares WHERE token = ?1")
             .map_err(|e| AppError::Db(e.to_string()))?;
 
         let res = stmt
@@ -417,6 +435,7 @@ impl Database {
                     view_count: row.get(7)?,
                     allow_download: allow_dl != 0,
                     created_at: row.get(9)?,
+                    items_json: row.get(10)?,
                 };
                 Ok((item, pw_hash))
             })
@@ -438,7 +457,7 @@ impl Database {
     pub async fn list_shares(&self) -> Result<Vec<ShareItem>> {
         let conn = self.conn.lock().await;
         let mut stmt = conn
-            .prepare("SELECT id, token, root_name, path, is_dir, password_hash, expires_at, view_count, allow_download, created_at FROM shares ORDER BY created_at DESC")
+            .prepare("SELECT id, token, root_name, path, is_dir, password_hash, expires_at, view_count, allow_download, created_at, items_json FROM shares ORDER BY created_at DESC")
             .map_err(|e| AppError::Db(e.to_string()))?;
 
         let rows = stmt
@@ -458,6 +477,7 @@ impl Database {
                     view_count: row.get(7)?,
                     allow_download: allow_dl != 0,
                     created_at: row.get(9)?,
+                    items_json: row.get(10)?,
                 })
             })
             .map_err(|e| AppError::Db(e.to_string()))?;

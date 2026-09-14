@@ -93,6 +93,18 @@ export interface ShareItem {
   view_count: number;
   allow_download: boolean;
   created_at: string;
+  items_json?: string;
+}
+
+export interface PublicShareBundleItem {
+  name: string;
+  path: string;
+  is_dir: boolean;
+  size: number;
+  human_size: string;
+  mime_type: string;
+  media_type: 'video' | 'image' | 'audio' | 'pdf' | 'text' | 'code' | 'archive' | 'doc' | 'spreadsheet' | 'presentation' | 'other';
+  extension?: string;
 }
 
 export interface PublicShareInfo {
@@ -101,6 +113,8 @@ export interface PublicShareInfo {
   name: string;
   path: string;
   is_dir: boolean;
+  is_bundle?: boolean;
+  bundle_items?: PublicShareBundleItem[];
   size: number;
   human_size: string;
   mime_type: string;

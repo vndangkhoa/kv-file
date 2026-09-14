@@ -4,6 +4,7 @@ import { useAuthStore } from '../../stores/useAuthStore';
 
 export const SetupLoginModal: React.FC = () => {
   const {
+    user,
     isAuthModalOpen,
     setAuthModalOpen,
     authMode,
@@ -88,7 +89,7 @@ export const SetupLoginModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 backdrop-blur-md p-4 animate-in fade-in">
       <div
         onClick={(e) => e.stopPropagation()}
         className="bg-white dark:bg-[#252526] w-full max-w-sm rounded-xl shadow-2xl border border-gray-200 dark:border-[#333333] p-6 select-none"
@@ -113,7 +114,7 @@ export const SetupLoginModal: React.FC = () => {
               </>
             )}
           </div>
-          {isInitialized && !requires2fa && (
+          {isInitialized && !requires2fa && user && (
             <button
               onClick={() => setAuthModalOpen(false)}
               className="p-1 rounded text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"

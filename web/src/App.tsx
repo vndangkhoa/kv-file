@@ -66,7 +66,7 @@ export const App: React.FC = () => {
     },
   });
 
-  const { checkAuth } = useAuthStore();
+  const { user, checkAuth, isLoading: isAuthLoading } = useAuthStore();
   const { preferences } = useSettingsStore();
   const { isConnected: wsConnected } = useWebSocket();
   useKeyboardShortcuts();
@@ -80,12 +80,16 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     if (isShareRoute) return;
-    fetchRoots();
     checkAuth();
+  }, [checkAuth, isShareRoute]);
+
+  useEffect(() => {
+    if (isShareRoute || !user) return;
+    fetchRoots();
     if (preferences.defaultViewMode) {
       setViewMode(preferences.defaultViewMode);
     }
-  }, [fetchRoots, checkAuth, preferences.defaultViewMode, setViewMode, isShareRoute]);
+  }, [fetchRoots, user, preferences.defaultViewMode, setViewMode, isShareRoute]);
 
   // Global right-click interceptor:
   // Disables default browser context menu everywhere across the app,
@@ -120,9 +124,15 @@ export const App: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col h-screen h-[100dvh] max-h-[100dvh] w-screen bg-[#f3f3f3] dark:bg-[#1e1e1e] text-gray-900 dark:text-gray-100 overflow-hidden font-sans pb-[env(safe-area-inset-bottom,0px)]">
-      {/* 1. Windows Explorer Top Title & Search Bar */}
-      <TitleBar />
+    <div className="flex flex-col h-screen h-[100dvh] max-h-[100dvh] w-screen bg-[#f3f3f3] dark:bg-[#1e1e1e] text-gray-900 dark:text-gray-100 overflow-hidden font-sans pb-[env(safe-area-inset-bottom,0px)] relative">
+      {/* Main Explorer Shell (blurred and non-interactive until logged in) */}
+      <div
+        className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ${
+          !user && !isAuthLoading ? 'filter blur-md pointer-events-none select-none opacity-40 scale-[0.99]' : ''
+        }`}
+      >
+        {/* 1. Windows Explorer Top Title & Search Bar */}
+        <TitleBar />
 
       {/* 2. Windows Explorer Breadcrumb & Address Bar */}
       <AddressBar />
@@ -218,6 +228,7 @@ export const App: React.FC = () => {
 
       {/* 5. Status Bar */}
       <StatusBar wsConnected={wsConnected} />
+      </div>
 
       {/* 6. Modals & Overlays */}
       <QuickLookModal />
