@@ -898,7 +898,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "kv-files"
+name = "kv-file"
 version = "2.0.0"
 dependencies = [
  "argon2",

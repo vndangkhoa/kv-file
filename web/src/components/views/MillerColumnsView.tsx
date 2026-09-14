@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { ChevronRight, Download, Share2, Eye, Trash2, Music } from 'lucide-react';
+import { ChevronRight, Download, Share2, Eye, Trash2, Music, Film } from 'lucide-react';
 import { useExplorerStore } from '../../stores/useExplorerStore';
 import { useDownloadStore } from '../../stores/useDownloadStore';
 import { FileIcon } from '../common/FileIcon';
@@ -17,6 +17,7 @@ export const MillerColumnsView: React.FC = () => {
     refresh,
     openContextMenu,
     playAudio,
+    playVideo,
   } = useExplorerStore();
 
   const { startDownload } = useDownloadStore();
@@ -80,6 +81,8 @@ export const MillerColumnsView: React.FC = () => {
                       if (!item.is_dir) {
                         if (item.media_type === 'audio') {
                           playAudio(item);
+                        } else if (item.media_type === 'video') {
+                          playVideo(item);
                         } else {
                           setQuickLookOpen(true);
                         }
@@ -187,6 +190,16 @@ export const MillerColumnsView: React.FC = () => {
               >
                 <Music size={14} />
                 <span>Play in Music Player</span>
+              </button>
+            )}
+
+            {activeItem.media_type === 'video' && (
+              <button
+                onClick={() => playVideo(activeItem)}
+                className="w-full flex items-center justify-center gap-2 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-medium transition-colors shadow-sm"
+              >
+                <Film size={14} />
+                <span>Play in Video Player</span>
               </button>
             )}
 

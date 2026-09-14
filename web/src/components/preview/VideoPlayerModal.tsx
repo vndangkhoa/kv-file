@@ -12,6 +12,7 @@ import {
   Download,
   Film,
   PictureInPicture,
+  AlertCircle,
 } from 'lucide-react';
 import { useExplorerStore } from '../../stores/useExplorerStore';
 import { useDownloadStore } from '../../stores/useDownloadStore';
@@ -33,6 +34,8 @@ export const VideoPlayerModal: React.FC = () => {
   const [playbackRate, setPlaybackRate] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isControlsVisible, setIsControlsVisible] = useState(true);
+  const [hasError, setHasError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const controlsTimeoutRef = useRef<any>(null);
 
   useEffect(() => {
@@ -40,14 +43,22 @@ export const VideoPlayerModal: React.FC = () => {
       setIsPlaying(false);
       setCurrentTime(0);
       setDuration(0);
+      setHasError(false);
+      setErrorMessage('');
     }
   }, [isVideoPlayerOpen]);
 
   useEffect(() => {
+    setHasError(false);
+    setErrorMessage('');
+  }, [videoTrack?.path]);
+
+  useEffect(() => {
+    if (!isVideoPlayerOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isVideoPlayerOpen) return;
       if (e.key === 'Escape') {
         e.preventDefault();
+        e.stopPropagation();
         closeVideoPlayer();
       } else if (e.code === 'Space') {
         e.preventDefault();
@@ -67,8 +78,8 @@ export const VideoPlayerModal: React.FC = () => {
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown, true);
+    return () => window.removeEventListener('keydown', handleKeyDown, true);
   }, [isVideoPlayerOpen, closeVideoPlayer, isPlaying]);
 
   if (!isVideoPlayerOpen || !videoTrack) return null;
@@ -193,10 +204,23 @@ export const VideoPlayerModal: React.FC = () => {
         onMouseMove={handleMouseMove}
         className="relative w-full max-w-5xl bg-black rounded-2xl shadow-2xl border border-gray-800 overflow-hidden flex flex-col group"
       >
+        {/* Permanent Top-Right Exit Button (Always visible and interactive) */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            closeVideoPlayer();
+          }}
+          title="Exit Video Player (Esc)"
+          aria-label="Exit Video Player"
+          className="absolute top-3 right-3 z-40 p-2 rounded-full bg-black/70 hover:bg-red-600/90 text-white backdrop-blur-md border border-white/20 shadow-lg transition-all hover:scale-105 active:scale-95"
+        >
+          <X size={18} />
+        </button>
+
         {/* Top Floating Bar */}
         <div
-          className={`absolute top-0 inset-x-0 z-20 flex items-center justify-between px-4 py-3 bg-gradient-to-b from-black/80 via-black/40 to-transparent transition-opacity duration-300 ${
-            isControlsVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          className={`absolute top-0 inset-x-0 z-20 flex items-center justify-between px-4 py-3 pr-14 bg-gradient-to-b from-black/80 via-black/40 to-transparent transition-opacity duration-300 ${
+            isControlsVisible || !isPlaying || hasError ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}
         >
           <div className="flex items-center gap-2 truncate">
@@ -217,52 +241,83 @@ export const VideoPlayerModal: React.FC = () => {
             >
               <Download size={16} />
             </button>
-            <button
-              onClick={closeVideoPlayer}
-              title="Close (Esc)"
-              className="p-1.5 rounded-lg text-gray-300 hover:text-red-400 hover:bg-white/10 transition-colors"
-            >
-              <X size={18} />
-            </button>
           </div>
         </div>
 
         {/* Video Canvas */}
-        <div className="relative flex items-center justify-center bg-black min-h-[300px] max-h-[75vh]">
-          <video
-            ref={videoRef}
-            src={rawUrl}
-            playsInline
-            webkit-playsinline="true"
-            preload="metadata"
-            autoPlay
-            onPlay={() => setIsPlaying(true)}
-            onPause={() => setIsPlaying(false)}
-            onTimeUpdate={handleTimeUpdate}
-            onLoadedMetadata={handleLoadedMetadata}
-            onClick={togglePlay}
-            className="w-full h-full max-h-[75vh] object-contain cursor-pointer"
-          />
+        <div className="relative flex items-center justify-center bg-black min-h-[340px] max-h-[75vh]">
+          {hasError ? (
+            <div className="flex flex-col items-center justify-center p-6 text-center max-w-md mx-auto z-10 animate-in zoom-in-95 duration-200">
+              <div className="w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-500/30 text-amber-400 flex items-center justify-center mb-3">
+                <AlertCircle size={28} />
+              </div>
+              <h3 className="text-base font-semibold text-white mb-1">
+                Unable to play video
+              </h3>
+              <p className="text-xs text-gray-400 mb-4 leading-relaxed">
+                {errorMessage || 'The browser encountered an issue while trying to stream this video file. It may be encoded in an unsupported format/codec, or the media source is unreachable.'}
+              </p>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => startDownload(videoTrack.root_name || currentRoot, videoTrack)}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl shadow-lg shadow-blue-600/30 transition-all"
+                >
+                  <Download size={15} />
+                  <span>Download Video ({formatHumanSize(videoTrack.size)})</span>
+                </button>
+                <button
+                  onClick={closeVideoPlayer}
+                  className="px-4 py-2 bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white text-xs font-medium rounded-xl border border-white/10 transition-colors"
+                >
+                  Return to Files
+                </button>
+              </div>
+            </div>
+          ) : (
+            <video
+              ref={videoRef}
+              src={rawUrl}
+              playsInline
+              preload="metadata"
+              autoPlay
+              onPlay={() => setIsPlaying(true)}
+              onPause={() => setIsPlaying(false)}
+              onTimeUpdate={handleTimeUpdate}
+              onLoadedMetadata={handleLoadedMetadata}
+              onError={() => {
+                setHasError(true);
+                setErrorMessage('Browser was unable to load or decode this video file.');
+                setIsPlaying(false);
+              }}
+              onClick={togglePlay}
+              className="w-full h-full max-h-[75vh] object-contain cursor-pointer"
+            />
+          )}
 
-          {/* Quick Double Tap Touch Zones for Mobile */}
-          <div
-            onDoubleClick={() => seek(-10)}
-            className="absolute left-0 inset-y-0 w-1/4 z-10 opacity-0 active:opacity-20 bg-white/20 transition-opacity"
-            title="Double-tap to rewind 10s"
-          />
-          <div
-            onDoubleClick={() => seek(10)}
-            className="absolute right-0 inset-y-0 w-1/4 z-10 opacity-0 active:opacity-20 bg-white/20 transition-opacity"
-            title="Double-tap to forward 10s"
-          />
+          {!hasError && (
+            <>
+              {/* Quick Double Tap Touch Zones for Mobile */}
+              <div
+                onDoubleClick={() => seek(-10)}
+                className="absolute left-0 inset-y-0 w-1/4 z-10 opacity-0 active:opacity-20 bg-white/20 transition-opacity"
+                title="Double-tap to rewind 10s"
+              />
+              <div
+                onDoubleClick={() => seek(10)}
+                className="absolute right-0 inset-y-0 w-1/4 z-10 opacity-0 active:opacity-20 bg-white/20 transition-opacity"
+                title="Double-tap to forward 10s"
+              />
+            </>
+          )}
         </div>
 
         {/* Bottom Floating Control Bar */}
-        <div
-          className={`absolute bottom-0 inset-x-0 z-20 px-4 py-3 bg-gradient-to-t from-black/90 via-black/50 to-transparent flex flex-col gap-2 transition-opacity duration-300 ${
-            isControlsVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'
-          }`}
-        >
+        {!hasError && (
+          <div
+            className={`absolute bottom-0 inset-x-0 z-20 px-4 py-3 bg-gradient-to-t from-black/90 via-black/50 to-transparent flex flex-col gap-2 transition-opacity duration-300 ${
+              isControlsVisible || !isPlaying ? 'opacity-100' : 'opacity-0 pointer-events-none'
+            }`}
+          >
           {/* Seek Scrubber Bar */}
           <div className="flex items-center gap-3">
             <span className="text-[11px] font-mono text-gray-300 w-12 text-right shrink-0">
@@ -368,6 +423,7 @@ export const VideoPlayerModal: React.FC = () => {
             </div>
           </div>
         </div>
+        )}
       </div>
     </div>
   );

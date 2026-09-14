@@ -9,9 +9,12 @@ import {
   FastForward,
   Rewind,
   Music,
+  Download,
+  AlertCircle,
 } from 'lucide-react';
 import { FileItem } from '../../types';
 import { api } from '../../services/api';
+import { useDownloadStore } from '../../stores/useDownloadStore';
 
 interface AudioPlayerProps {
   item: FileItem | null;
@@ -27,11 +30,14 @@ export const AudioPlayerModal: React.FC<AudioPlayerProps> = ({ item, root, onClo
   const [isMuted, setIsMuted] = useState(false);
   const [playbackRate, setPlaybackRate] = useState(1.0);
   const [isLooping, setIsLooping] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
+  const { startDownload } = useDownloadStore();
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     if (!item) return;
+    setHasError(false);
     setIsPlaying(true);
     setCurrentTime(0);
 
@@ -44,6 +50,19 @@ export const AudioPlayerModal: React.FC<AudioPlayerProps> = ({ item, root, onClo
       });
     }
   }, [item]);
+
+  useEffect(() => {
+    if (!item) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown, true);
+    return () => window.removeEventListener('keydown', handleKeyDown, true);
+  }, [item, onClose]);
 
   if (!item) return null;
 
@@ -136,6 +155,10 @@ export const AudioPlayerModal: React.FC<AudioPlayerProps> = ({ item, root, onClo
         src={audioSrc}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
+        onError={() => {
+          setHasError(true);
+          setIsPlaying(false);
+        }}
         onEnded={() => {
           if (!isLooping) setIsPlaying(false);
         }}
@@ -162,15 +185,40 @@ export const AudioPlayerModal: React.FC<AudioPlayerProps> = ({ item, root, onClo
           </div>
         </div>
 
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-          title="Close player"
-        >
-          <X size={16} />
-        </button>
+        {/* Action Buttons */}
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            onClick={() => startDownload(root, item)}
+            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            title="Download track"
+          >
+            <Download size={16} />
+          </button>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-red-500 dark:hover:text-red-400 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            title="Close player (Esc)"
+          >
+            <X size={16} />
+          </button>
+        </div>
       </div>
+
+      {/* Error Fallback */}
+      {hasError && (
+        <div className="flex items-center justify-between gap-2 p-2.5 mb-2 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50 rounded-xl text-amber-800 dark:text-amber-200 text-xs">
+          <div className="flex items-center gap-2">
+            <AlertCircle size={16} className="text-amber-600 dark:text-amber-400 shrink-0" />
+            <span>Audio stream failed to decode in browser.</span>
+          </div>
+          <button
+            onClick={() => startDownload(root, item)}
+            className="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-[11px] font-medium transition-colors shrink-0"
+          >
+            Download File
+          </button>
+        </div>
+      )}
 
       {/* Visualizer bars animation */}
       <div className="flex items-end justify-between h-5 gap-1 mb-2 px-1">

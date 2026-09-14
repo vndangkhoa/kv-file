@@ -13,6 +13,7 @@ export const GridView: React.FC = () => {
     setQuickLookOpen,
     openContextMenu,
     playAudio,
+    playVideo,
   } = useExplorerStore();
 
   const items = listing?.items || [];
@@ -27,6 +28,8 @@ export const GridView: React.FC = () => {
       navigateTo(item.path);
     } else if (item.media_type === 'audio') {
       playAudio(item);
+    } else if (item.media_type === 'video') {
+      playVideo(item);
     } else {
       setQuickLookOpen(true);
     }

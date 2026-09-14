@@ -41,6 +41,7 @@ export const SplitView: React.FC = () => {
     openContextMenu,
     setQuickLookOpen,
     playAudio,
+    playVideo,
   } = useExplorerStore();
 
   // Mobile active tab ('left' | 'right')
@@ -64,6 +65,8 @@ export const SplitView: React.FC = () => {
       }
     } else if (item.media_type === 'audio') {
       playAudio(item);
+    } else if (item.media_type === 'video') {
+      playVideo(item);
     } else {
       if (pane === 'left') {
         selectItem(item, false);

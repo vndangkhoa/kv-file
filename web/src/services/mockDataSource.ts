@@ -193,7 +193,7 @@ Welcome to the KV Files demo!
     extension: 'mp4',
     media_type: 'video',
     mime_type: 'video/mp4',
-    previewUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+    previewUrl: '/media/sample_video.mp4',
   },
   {
     name: 'Acoustic_Guitar_Theme.mp3',
@@ -206,7 +206,7 @@ Welcome to the KV Files demo!
     extension: 'mp3',
     media_type: 'audio',
     mime_type: 'audio/mpeg',
-    previewUrl: 'https://actions.google.com/sounds/v1/ambiences/daytime_forest_bonfire.ogg',
+    previewUrl: '/media/sample_audio.mp3',
   },
   {
     name: 'Shot_On_iPhone_15_Pro.heic',
@@ -232,7 +232,7 @@ Welcome to the KV Files demo!
     extension: 'mov',
     media_type: 'video',
     mime_type: 'video/quicktime',
-    previewUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+    previewUrl: '/media/sample_video.mp4',
   },
   {
     name: 'Voice_Memo_Studio.m4a',
@@ -245,7 +245,7 @@ Welcome to the KV Files demo!
     extension: 'm4a',
     media_type: 'audio',
     mime_type: 'audio/mp4',
-    previewUrl: 'https://actions.google.com/sounds/v1/water/rain_heavy.ogg',
+    previewUrl: '/media/sample_audio.mp3',
   },
   {
     name: 'Sticker_Animation.webp',
@@ -271,7 +271,7 @@ Welcome to the KV Files demo!
     extension: 'opus',
     media_type: 'audio',
     mime_type: 'audio/ogg',
-    previewUrl: 'https://actions.google.com/sounds/v1/ambiences/daytime_forest_bonfire.ogg',
+    previewUrl: '/media/sample_audio.mp3',
   },
   {
     name: 'Drone_4K_Hyperlapse.webm',
@@ -284,7 +284,7 @@ Welcome to the KV Files demo!
     extension: 'webm',
     media_type: 'video',
     mime_type: 'video/webm',
-    previewUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    previewUrl: '/media/sample_video.mp4',
   },
   {
     name: 'Studio_Master_Ambient.flac',
@@ -297,7 +297,7 @@ Welcome to the KV Files demo!
     extension: 'flac',
     media_type: 'audio',
     mime_type: 'audio/flac',
-    previewUrl: 'https://actions.google.com/sounds/v1/weather/thunderstorm.ogg',
+    previewUrl: '/media/sample_audio.mp3',
   },
   {
     name: 'Podcast_Episode_12.wav',
@@ -310,7 +310,7 @@ Welcome to the KV Files demo!
     extension: 'wav',
     media_type: 'audio',
     mime_type: 'audio/wav',
-    previewUrl: 'https://actions.google.com/sounds/v1/ambiences/outdoor_garden_birds.ogg',
+    previewUrl: '/media/sample_audio.mp3',
   },
   {
     name: 'Synthwave_Sunset_Beat.mp3',
@@ -323,7 +323,7 @@ Welcome to the KV Files demo!
     extension: 'mp3',
     media_type: 'audio',
     mime_type: 'audio/mpeg',
-    previewUrl: 'https://actions.google.com/sounds/v1/science_fiction/force_field_hum.ogg',
+    previewUrl: '/media/sample_audio.mp3',
   },
 
   // Code folder

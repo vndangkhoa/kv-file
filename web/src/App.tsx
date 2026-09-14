@@ -43,6 +43,7 @@ export const App: React.FC = () => {
     setCommandPaletteOpen,
     audioTrack,
     playAudio,
+    playVideo,
     closeAudioPlayer,
   } = useExplorerStore();
 
@@ -95,14 +96,22 @@ export const App: React.FC = () => {
                   <div
                     key={item.path}
                     onClick={() => selectItem(item, false)}
-                    onDoubleClick={() => {
+                    onDoubleClick={async () => {
+                      clearSearch();
                       if (item.is_dir) {
-                        clearSearch();
-                        navigateTo(item.path);
-                      } else if (item.media_type === 'audio') {
-                        playAudio(item);
+                        await navigateTo(item.path);
                       } else {
-                        setQuickLookOpen(true);
+                        const lastSlash = item.path.lastIndexOf('/');
+                        const parentDir = lastSlash !== -1 ? item.path.slice(0, lastSlash) : '';
+                        await navigateTo(parentDir);
+                        selectItem(item, false);
+                        if (item.media_type === 'video') {
+                          playVideo(item);
+                        } else if (item.media_type === 'audio') {
+                          playAudio(item);
+                        } else {
+                          setQuickLookOpen(true);
+                        }
                       }
                     }}
                     onContextMenu={(e) => {

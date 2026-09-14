@@ -10,6 +10,7 @@ import {
   Trash2,
   Sliders,
   Sparkles,
+  FolderOpen,
 } from 'lucide-react';
 import { useExplorerStore } from '../../stores/useExplorerStore';
 import { FileItem } from '../../types';
@@ -49,7 +50,22 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
     toggleSplitView,
     isSplitView,
     playAudio,
+    playVideo,
   } = useExplorerStore();
+
+  // Global Escape key capture listener to guarantee escape works regardless of focus
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown, true);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown, true);
+  }, [isOpen, onClose]);
 
   // Focus input when opened
   useEffect(() => {
@@ -165,9 +181,32 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
     return () => clearTimeout(timer);
   }, [query, isOpen, isCommandMode, currentRoot]);
 
+  const handleSelectFileItem = async (item: FileItem, openPreview: boolean = true) => {
+    onClose();
+    if (item.is_dir) {
+      await navigateTo(item.path);
+    } else {
+      const lastSlash = item.path.lastIndexOf('/');
+      const parentDir = lastSlash !== -1 ? item.path.slice(0, lastSlash) : '';
+      await navigateTo(parentDir);
+      selectItem(item, false);
+
+      if (openPreview) {
+        if (item.media_type === 'video') {
+          playVideo(item);
+        } else if (item.media_type === 'audio') {
+          playAudio(item);
+        } else {
+          setQuickLookOpen(true);
+        }
+      }
+    }
+  };
+
   // Keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
+      e.preventDefault();
       onClose();
       return;
     }
@@ -190,15 +229,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
       } else {
         const item = results[selectedIndex];
         if (item) {
-          onClose();
-          if (item.is_dir) {
-            navigateTo(item.path);
-          } else if (item.media_type === 'audio') {
-            playAudio(item);
-          } else {
-            selectItem(item, false);
-            setQuickLookOpen(true);
-          }
+          handleSelectFileItem(item, true);
         }
       }
     }
@@ -217,9 +248,13 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 sm:pt-28 px-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-150">
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-center pt-20 sm:pt-28 px-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-150"
+      onClick={onClose}
+    >
       <div
         className="w-full max-w-2xl bg-white dark:bg-[#1e1e1e] border border-gray-200 dark:border-[#3a3d41] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[75vh] animate-in zoom-in-95 duration-150"
+        onClick={(e) => e.stopPropagation()}
         onKeyDown={handleKeyDown}
       >
         {/* Search Header */}
@@ -241,9 +276,23 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
               <X size={15} />
             </button>
           )}
-          <kbd className="hidden sm:flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded bg-gray-100 dark:bg-[#2d2d2d] text-gray-500 border border-gray-200 dark:border-[#404040]">
-            ESC
-          </kbd>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              onClick={onClose}
+              className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-gray-100 hover:bg-gray-200 dark:bg-[#2d2d2d] dark:hover:bg-[#383838] text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100 text-[11px] font-mono border border-gray-200 dark:border-[#404040] transition-colors"
+              title="Close search and return to files (Esc)"
+            >
+              ESC
+            </button>
+            <button
+              onClick={onClose}
+              className="p-1 rounded-lg text-gray-400 hover:text-red-500 hover:bg-gray-100 dark:hover:bg-[#2d2d2d] transition-colors"
+              title="Close search"
+              aria-label="Close search"
+            >
+              <X size={16} />
+            </button>
+          </div>
         </div>
 
         {/* Quick Filter Operator Chips */}
@@ -341,17 +390,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
                 results.map((item, idx) => (
                   <div
                     key={item.path}
-                    onClick={() => {
-                      onClose();
-                      if (item.is_dir) {
-                        navigateTo(item.path);
-                      } else if (item.media_type === 'audio') {
-                        playAudio(item);
-                      } else {
-                        selectItem(item, false);
-                        setQuickLookOpen(true);
-                      }
-                    }}
+                    onClick={() => handleSelectFileItem(item, true)}
                     onMouseEnter={() => setSelectedIndex(idx)}
                     className={`flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer transition-colors ${
                       selectedIndex === idx
@@ -381,6 +420,22 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
                       >
                         {item.is_dir ? 'Folder' : item.human_size}
                       </span>
+                      {!item.is_dir && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSelectFileItem(item, false);
+                          }}
+                          title="Reveal in folder (don't open preview)"
+                          className={`p-1 rounded-md transition-colors ${
+                            selectedIndex === idx
+                              ? 'text-white/80 hover:text-white hover:bg-white/20'
+                              : 'text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                          }`}
+                        >
+                          <FolderOpen size={14} />
+                        </button>
+                      )}
                       <ArrowRight
                         size={14}
                         className={selectedIndex === idx ? 'opacity-100' : 'opacity-0'}
@@ -406,14 +461,19 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
           )}
         </div>
 
-        {/* Footer info */}
+        {/* Footer info & Exit button */}
         <div className="flex items-center justify-between px-4 py-2 bg-gray-50 dark:bg-[#181818] border-t border-gray-100 dark:border-[#282828] text-[11px] text-gray-400 font-mono">
           <div className="flex items-center gap-3">
             <span>↑↓ Navigate</span>
             <span>↵ Select</span>
             <span>ESC Close</span>
           </div>
-          <span className="text-blue-500 font-medium">KV Files v2.0</span>
+          <button
+            onClick={onClose}
+            className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 hover:underline font-sans font-medium"
+          >
+            ← Return to File Browser
+          </button>
         </div>
       </div>
     </div>
