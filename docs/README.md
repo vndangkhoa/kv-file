@@ -1,6 +1,6 @@
-# Ola Documentation
+# kv-file Documentation
 
-This directory contains the documentation website for **Ola File Manager**, built with **Hugo (Extended)** and **Lotus Docs**, styled to match the Ola Web App design system.
+This directory contains the documentation website for **kv-file**, built with **Hugo (Extended)** and **Lotus Docs**, styled to match the kv-file Web App design system.
 
 ## 🚀 Quick Commands
 

@@ -55,7 +55,7 @@ pub async fn static_handler(uri: Uri) -> impl IntoResponse {
         StatusCode::OK,
         [(header::CONTENT_TYPE, "text/html; charset=utf-8")],
         Body::from(
-            "<!DOCTYPE html><html><head><title>Ola File Manager</title></head><body><h1>Ola Backend is Running</h1><p>Run <code>cd web && npm run build</code> to compile the frontend assets.</p></body></html>",
+            "<!DOCTYPE html><html><head><title>KV Files</title></head><body><h1>KV Files Backend is Running</h1><p>Run <code>cd web && npm run build</code> to compile the frontend assets.</p></body></html>",
         ),
     )
         .into_response()
