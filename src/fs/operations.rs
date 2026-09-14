@@ -48,7 +48,11 @@ impl FileOperations {
                 Err(_) => continue,
             };
 
-            let is_dir = metadata.is_dir();
+            let is_dir = if metadata.is_symlink() {
+                tokio::fs::metadata(&entry_path).await.map(|m| m.is_dir()).unwrap_or(false)
+            } else {
+                metadata.is_dir()
+            };
             let size = if is_dir { 0 } else { metadata.len() };
             if is_dir {
                 total_folders += 1;
@@ -167,7 +171,12 @@ impl FileOperations {
                     continue;
                 }
                 if let Ok(meta) = entry.metadata().await {
-                    if meta.is_dir() {
+                    let is_dir = if meta.is_symlink() {
+                        tokio::fs::metadata(&entry.path()).await.map(|m| m.is_dir()).unwrap_or(false)
+                    } else {
+                        meta.is_dir()
+                    };
+                    if is_dir {
                         let child_rel = if relative_path.is_empty() || relative_path == "/" {
                             fname.clone()
                         } else {

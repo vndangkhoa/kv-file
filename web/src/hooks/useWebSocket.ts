@@ -5,9 +5,11 @@ import { FsEvent } from '../types';
 
 export function useWebSocket() {
   const [isConnected, setIsConnected] = useState(false);
-  const { currentRoot, refresh } = useExplorerStore();
+  const currentRoot = useExplorerStore((state) => state.currentRoot);
+  const refresh = useExplorerStore((state) => state.refresh);
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<any>(null);
+  const debounceTimeoutRef = useRef<any>(null);
   const retryCountRef = useRef(0);
   const isUnloadingRef = useRef(false);
 
@@ -61,7 +63,12 @@ export function useWebSocket() {
           try {
             const fsEvent: FsEvent = JSON.parse(event.data);
             if (fsEvent.root_name === currentRoot) {
-              refresh();
+              if (debounceTimeoutRef.current) {
+                clearTimeout(debounceTimeoutRef.current);
+              }
+              debounceTimeoutRef.current = setTimeout(() => {
+                refresh();
+              }, 500);
             }
           } catch (e) {
             console.error('Failed to parse WebSocket event:', e);
@@ -94,6 +101,9 @@ export function useWebSocket() {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
+      }
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
       }
       if (wsRef.current) {
         // Normal closure (code 1000) to prevent Firefox error log on unmount

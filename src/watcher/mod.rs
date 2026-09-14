@@ -26,6 +26,13 @@ impl FileWatcher {
         )?;
 
         for (name, path) in roots.get_roots() {
+            // Avoid inotify watch storms, recursive /proc loops, and OS watch exhaustion
+            // by skipping inotify watch on full system root mounts.
+            if name == "root" || name == "rootfs" || path == std::path::Path::new("/") || path == std::path::Path::new("/root") {
+                info!("Skipping recursive inotify watch on system root '{}' ({})", name, path.display());
+                continue;
+            }
+
             if path.exists() {
                 if let Err(e) = watcher.watch(path, RecursiveMode::Recursive) {
                     error!("Failed to watch storage root '{}': {}", name, e);
@@ -51,8 +58,14 @@ impl FileWatcher {
         };
 
         for path in event.paths {
-            // Ignore hidden files and internal directories like .trash
-            if path.to_string_lossy().contains("/.") {
+            // Ignore hidden files and internal directories like .trash, proc, sys, dev, run
+            let path_str = path.to_string_lossy();
+            if path_str.contains("/.")
+                || path_str.contains("/proc/")
+                || path_str.contains("/sys/")
+                || path_str.contains("/dev/")
+                || path_str.contains("/run/")
+            {
                 continue;
             }
 
