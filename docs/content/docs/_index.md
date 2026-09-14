@@ -8,6 +8,10 @@ weight: 10
 
 **kv-file** is a high-performance, single-binary, self-hosted web file manager built with a **Rust (Axum + Tokio)** backend and a **React + Tailwind CSS** frontend. It seamlessly unites the familiar hierarchical directory tree and path navigation of **Windows Explorer** with the cascading **Miller Columns** and **Quick Look** of **macOS Finder**.
 
+{{< alert context="info" >}}
+Looking for the product overview and interactive showcases? Visit the **[kv-file Official Website →](https://vndangkhoa.github.io/kv-file/?ref=docs_overview)**
+{{< /alert >}}
+
 kv-file delivers full feature parity with **FileBrowser Quantum** while introducing next-generation capabilities: real-time kernel filesystem watching, instant soft-delete trash restoration, zero-copy HTTP Range video seeking, and an integrated Command Palette (`Ctrl+K`).
 
 ---

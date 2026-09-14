@@ -173,6 +173,21 @@
   color: var(--primary) !important;
 }
 
+.ola-btn-website {
+  font-size: 0.75rem !important;
+  padding: 0.28rem 0.75rem !important;
+  border-radius: 6px !important;
+  background-color: var(--primary) !important;
+  border-color: var(--primary) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+.ola-btn-website:hover {
+  opacity: 0.9 !important;
+  color: #ffffff !important;
+}
+
 .ola-nav-btn {
   width: 32px;
   height: 32px;
