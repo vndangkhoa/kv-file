@@ -6,7 +6,7 @@ weight: 200
 toc: true
 ---
 
-Ola blends the best aspects of classic desktop operating systems into an ultra-responsive web interface.
+kv-file blends the best aspects of classic desktop operating systems into an ultra-responsive web interface.
 
 ## 1. macOS Finder Miller Columns
 

@@ -6,11 +6,11 @@ weight: 210
 toc: true
 ---
 
-Beyond its desktop user interface, Ola provides powerful backend capabilities:
+Beyond its desktop user interface, kv-file provides powerful backend capabilities:
 
 ## 1. Real-Time Inotify File Watcher
 
-Ola hooks directly into the Linux kernel `inotify` subsystem using the Rust `notify` crate:
+kv-file hooks directly into the Linux kernel `inotify` subsystem using the Rust `notify` crate:
 - Automatically detects file creations, renames, writes, and deletions initiated from external tools (rsync, CLI, Docker volumes, or background scripts).
 - Broadcasts changes over WebSockets (`/api/v1/ws`) to all open browser sessions in milliseconds without polling.
 
@@ -25,6 +25,6 @@ Share files or directories with external colleagues safely:
 ## 3. Soft-Delete Recycle Bin (Trash)
 
 Protect against accidental deletions:
-- Deleted items are moved to `.ola_trash` with original path and timestamp metadata preserved in SQLite.
+- Deleted items are moved to `.kv-file_trash` with original path and timestamp metadata preserved in SQLite.
 - Users can review the Trash bin and click **Restore** to return files to their exact original location.
 - **Purge** and **Empty Trash** permanently remove files from the storage drive.

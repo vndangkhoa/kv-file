@@ -50,6 +50,37 @@ interface ExplorerState {
   isNewFolderOpen: boolean;
   isRenameOpen: boolean;
 
+  // Context Menu
+  contextMenu: { x: number; y: number; item: FileItem | null } | null;
+  openContextMenu: (x: number, y: number, item: FileItem | null) => void;
+  closeContextMenu: () => void;
+
+  // Split View (Dual Pane)
+  isSplitView: boolean;
+  activePane: 'left' | 'right';
+  rightPanePath: string;
+  rightPaneListing: DirectoryListing | null;
+  rightPaneViewMode: ViewMode;
+  rightPaneSelectedItems: FileItem[];
+  rightPaneActiveItem: FileItem | null;
+  toggleSplitView: () => void;
+  setActivePane: (pane: 'left' | 'right') => void;
+  navigateRightPane: (path: string) => Promise<void>;
+  setRightPaneViewMode: (mode: ViewMode) => void;
+  selectRightPaneItem: (item: FileItem, isMulti?: boolean) => void;
+  copyToOtherPane: () => Promise<void>;
+  moveToOtherPane: () => Promise<void>;
+  syncPanes: () => Promise<void>;
+
+  // Power Search & Command Palette
+  isCommandPaletteOpen: boolean;
+  setCommandPaletteOpen: (open: boolean) => void;
+
+  // Dedicated Audio Player
+  audioTrack: FileItem | null;
+  playAudio: (item: FileItem) => void;
+  closeAudioPlayer: () => void;
+
   // Actions
   fetchRoots: () => Promise<void>;
   setCurrentRoot: (root: string) => void;
@@ -68,9 +99,11 @@ interface ExplorerState {
   // Column view actions
   selectColumnItem: (columnIndex: number, item: FileItem) => Promise<void>;
 
-  // Clipboard
+  // Clipboard & Operations
   setClipboard: (action: 'copy' | 'cut', items: FileItem[]) => void;
   clearClipboard: () => void;
+  pasteClipboard: () => Promise<void>;
+  deleteSelectedItem: (item: FileItem, permanent?: boolean) => Promise<void>;
 
   // Search
   setSearchQuery: (query: string) => void;
@@ -121,6 +154,17 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
   isNewFolderOpen: false,
   isRenameOpen: false,
   isSidebarOpen: false,
+
+  contextMenu: null,
+  isSplitView: false,
+  activePane: 'left',
+  rightPanePath: '',
+  rightPaneListing: null,
+  rightPaneViewMode: 'list',
+  rightPaneSelectedItems: [],
+  rightPaneActiveItem: null,
+  isCommandPaletteOpen: false,
+  audioTrack: null,
 
   fetchRoots: async () => {
     try {
@@ -322,4 +366,121 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
   setUploadOpen: (open: boolean) => set({ isUploadOpen: open }),
   setNewFolderOpen: (open: boolean) => set({ isNewFolderOpen: open }),
   setRenameOpen: (open: boolean) => set({ isRenameOpen: open }),
+
+  // Context Menu
+  openContextMenu: (x, y, item) => set({ contextMenu: { x, y, item } }),
+  closeContextMenu: () => set({ contextMenu: null }),
+
+  // Split View
+  toggleSplitView: () => {
+    const next = !get().isSplitView;
+    set({ isSplitView: next });
+    if (next && !get().rightPaneListing) {
+      get().navigateRightPane(get().currentPath);
+    }
+  },
+  setActivePane: (pane) => set({ activePane: pane }),
+  navigateRightPane: async (path: string) => {
+    const root = get().currentRoot;
+    if (!root) return;
+    try {
+      const listing = await api.listDirectory(root, path);
+      set({
+        rightPanePath: path,
+        rightPaneListing: listing,
+        rightPaneSelectedItems: [],
+        rightPaneActiveItem: null,
+      });
+    } catch (err: any) {
+      set({ error: err.message });
+    }
+  },
+  setRightPaneViewMode: (mode) => set({ rightPaneViewMode: mode }),
+  selectRightPaneItem: (item, isMulti = false) => {
+    const { rightPaneSelectedItems } = get();
+    if (isMulti) {
+      const exists = rightPaneSelectedItems.some((i) => i.path === item.path);
+      if (exists) {
+        const next = rightPaneSelectedItems.filter((i) => i.path !== item.path);
+        set({ rightPaneSelectedItems: next, rightPaneActiveItem: next[next.length - 1] || null });
+      } else {
+        set({ rightPaneSelectedItems: [...rightPaneSelectedItems, item], rightPaneActiveItem: item });
+      }
+    } else {
+      set({ rightPaneSelectedItems: [item], rightPaneActiveItem: item });
+    }
+  },
+  copyToOtherPane: async () => {
+    const { activePane, currentRoot, currentPath, rightPanePath, selectedItems, rightPaneSelectedItems } = get();
+    const sourceItems = activePane === 'left' ? selectedItems : rightPaneSelectedItems;
+    const destFolder = activePane === 'left' ? rightPanePath : currentPath;
+    if (sourceItems.length === 0) return;
+
+    for (const item of sourceItems) {
+      const dest = destFolder ? `${destFolder}/${item.name}` : item.name;
+      await api.copyItem(currentRoot, item.path, dest);
+    }
+    await get().refresh();
+    await get().navigateRightPane(rightPanePath);
+  },
+  moveToOtherPane: async () => {
+    const { activePane, currentRoot, currentPath, rightPanePath, selectedItems, rightPaneSelectedItems } = get();
+    const sourceItems = activePane === 'left' ? selectedItems : rightPaneSelectedItems;
+    const destFolder = activePane === 'left' ? rightPanePath : currentPath;
+    if (sourceItems.length === 0) return;
+
+    for (const item of sourceItems) {
+      const dest = destFolder ? `${destFolder}/${item.name}` : item.name;
+      await api.moveItem(currentRoot, item.path, dest);
+    }
+    await get().refresh();
+    await get().navigateRightPane(rightPanePath);
+  },
+  syncPanes: async () => {
+    const { activePane, currentPath, rightPanePath } = get();
+    if (activePane === 'left') {
+      await get().navigateRightPane(currentPath);
+    } else {
+      await get().navigateTo(rightPanePath);
+    }
+  },
+
+  // Power Search & Command Palette
+  setCommandPaletteOpen: (open) => set({ isCommandPaletteOpen: open }),
+
+  // Audio Player
+  playAudio: (item) => set({ audioTrack: item }),
+  closeAudioPlayer: () => set({ audioTrack: null }),
+
+  // Clipboard & Delete
+  pasteClipboard: async () => {
+    const { clipboard, currentRoot, currentPath, isSplitView, rightPanePath } = get();
+    if (!clipboard || clipboard.items.length === 0) return;
+
+    for (const item of clipboard.items) {
+      const destPath = currentPath ? `${currentPath}/${item.name}` : item.name;
+      if (clipboard.action === 'copy') {
+        await api.copyItem(currentRoot, item.path, destPath);
+      } else {
+        await api.moveItem(currentRoot, item.path, destPath);
+      }
+    }
+
+    if (clipboard.action === 'cut') {
+      set({ clipboard: null });
+    }
+    await get().refresh();
+    if (isSplitView) {
+      await get().navigateRightPane(rightPanePath);
+    }
+  },
+
+  deleteSelectedItem: async (item, permanent = false) => {
+    const root = get().currentRoot;
+    await api.deleteItem(root, item.path, permanent);
+    await get().refresh();
+    if (get().isSplitView) {
+      await get().navigateRightPane(get().rightPanePath);
+    }
+  },
 }));

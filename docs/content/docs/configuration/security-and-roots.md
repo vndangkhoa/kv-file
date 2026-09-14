@@ -6,14 +6,14 @@ weight: 310
 toc: true
 ---
 
-Ola enforces rigorous filesystem isolation and modern cryptographic standards:
+kv-file enforces rigorous filesystem iskv-filetion and modern cryptographic standards:
 
 ## Multi-Root Storage Mounts
 
-Ola allows mounting independent filesystems under distinct root names:
+kv-file allows mounting independent filesystems under distinct root names:
 
 ```bash
-./ola --storage-roots "/mnt/photos:/mnt/documents:/mnt/backups"
+./kv-file --storage-roots "/mnt/photos:/mnt/documents:/mnt/backups"
 ```
 
 - Each directory is exposed in the sidebar as an independent volume with live storage meters.

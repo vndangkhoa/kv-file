@@ -353,7 +353,30 @@ impl FileOperations {
             .get_root(root_name)
             .ok_or_else(|| AppError::NotFound(format!("Root '{}' not found", root_name)))?;
 
-        let q = query.to_lowercase();
+        let mut text_tokens = Vec::new();
+        let mut filter_ext: Option<String> = None;
+        let mut filter_type: Option<String> = None;
+        let mut min_size: Option<u64> = None;
+        let mut max_size: Option<u64> = None;
+        let mut path_filter: Option<String> = None;
+
+        for part in query.split_whitespace() {
+            let lower_part = part.to_lowercase();
+            if let Some(val) = lower_part.strip_prefix("ext:") {
+                filter_ext = Some(val.trim_start_matches('.').to_string());
+            } else if let Some(val) = lower_part.strip_prefix("type:") {
+                filter_type = Some(val.to_string());
+            } else if let Some(val) = lower_part.strip_prefix("size:>") {
+                min_size = parse_size_str(val);
+            } else if let Some(val) = lower_part.strip_prefix("size:<") {
+                max_size = parse_size_str(val);
+            } else if let Some(val) = lower_part.strip_prefix("in:") {
+                path_filter = Some(val.trim_matches('/').to_string());
+            } else if !part.is_empty() {
+                text_tokens.push(lower_part);
+            }
+        }
+
         let mut results = Vec::new();
         let mut stack = vec![root_dir.clone()];
 
@@ -374,60 +397,120 @@ impl FileOperations {
                 }
 
                 let entry_path = entry.path();
-                let is_match = name.to_lowercase().contains(&q);
+                let meta = match entry.metadata().await {
+                    Ok(m) => m,
+                    Err(_) => continue,
+                };
 
-                if let Ok(meta) = entry.metadata().await {
-                    let is_dir = meta.is_dir();
-                    if is_dir {
-                        stack.push(entry_path.clone());
+                let is_dir = meta.is_dir();
+                if is_dir {
+                    stack.push(entry_path.clone());
+                }
+
+                let rel = entry_path
+                    .strip_prefix(root_dir)
+                    .map(|p| p.to_string_lossy().to_string())
+                    .unwrap_or_else(|_| name.clone());
+
+                let ext = if is_dir {
+                    String::new()
+                } else {
+                    entry_path
+                        .extension()
+                        .and_then(|e| e.to_str())
+                        .unwrap_or("")
+                        .to_lowercase()
+                };
+
+                let media_type = if is_dir {
+                    MediaType::Other
+                } else {
+                    MediaType::from_extension(&ext)
+                };
+
+                let size = if is_dir { 0 } else { meta.len() };
+
+                // Apply power filters
+                let mut matches = true;
+
+                if let Some(ref fe) = filter_ext {
+                    if is_dir || &ext != fe {
+                        matches = false;
                     }
+                }
 
-                    if is_match {
-                        let rel = entry_path
-                            .strip_prefix(root_dir)
-                            .map(|p| p.to_string_lossy().to_string())
-                            .unwrap_or_else(|_| name.clone());
+                if matches && filter_type.is_some() {
+                    let ft = filter_type.as_ref().unwrap();
+                    let type_str = match media_type {
+                        MediaType::Video => "video",
+                        MediaType::Image => "image",
+                        MediaType::Audio => "audio",
+                        MediaType::Pdf => "pdf",
+                        MediaType::Text => "text",
+                        MediaType::Code => "code",
+                        MediaType::Archive => "archive",
+                        MediaType::Other => if is_dir { "folder" } else { "other" },
+                    };
+                    if type_str != ft && !(ft == "doc" && (type_str == "pdf" || type_str == "text")) {
+                        matches = false;
+                    }
+                }
 
-                        let ext = if is_dir {
-                            String::new()
-                        } else {
-                            entry_path
-                                .extension()
-                                .and_then(|e| e.to_str())
-                                .unwrap_or("")
-                                .to_string()
-                        };
+                if matches && min_size.is_some() && size < min_size.unwrap() {
+                    matches = false;
+                }
 
-                        let media_type = if is_dir {
-                            MediaType::Other
-                        } else {
-                            MediaType::from_extension(&ext)
-                        };
+                if matches && max_size.is_some() && size > max_size.unwrap() {
+                    matches = false;
+                }
 
-                        let size = if is_dir { 0 } else { meta.len() };
-                        let mod_time = meta
-                            .modified()
-                            .ok()
-                            .map(DateTime::<Utc>::from)
-                            .unwrap_or_else(Utc::now);
+                if matches && path_filter.is_some() {
+                    let pf = path_filter.as_ref().unwrap();
+                    if !rel.to_lowercase().contains(pf) {
+                        matches = false;
+                    }
+                }
 
-                        results.push(FileItem {
-                            name,
-                            path: rel,
-                            root_name: root_name.to_string(),
-                            is_dir,
-                            size,
-                            human_size: format_human_size(size),
-                            mod_time,
-                            extension: ext,
-                            media_type,
-                            mime_type: "application/octet-stream".to_string(),
-                            item_count: None,
-                        });
-
-                        if results.len() >= max_results {
+                if matches && !text_tokens.is_empty() {
+                    let name_lower = name.to_lowercase();
+                    let rel_lower = rel.to_lowercase();
+                    for token in &text_tokens {
+                        if !name_lower.contains(token) && !rel_lower.contains(token) {
+                            matches = false;
                             break;
                         }
+                    }
+                }
+
+                if matches {
+                    let mod_time = meta
+                        .modified()
+                        .ok()
+                        .map(DateTime::<Utc>::from)
+                        .unwrap_or_else(Utc::now);
+
+                    results.push(FileItem {
+                        name,
+                        path: rel,
+                        root_name: root_name.to_string(),
+                        is_dir,
+                        size,
+                        human_size: format_human_size(size),
+                        mod_time,
+                        extension: ext,
+                        media_type,
+                        mime_type: if is_dir {
+                            "directory".to_string()
+                        } else {
+                            mime_guess::from_path(&entry_path)
+                                .first_or_octet_stream()
+                                .to_string()
+                        },
+                        item_count: None,
+                    });
+
+                    if results.len() >= max_results {
+                        break;
                     }
                 }
             }
@@ -454,4 +537,20 @@ impl FileOperations {
             }
         }
     }
+}
+
+fn parse_size_str(s: &str) -> Option<u64> {
+    let s = s.trim().to_lowercase();
+    let (num_str, multiplier) = if s.ends_with("gb") || s.ends_with('g') {
+        (s.trim_end_matches("gb").trim_end_matches('g'), 1024 * 1024 * 1024u64)
+    } else if s.ends_with("mb") || s.ends_with('m') {
+        (s.trim_end_matches("mb").trim_end_matches('m'), 1024 * 1024u64)
+    } else if s.ends_with("kb") || s.ends_with('k') {
+        (s.trim_end_matches("kb").trim_end_matches('k'), 1024u64)
+    } else if s.ends_with('b') {
+        (s.trim_end_matches('b'), 1u64)
+    } else {
+        (s.as_str(), 1u64)
+    };
+    num_str.parse::<f64>().ok().map(|n| (n * multiplier as f64) as u64)
 }

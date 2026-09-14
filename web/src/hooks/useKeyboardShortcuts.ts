@@ -19,11 +19,24 @@ export function useKeyboardShortcuts() {
     clearSelection,
     refresh,
     goUp,
+    isCommandPaletteOpen,
+    setCommandPaletteOpen,
+    isSplitView,
+    toggleSplitView,
+    copyToOtherPane,
+    moveToOtherPane,
   } = useExplorerStore();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore global hotkeys if user is actively typing in an input or textarea
+      // 0. Ctrl+K or Cmd+K -> Power Search & Command Palette (Always available, even inside inputs)
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setCommandPaletteOpen(!isCommandPaletteOpen);
+        return;
+      }
+
+      // Ignore remaining hotkeys if user is actively typing in an input or textarea
       const target = e.target as HTMLElement;
       if (
         target.tagName === 'INPUT' ||
@@ -40,7 +53,29 @@ export function useKeyboardShortcuts() {
         isShareModalOpen ||
         isTrashOpen ||
         isNewFolderOpen ||
-        isRenameOpen;
+        isRenameOpen ||
+        isCommandPaletteOpen;
+
+      // 0b. Alt+S -> Toggle Split View
+      if (e.altKey && e.key.toLowerCase() === 's' && !anyModalOpen) {
+        e.preventDefault();
+        toggleSplitView();
+        return;
+      }
+
+      // 0c. F5 -> Copy to other pane in Split View
+      if (e.key === 'F5' && isSplitView && !anyModalOpen) {
+        e.preventDefault();
+        copyToOtherPane();
+        return;
+      }
+
+      // 0d. F6 -> Move to other pane in Split View
+      if (e.key === 'F6' && isSplitView && !anyModalOpen) {
+        e.preventDefault();
+        moveToOtherPane();
+        return;
+      }
 
       // 1. Space -> Quick Look
       if (e.code === 'Space' && !anyModalOpen) {
@@ -132,5 +167,11 @@ export function useKeyboardShortcuts() {
     clearSelection,
     refresh,
     goUp,
+    isCommandPaletteOpen,
+    setCommandPaletteOpen,
+    isSplitView,
+    toggleSplitView,
+    copyToOtherPane,
+    moveToOtherPane,
   ]);
 }

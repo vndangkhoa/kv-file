@@ -1,5 +1,5 @@
 baseURL = "/"
-title = "Ola Documentation"
+title = "kv-file Documentation"
 contentDir = "content"
 enableEmoji = true
 
@@ -26,13 +26,13 @@ enableEmoji = true
   mono_font       = "'Fira Code', monospace"
 
   [params.footer]
-    copyright = "© :YEAR: Ola File Manager. Built with [**Lotus Docs**](https://lotusdocs.dev)."
+    copyright = "© :YEAR: kv-file. Built with [**Lotus Docs**](https://lotusdocs.dev)."
 
   [params.social]
-    github = "https://github.com/vndangkhoa/ola"
+    github = "https://github.com/vndangkhoa/kv-file"
 
   [params.docs]
-    title           = "Ola Documentation"
+    title           = "kv-file Documentation"
     themeColor      = "blue"
     darkMode        = true
     sidebarIcons    = true
@@ -56,5 +56,5 @@ enableEmoji = true
   weight = 10
 [[menu.primary]]
   name = "GitHub"
-  url = "https://github.com/vndangkhoa/ola"
+  url = "https://github.com/vndangkhoa/kv-file"
   weight = 20

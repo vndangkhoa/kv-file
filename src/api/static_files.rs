@@ -15,7 +15,7 @@ pub async fn static_handler(uri: Uri) -> impl IntoResponse {
     // Check if the requested file exists in embedded assets
     let target_path = match path {
         "landing" => "landing.html",
-        "docs" => "docs.html",
+        "docs" | "docs/" => "docs/index.html",
         _ => path,
     };
 
@@ -24,6 +24,17 @@ pub async fn static_handler(uri: Uri) -> impl IntoResponse {
         return (
             StatusCode::OK,
             [(header::CONTENT_TYPE, mime.as_ref())],
+            Body::from(content.data),
+        )
+            .into_response();
+    }
+
+    // Directory index fallback (e.g. /docs/docs/api -> /docs/docs/api/index.html)
+    let dir_index = format!("{}/index.html", target_path.trim_end_matches('/'));
+    if let Some(content) = Assets::get(&dir_index) {
+        return (
+            StatusCode::OK,
+            [(header::CONTENT_TYPE, "text/html; charset=utf-8")],
             Body::from(content.data),
         )
             .into_response();

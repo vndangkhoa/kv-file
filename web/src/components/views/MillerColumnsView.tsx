@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
-import { ChevronRight, Download, Share2, Eye, Trash2 } from 'lucide-react';
+import { ChevronRight, Download, Share2, Eye, Trash2, Music } from 'lucide-react';
 import { useExplorerStore } from '../../stores/useExplorerStore';
+import { useDownloadStore } from '../../stores/useDownloadStore';
 import { FileIcon } from '../common/FileIcon';
 import { FileItem } from '../../types';
 import { api } from '../../services/api';
@@ -14,7 +15,11 @@ export const MillerColumnsView: React.FC = () => {
     setQuickLookOpen,
     setShareModalOpen,
     refresh,
+    openContextMenu,
+    playAudio,
   } = useExplorerStore();
+
+  const { startDownload } = useDownloadStore();
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -29,7 +34,7 @@ export const MillerColumnsView: React.FC = () => {
   }, [columns.length, activeItem]);
 
   const handleDownload = (item: FileItem) => {
-    window.open(api.getDownloadUrl(item.root_name, item.path), '_blank');
+    startDownload(item.root_name, item);
   };
 
   const handleDelete = async (item: FileItem) => {
@@ -72,7 +77,19 @@ export const MillerColumnsView: React.FC = () => {
                     key={item.path}
                     onClick={() => selectColumnItem(colIdx, item)}
                     onDoubleClick={() => {
-                      if (!item.is_dir) setQuickLookOpen(true);
+                      if (!item.is_dir) {
+                        if (item.media_type === 'audio') {
+                          playAudio(item);
+                        } else {
+                          setQuickLookOpen(true);
+                        }
+                      }
+                    }}
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      selectColumnItem(colIdx, item);
+                      openContextMenu(e.clientX, e.clientY, item);
                     }}
                     className={`flex items-center justify-between px-3 py-1.5 text-xs cursor-pointer transition-colors ${
                       isSelected
@@ -162,6 +179,16 @@ export const MillerColumnsView: React.FC = () => {
               <Eye size={14} />
               <span>Quick Look (Space)</span>
             </button>
+
+            {activeItem.media_type === 'audio' && (
+              <button
+                onClick={() => playAudio(activeItem)}
+                className="w-full flex items-center justify-center gap-2 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded text-xs font-medium transition-colors shadow-sm"
+              >
+                <Music size={14} />
+                <span>Play in Music Player</span>
+              </button>
+            )}
 
             <div className="grid grid-cols-2 gap-2">
               <button

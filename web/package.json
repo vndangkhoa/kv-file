@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "tsc && vite build && npm run docs:build && mkdir -p dist/docs && cp -r ../docs/public/* dist/docs/",
     "preview": "vite preview",
     "docs:dev": "hugo server -D --source ../docs",
     "docs:build": "hugo --minify --source ../docs"

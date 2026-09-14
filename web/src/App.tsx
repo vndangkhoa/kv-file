@@ -7,13 +7,18 @@ import { StatusBar } from './components/layout/StatusBar';
 import { MillerColumnsView } from './components/views/MillerColumnsView';
 import { DetailedListView } from './components/views/DetailedListView';
 import { GridView } from './components/views/GridView';
+import { SplitView } from './components/views/SplitView';
 import { QuickLookModal } from './components/preview/QuickLookModal';
+import { AudioPlayerModal } from './components/preview/AudioPlayerModal';
 import { UploadModal } from './components/modals/UploadModal';
 import { ShareModal } from './components/modals/ShareModal';
 import { TrashBinModal } from './components/modals/TrashBinModal';
 import { NewFolderModal } from './components/modals/NewFolderModal';
 import { RenameModal } from './components/modals/RenameModal';
 import { SetupLoginModal } from './components/modals/SetupLoginModal';
+import { ContextMenu } from './components/common/ContextMenu';
+import { DownloadManager } from './components/download/DownloadManager';
+import { CommandPalette } from './components/search/CommandPalette';
 import { useExplorerStore } from './stores/useExplorerStore';
 import { useAuthStore } from './stores/useAuthStore';
 import { useWebSocket } from './hooks/useWebSocket';
@@ -22,13 +27,21 @@ import { FileIcon } from './components/common/FileIcon';
 
 export const App: React.FC = () => {
   const {
+    currentRoot,
     viewMode,
+    isSplitView,
     fetchRoots,
     searchResults,
     clearSearch,
     navigateTo,
     setQuickLookOpen,
     selectItem,
+    openContextMenu,
+    isCommandPaletteOpen,
+    setCommandPaletteOpen,
+    audioTrack,
+    playAudio,
+    closeAudioPlayer,
   } = useExplorerStore();
 
   const { checkAuth } = useAuthStore();
@@ -84,9 +97,16 @@ export const App: React.FC = () => {
                       if (item.is_dir) {
                         clearSearch();
                         navigateTo(item.path);
+                      } else if (item.media_type === 'audio') {
+                        playAudio(item);
                       } else {
                         setQuickLookOpen(true);
                       }
+                    }}
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      selectItem(item, false);
+                      openContextMenu(e.clientX, e.clientY, item);
                     }}
                     className="flex items-center justify-between p-2 rounded hover:bg-gray-100 dark:hover:bg-[#2a2d2e] cursor-pointer text-xs"
                   >
@@ -103,8 +123,11 @@ export const App: React.FC = () => {
               </div>
             )}
           </div>
+        ) : isSplitView ? (
+          /* Dual-Pane Split View */
+          <SplitView />
         ) : (
-          /* Main Explorer Views */
+          /* Main Single-Pane Explorer Views */
           <main className="flex-1 flex flex-col overflow-hidden">
             {viewMode === 'columns' && <MillerColumnsView />}
             {viewMode === 'list' && <DetailedListView />}
@@ -124,6 +147,25 @@ export const App: React.FC = () => {
       <NewFolderModal />
       <RenameModal />
       <SetupLoginModal />
+
+      {/* 7. Universal Context Menu */}
+      <ContextMenu />
+
+      {/* 8. Live Progress Download Manager */}
+      <DownloadManager />
+
+      {/* 9. Power Search & Command Palette */}
+      <CommandPalette
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setCommandPaletteOpen(false)}
+      />
+
+      {/* 10. Persistent Music Player */}
+      <AudioPlayerModal
+        item={audioTrack}
+        root={currentRoot}
+        onClose={closeAudioPlayer}
+      />
     </div>
   );
 };

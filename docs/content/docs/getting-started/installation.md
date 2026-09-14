@@ -1,16 +1,16 @@
 ---
 title: "Installation"
-description: "How to compile Ola from source or install standalone binaries"
+description: "How to compile kv-file from source or install standalone binaries"
 icon: "download"
 weight: 120
 toc: true
 ---
 
-Ola is distributed both as pre-compiled native binaries and as an easily buildable Rust crate.
+kv-file is distributed both as pre-compiled native binaries and as an easily buildable Rust crate.
 
 ## Prerequisites
 
-To build Ola from source, ensure you have the following installed:
+To build kv-file from source, ensure you have the following installed:
 - **Rust toolchain** (Rust 1.75+ or 2021 edition): [rustup.rs](https://rustup.rs/)
 - **Node.js** (v18+ or v20+) & **npm**: Required to build the frontend single-page application.
 - **SQLite build tools** / C compiler (e.g., `build-essential` on Debian/Ubuntu).
@@ -19,8 +19,8 @@ To build Ola from source, ensure you have the following installed:
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/vndangkhoa/ola.git
-cd ola
+git clone https://github.com/vndangkhoa/kv-file.git
+cd kv-file
 
 # 2. Build the frontend web UI
 cd web
@@ -32,24 +32,24 @@ cd ..
 cargo build --release
 
 # The compiled single-file binary will be ready at:
-./target/release/ola --version
+./target/release/kv-file --version
 ```
 
 ## Running as a Systemd Service
 
-To keep Ola running permanently on Linux:
+To keep kv-file running permanently on Linux:
 
 ```ini
-# /etc/systemd/system/ola.service
+# /etc/systemd/system/kv-file.service
 [Unit]
-Description=Ola File Manager
+Description=kv-file
 After=network.target
 
 [Service]
 Type=simple
 User=www-data
-WorkingDirectory=/var/lib/ola
-ExecStart=/usr/local/bin/ola --host 0.0.0.0 --port 8866 --data-dir /var/lib/ola/data --storage-roots /mnt/storage
+WorkingDirectory=/var/lib/kv-file
+ExecStart=/usr/local/bin/kv-file --host 0.0.0.0 --port 8866 --data-dir /var/lib/kv-file/data --storage-roots /mnt/storage
 Restart=always
 RestartSec=5
 
@@ -60,5 +60,5 @@ WantedBy=multi-user.target
 Enable and start the service:
 ```bash
 sudo systemctl daemon-reload
-sudo systemctl enable --now ola
+sudo systemctl enable --now kv-file
 ```

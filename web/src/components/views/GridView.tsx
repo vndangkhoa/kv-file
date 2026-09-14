@@ -11,6 +11,8 @@ export const GridView: React.FC = () => {
     selectItem,
     navigateTo,
     setQuickLookOpen,
+    openContextMenu,
+    playAudio,
   } = useExplorerStore();
 
   const items = listing?.items || [];
@@ -23,13 +25,21 @@ export const GridView: React.FC = () => {
   const handleDoubleClick = (item: FileItem) => {
     if (item.is_dir) {
       navigateTo(item.path);
+    } else if (item.media_type === 'audio') {
+      playAudio(item);
     } else {
       setQuickLookOpen(true);
     }
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 bg-white dark:bg-[#1e1e1e] select-none">
+    <div
+      onContextMenu={(e) => {
+        e.preventDefault();
+        openContextMenu(e.clientX, e.clientY, null);
+      }}
+      className="flex-1 overflow-y-auto p-4 bg-white dark:bg-[#1e1e1e] select-none"
+    >
       {items.length === 0 ? (
         <div className="h-full flex items-center justify-center text-gray-400 italic text-xs">
           This folder is empty
@@ -44,6 +54,12 @@ export const GridView: React.FC = () => {
                 key={item.path}
                 onClick={(e) => handleItemClick(e, item)}
                 onDoubleClick={() => handleDoubleClick(item)}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  selectItem(item, false);
+                  openContextMenu(e.clientX, e.clientY, item);
+                }}
                 className={`flex flex-col items-center p-2 rounded-lg cursor-pointer border transition-all text-center group ${
                   isSelected
                     ? 'bg-blue-50 border-blue-500/40 text-blue-900 dark:bg-[#0078d4]/20 dark:border-blue-500/60 dark:text-blue-200 shadow-sm'

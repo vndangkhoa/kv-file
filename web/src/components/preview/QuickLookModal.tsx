@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { X, Download, Maximize2, Minimize2, Copy, Check } from 'lucide-react';
+import { X, Download, Maximize2, Minimize2, Copy, Check, Music } from 'lucide-react';
 import { useExplorerStore } from '../../stores/useExplorerStore';
+import { useDownloadStore } from '../../stores/useDownloadStore';
 import { api } from '../../services/api';
 import { formatHumanSize } from '../../utils/format';
 
 export const QuickLookModal: React.FC = () => {
-  const { isQuickLookOpen, setQuickLookOpen, activeItem, selectedItems } = useExplorerStore();
+  const { isQuickLookOpen, setQuickLookOpen, activeItem, selectedItems, currentRoot, playAudio } =
+    useExplorerStore();
+  const { startDownload } = useDownloadStore();
+
   const [textContent, setTextContent] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -14,14 +18,14 @@ export const QuickLookModal: React.FC = () => {
 
   useEffect(() => {
     if (isQuickLookOpen && item && (item.media_type === 'text' || item.media_type === 'code')) {
-      fetch(api.getRawFileUrl(item.root_name, item.path))
+      fetch(api.getRawFileUrl(item.root_name || currentRoot, item.path))
         .then((res) => res.text())
         .then((text) => setTextContent(text))
         .catch(() => setTextContent('Failed to load file text preview.'));
     } else {
       setTextContent(null);
     }
-  }, [isQuickLookOpen, item]);
+  }, [isQuickLookOpen, item, currentRoot]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -37,8 +41,8 @@ export const QuickLookModal: React.FC = () => {
 
   if (!isQuickLookOpen || !item) return null;
 
-  const rawUrl = api.getRawFileUrl(item.root_name, item.path);
-  const downloadUrl = api.getDownloadUrl(item.root_name, item.path);
+  const rootName = item.root_name || currentRoot;
+  const rawUrl = api.getRawFileUrl(rootName, item.path);
 
   const handleCopyText = () => {
     if (textContent) {
@@ -46,6 +50,10 @@ export const QuickLookModal: React.FC = () => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
+  };
+
+  const handleDownload = () => {
+    startDownload(rootName, item);
   };
 
   return (
@@ -68,17 +76,20 @@ export const QuickLookModal: React.FC = () => {
             <span className="text-[10px] text-gray-400 font-mono">
               ({formatHumanSize(item.size)})
             </span>
+            <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-gray-200 dark:bg-[#333333] text-gray-600 dark:text-gray-400">
+              {item.extension || item.media_type}
+            </span>
           </div>
 
           <div className="flex items-center gap-1">
-            <a
-              href={downloadUrl}
-              download
-              title="Download File"
-              className="p-1 rounded text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 hover:bg-gray-200 dark:hover:bg-[#333333] transition-colors"
+            <button
+              onClick={handleDownload}
+              title="Direct Download with Live Progress"
+              className="flex items-center gap-1 px-2 py-1 rounded text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 hover:bg-gray-200 dark:hover:bg-[#333333] transition-colors"
             >
-              <Download size={15} />
-            </a>
+              <Download size={14} />
+              <span className="hidden sm:inline">Download</span>
+            </button>
 
             <button
               onClick={() => setIsFullscreen(!isFullscreen)}
@@ -114,11 +125,29 @@ export const QuickLookModal: React.FC = () => {
               className="max-w-full max-h-full rounded shadow-md"
             />
           ) : item.media_type === 'audio' ? (
-            <div className="w-full max-w-md p-6 bg-white dark:bg-[#252526] rounded-xl shadow border border-gray-200 dark:border-[#333333] flex flex-col items-center gap-4">
-              <div className="font-semibold text-sm text-gray-800 dark:text-gray-200 truncate w-full text-center">
-                {item.name}
+            <div className="w-full max-w-md p-6 bg-white dark:bg-[#252526] rounded-2xl shadow-xl border border-gray-200 dark:border-[#333333] flex flex-col items-center gap-4 text-center">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-purple-600 to-pink-500 flex items-center justify-center text-white shadow-lg shadow-purple-500/30">
+                <Music size={32} />
+              </div>
+              <div>
+                <div className="font-semibold text-sm text-gray-800 dark:text-gray-200">
+                  {item.name}
+                </div>
+                <div className="text-xs text-gray-400 font-mono mt-0.5">
+                  {item.extension.toUpperCase()} • {formatHumanSize(item.size)}
+                </div>
               </div>
               <audio src={rawUrl} controls autoPlay className="w-full" />
+              <button
+                onClick={() => {
+                  setQuickLookOpen(false);
+                  playAudio(item);
+                }}
+                className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-xl shadow-md transition-all"
+              >
+                <Music size={15} />
+                <span>Open in Persistent Music Player</span>
+              </button>
             </div>
           ) : item.media_type === 'pdf' ? (
             <iframe
@@ -143,16 +172,15 @@ export const QuickLookModal: React.FC = () => {
             </div>
           ) : (
             <div className="text-center text-gray-400 text-xs">
-              Preview not supported for this file type.
-              <div className="mt-2">
-                <a
-                  href={downloadUrl}
-                  download
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium transition-colors"
+              Preview not directly renderable for this format.
+              <div className="mt-3">
+                <button
+                  onClick={handleDownload}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow-md transition-colors"
                 >
                   <Download size={14} />
-                  <span>Download File</span>
-                </a>
+                  <span>Download File ({formatHumanSize(item.size)})</span>
+                </button>
               </div>
             </div>
           )}

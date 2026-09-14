@@ -14,6 +14,8 @@ export const DetailedListView: React.FC = () => {
     selectItem,
     navigateTo,
     setQuickLookOpen,
+    openContextMenu,
+    playAudio,
   } = useExplorerStore();
 
   const [sortKey, setSortKey] = useState<SortKey>('name');
@@ -61,13 +63,21 @@ export const DetailedListView: React.FC = () => {
   const handleDoubleClick = (item: FileItem) => {
     if (item.is_dir) {
       navigateTo(item.path);
+    } else if (item.media_type === 'audio') {
+      playAudio(item);
     } else {
       setQuickLookOpen(true);
     }
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden bg-white dark:bg-[#1e1e1e] select-none text-xs">
+    <div
+      onContextMenu={(e) => {
+        e.preventDefault();
+        openContextMenu(e.clientX, e.clientY, null);
+      }}
+      className="flex-1 flex flex-col h-full overflow-hidden bg-white dark:bg-[#1e1e1e] select-none text-xs"
+    >
       {/* Table Header */}
       <div className="grid grid-cols-12 gap-2 px-3 py-2 border-b border-gray-200 dark:border-[#333333] text-gray-500 font-medium shrink-0 bg-gray-50 dark:bg-[#252526]">
         <div
@@ -118,6 +128,12 @@ export const DetailedListView: React.FC = () => {
                 key={item.path}
                 onClick={(e) => handleItemClick(e, item)}
                 onDoubleClick={() => handleDoubleClick(item)}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  selectItem(item, false);
+                  openContextMenu(e.clientX, e.clientY, item);
+                }}
                 className={`grid grid-cols-12 gap-2 px-3 py-2 md:py-1.5 cursor-pointer items-center border-b border-gray-100 dark:border-[#2a2a2a] transition-colors ${
                   isSelected
                     ? 'bg-blue-100 text-blue-900 dark:bg-[#0078d4]/30 dark:text-blue-200'

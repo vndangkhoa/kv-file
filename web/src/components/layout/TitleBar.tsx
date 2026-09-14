@@ -6,7 +6,6 @@ import {
   LogOut,
   Moon,
   Sun,
-  X,
   FolderTree,
   Menu,
   Database,
@@ -22,11 +21,8 @@ export const TitleBar: React.FC = () => {
     currentRoot,
     setCurrentRoot,
     searchQuery,
-    setSearchQuery,
-    executeSearch,
-    clearSearch,
-    isSearching,
     toggleSidebar,
+    setCommandPaletteOpen,
   } = useExplorerStore();
 
   const { user, logout, setAuthModalOpen } = useAuthStore();
@@ -53,14 +49,6 @@ export const TitleBar: React.FC = () => {
       )
     ) {
       setDataSourceMode(nextMode);
-    }
-  };
-
-  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      executeSearch(searchQuery);
-    } else if (e.key === 'Escape') {
-      clearSearch();
     }
   };
 
@@ -101,28 +89,24 @@ export const TitleBar: React.FC = () => {
         )}
       </div>
 
-      {/* Global Search Bar */}
-      <div className="flex-1 max-w-xs sm:max-w-md relative min-w-[120px]">
+      {/* Global Search Bar with Command Palette trigger */}
+      <div
+        onClick={() => setCommandPaletteOpen(true)}
+        className="flex-1 max-w-xs sm:max-w-md relative min-w-[120px] cursor-pointer"
+      >
         <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
         <input
           type="text"
-          placeholder="Search files... (Enter)"
+          placeholder="Search files or type '>' for commands... (Ctrl+K)"
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          onKeyDown={handleSearchKeyDown}
-          className="w-full pl-8 sm:pl-9 pr-7 py-1 bg-gray-100 dark:bg-[#1e1e1e] border border-gray-200 dark:border-[#3c3c3c] rounded-md text-xs text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all placeholder-gray-400"
+          readOnly
+          className="w-full pl-8 sm:pl-9 pr-14 py-1 bg-gray-100 dark:bg-[#1e1e1e] border border-gray-200 dark:border-[#3c3c3c] rounded-md text-xs text-gray-800 dark:text-gray-200 focus:outline-none transition-all placeholder-gray-400 cursor-pointer"
         />
-        {searchQuery && (
-          <button
-            onClick={clearSearch}
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-          >
-            <X size={12} />
-          </button>
-        )}
-        {isSearching && (
-          <div className="absolute right-7 top-1/2 -translate-y-1/2 animate-spin rounded-full h-3 w-3 border-2 border-blue-500 border-t-transparent" />
-        )}
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+          <kbd className="hidden sm:inline text-[10px] font-mono px-1.5 py-0.5 rounded bg-gray-200 dark:bg-[#2d2d2d] text-gray-500">
+            Ctrl+K
+          </kbd>
+        </div>
       </div>
 
       {/* Right Controls: Mode Switcher + Theme + User */}

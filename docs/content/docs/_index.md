@@ -6,9 +6,9 @@ toc: true
 weight: 10
 ---
 
-**Ola** is a high-performance, single-binary, self-hosted web file manager built with a **Rust (Axum + Tokio)** backend and a **React + Tailwind CSS** frontend. It fuses the familiar hierarchical directory tree and path navigation of **Windows Explorer** with the cascading **Miller Columns** and **Quick Look** of **macOS Finder**.
+**kv-file** is a high-performance, single-binary, self-hosted web file manager built with a **Rust (Axum + Tokio)** backend and a **React + Tailwind CSS** frontend. It fuses the familiar hierarchical directory tree and path navigation of **Windows Explorer** with the cascading **Miller Columns** and **Quick Look** of **macOS Finder**.
 
-Ola delivers full feature parity with **FileBrowser Quantum** while adding next-generation capabilities including real-time kernel filesystem watching, soft-delete trash restoration, and streaming HTTP Range seeking.
+kv-file delivers full feature parity with **FileBrowser Quantum** while adding next-generation capabilities including real-time kernel filesystem watching, soft-delete trash restoration, and streaming HTTP Range seeking.
 
 ---
 

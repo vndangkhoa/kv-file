@@ -44,6 +44,14 @@ async fn test_filesystem_operations_and_trash() {
     assert!(storage_dir.join("documents").join("renamed.txt").exists());
     assert_eq!(db.list_trash().await.unwrap().len(), 0);
 
+    // 7. Power Search with operators
+    let search_res = FileOperations::search(&root_manager, "storage", "ext:txt in:documents", 10).await.unwrap();
+    assert_eq!(search_res.len(), 1);
+    assert_eq!(search_res[0].name, "renamed.txt");
+
+    let no_match = FileOperations::search(&root_manager, "storage", "ext:mp4", 10).await.unwrap();
+    assert_eq!(no_match.len(), 0);
+
     // Clean up
     let _ = std::fs::remove_dir_all(&temp_dir);
 }

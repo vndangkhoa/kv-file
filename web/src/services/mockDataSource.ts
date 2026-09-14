@@ -184,6 +184,123 @@ Welcome to the KV Files demo!
     mime_type: 'audio/mpeg',
     previewUrl: 'https://actions.google.com/sounds/v1/ambiences/daytime_forest_bonfire.ogg',
   },
+  {
+    name: 'Shot_On_iPhone_15_Pro.heic',
+    path: 'media/Shot_On_iPhone_15_Pro.heic',
+    root_name: 'storage',
+    is_dir: false,
+    size: 5120000,
+    human_size: '4.88 MB',
+    mod_time: new Date(Date.now() - 3600000 * 4).toISOString(),
+    extension: 'heic',
+    media_type: 'image',
+    mime_type: 'image/heic',
+    previewUrl: 'https://images.unsplash.com/photo-1511447333015-45b65e60f6d5?w=1200',
+  },
+  {
+    name: 'Cinematic_Clip_ProRes.mov',
+    path: 'media/Cinematic_Clip_ProRes.mov',
+    root_name: 'storage',
+    is_dir: false,
+    size: 24500000,
+    human_size: '23.36 MB',
+    mod_time: new Date(Date.now() - 3600000 * 10).toISOString(),
+    extension: 'mov',
+    media_type: 'video',
+    mime_type: 'video/quicktime',
+    previewUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+  },
+  {
+    name: 'Voice_Memo_Studio.m4a',
+    path: 'media/Voice_Memo_Studio.m4a',
+    root_name: 'storage',
+    is_dir: false,
+    size: 3800000,
+    human_size: '3.62 MB',
+    mod_time: new Date(Date.now() - 3600000 * 8).toISOString(),
+    extension: 'm4a',
+    media_type: 'audio',
+    mime_type: 'audio/mp4',
+    previewUrl: 'https://actions.google.com/sounds/v1/water/rain_heavy.ogg',
+  },
+  {
+    name: 'Sticker_Animation.webp',
+    path: 'media/Sticker_Animation.webp',
+    root_name: 'storage',
+    is_dir: false,
+    size: 890000,
+    human_size: '869.1 KB',
+    mod_time: new Date(Date.now() - 3600000 * 22).toISOString(),
+    extension: 'webp',
+    media_type: 'image',
+    mime_type: 'image/webp',
+    previewUrl: 'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=800',
+  },
+  {
+    name: 'Voice_Note_Discord.opus',
+    path: 'media/Voice_Note_Discord.opus',
+    root_name: 'storage',
+    is_dir: false,
+    size: 1200000,
+    human_size: '1.14 MB',
+    mod_time: new Date(Date.now() - 3600000 * 36).toISOString(),
+    extension: 'opus',
+    media_type: 'audio',
+    mime_type: 'audio/ogg',
+    previewUrl: 'https://actions.google.com/sounds/v1/ambiences/daytime_forest_bonfire.ogg',
+  },
+  {
+    name: 'Drone_4K_Hyperlapse.webm',
+    path: 'media/Drone_4K_Hyperlapse.webm',
+    root_name: 'storage',
+    is_dir: false,
+    size: 32400000,
+    human_size: '30.90 MB',
+    mod_time: new Date(Date.now() - 3600000 * 40).toISOString(),
+    extension: 'webm',
+    media_type: 'video',
+    mime_type: 'video/webm',
+    previewUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+  },
+  {
+    name: 'Studio_Master_Ambient.flac',
+    path: 'media/Studio_Master_Ambient.flac',
+    root_name: 'storage',
+    is_dir: false,
+    size: 28500000,
+    human_size: '27.18 MB',
+    mod_time: new Date(Date.now() - 3600000 * 50).toISOString(),
+    extension: 'flac',
+    media_type: 'audio',
+    mime_type: 'audio/flac',
+    previewUrl: 'https://actions.google.com/sounds/v1/weather/thunderstorm.ogg',
+  },
+  {
+    name: 'Podcast_Episode_12.wav',
+    path: 'media/Podcast_Episode_12.wav',
+    root_name: 'storage',
+    is_dir: false,
+    size: 44200000,
+    human_size: '42.15 MB',
+    mod_time: new Date(Date.now() - 3600000 * 70).toISOString(),
+    extension: 'wav',
+    media_type: 'audio',
+    mime_type: 'audio/wav',
+    previewUrl: 'https://actions.google.com/sounds/v1/ambiences/outdoor_garden_birds.ogg',
+  },
+  {
+    name: 'Synthwave_Sunset_Beat.mp3',
+    path: 'media/Synthwave_Sunset_Beat.mp3',
+    root_name: 'storage',
+    is_dir: false,
+    size: 9200000,
+    human_size: '8.77 MB',
+    mod_time: new Date(Date.now() - 3600000 * 15).toISOString(),
+    extension: 'mp3',
+    media_type: 'audio',
+    mime_type: 'audio/mpeg',
+    previewUrl: 'https://actions.google.com/sounds/v1/science_fiction/force_field_hum.ogg',
+  },
 
   // Code folder
   {
@@ -461,8 +578,67 @@ class MockFileSystem implements FileSystemDataSource {
   }
 
   async searchItems(root: string, q: string): Promise<FileItem[]> {
-    const lower = q.toLowerCase();
-    return this.items.filter((i) => i.root_name === root && i.name.toLowerCase().includes(lower));
+    if (!q.trim()) return [];
+
+    let textTokens: string[] = [];
+    let filterExt: string | null = null;
+    let filterType: string | null = null;
+    let minSize: number | null = null;
+    let maxSize: number | null = null;
+    let inPath: string | null = null;
+
+    for (const part of q.split(/\s+/)) {
+      const lower = part.toLowerCase();
+      if (lower.startsWith('ext:')) {
+        filterExt = lower.slice(4).replace(/^\./, '');
+      } else if (lower.startsWith('type:')) {
+        filterType = lower.slice(5);
+      } else if (lower.startsWith('size:>')) {
+        minSize = parseSize(lower.slice(6));
+      } else if (lower.startsWith('size:<')) {
+        maxSize = parseSize(lower.slice(6));
+      } else if (lower.startsWith('in:')) {
+        inPath = lower.slice(3).replace(/^\/+|\/+$/g, '');
+      } else if (part.trim()) {
+        textTokens.push(lower);
+      }
+    }
+
+    return this.items.filter((item) => {
+      if (item.root_name !== root) return false;
+
+      if (filterExt) {
+        if (item.is_dir || item.extension.toLowerCase() !== filterExt) return false;
+      }
+
+      if (filterType) {
+        const typeStr = item.is_dir ? 'folder' : item.media_type;
+        if (filterType === 'doc') {
+          if (item.media_type !== 'pdf' && item.media_type !== 'text') return false;
+        } else if (typeStr !== filterType) {
+          return false;
+        }
+      }
+
+      if (minSize !== null && item.size < minSize) return false;
+      if (maxSize !== null && item.size > maxSize) return false;
+
+      if (inPath) {
+        if (!item.path.toLowerCase().includes(inPath.toLowerCase())) return false;
+      }
+
+      if (textTokens.length > 0) {
+        const nameLower = item.name.toLowerCase();
+        const pathLower = item.path.toLowerCase();
+        for (const token of textTokens) {
+          if (!nameLower.includes(token) && !pathLower.includes(token)) {
+            return false;
+          }
+        }
+      }
+
+      return true;
+    });
   }
 
   async uploadFiles(root: string, path: string, files: File[]): Promise<void> {
@@ -559,8 +735,22 @@ class MockFileSystem implements FileSystemDataSource {
   }
 
   getDownloadUrl(root: string, path: string): string {
+    const item = this.items.find((i) => i.root_name === root && i.path === path);
+    if (item?.previewUrl) return item.previewUrl;
+    if (item?.content) return `data:text/plain;charset=utf-8,${encodeURIComponent(item.content)}`;
     return `/api/v1/fs/download?root=${encodeURIComponent(root)}&path=${encodeURIComponent(path)}`;
   }
+}
+
+function parseSize(s: string): number | null {
+  const match = s.match(/^(\d+(?:\.\d+)?)\s*(gb|mb|kb|b)?$/i);
+  if (!match) return null;
+  const num = parseFloat(match[1]);
+  const unit = (match[2] || 'b').toLowerCase();
+  if (unit === 'gb') return num * 1024 * 1024 * 1024;
+  if (unit === 'mb') return num * 1024 * 1024;
+  if (unit === 'kb') return num * 1024;
+  return num;
 }
 
 function MediaTypeFromExt(ext: string): MediaType {
@@ -570,30 +760,75 @@ function MediaTypeFromExt(ext: string): MediaType {
     case 'png':
     case 'gif':
     case 'webp':
+    case 'svg':
+    case 'bmp':
+    case 'heic':
+    case 'heif':
+    case 'ico':
+    case 'avif':
+    case 'tiff':
+    case 'tif':
       return 'image';
     case 'mp4':
+    case 'mkv':
     case 'mov':
     case 'webm':
+    case 'avi':
+    case 'flv':
+    case 'wmv':
+    case 'm4v':
+    case '3gp':
+    case 'mts':
+    case 'm2ts':
       return 'video';
     case 'mp3':
     case 'wav':
+    case 'flac':
+    case 'aac':
     case 'ogg':
+    case 'm4a':
+    case 'opus':
+    case 'wma':
+    case 'mid':
+    case 'midi':
       return 'audio';
     case 'pdf':
       return 'pdf';
     case 'txt':
     case 'md':
+    case 'log':
+    case 'csv':
+    case 'pages':
+    case 'numbers':
+    case 'keynote':
       return 'text';
     case 'rs':
     case 'ts':
     case 'tsx':
     case 'js':
-    case 'toml':
+    case 'jsx':
     case 'json':
+    case 'yaml':
+    case 'yml':
+    case 'toml':
+    case 'html':
+    case 'css':
+    case 'swift':
+    case 'kt':
+    case 'dart':
+    case 'py':
+    case 'go':
       return 'code';
     case 'zip':
     case 'tar':
     case 'gz':
+    case '7z':
+    case 'rar':
+    case 'apk':
+    case 'aab':
+    case 'ipa':
+    case 'iso':
+    case 'dmg':
       return 'archive';
     default:
       return 'other';

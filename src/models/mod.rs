@@ -17,14 +17,22 @@ pub enum MediaType {
 impl MediaType {
     pub fn from_extension(ext: &str) -> Self {
         match ext.to_lowercase().as_str() {
-            "mp4" | "mkv" | "mov" | "webm" | "avi" | "flv" | "wmv" | "m4v" => MediaType::Video,
-            "jpg" | "jpeg" | "png" | "gif" | "webp" | "svg" | "bmp" | "heic" | "heif" | "ico" => MediaType::Image,
-            "mp3" | "wav" | "flac" | "aac" | "ogg" | "m4a" | "wma" => MediaType::Audio,
+            "mp4" | "mkv" | "mov" | "webm" | "avi" | "flv" | "wmv" | "m4v" | "3gp" | "mts" | "m2ts" | "rmvb" => {
+                MediaType::Video
+            }
+            "jpg" | "jpeg" | "png" | "gif" | "webp" | "svg" | "bmp" | "heic" | "heif" | "ico"
+            | "avif" | "tiff" | "tif" | "raw" | "cr2" | "nef" => MediaType::Image,
+            "mp3" | "wav" | "flac" | "aac" | "ogg" | "m4a" | "wma" | "opus" | "alac" | "aiff"
+            | "mid" | "midi" => MediaType::Audio,
             "pdf" => MediaType::Pdf,
-            "txt" | "md" | "markdown" | "log" | "csv" | "rtf" => MediaType::Text,
+            "txt" | "md" | "markdown" | "log" | "csv" | "rtf" | "pages" | "numbers" | "keynote" => {
+                MediaType::Text
+            }
             "rs" | "ts" | "tsx" | "js" | "jsx" | "json" | "yaml" | "yml" | "toml" | "html" | "css"
-            | "scss" | "go" | "py" | "c" | "cpp" | "h" | "sh" | "bash" | "sql" | "xml" | "env" => MediaType::Code,
-            "zip" | "tar" | "gz" | "bz2" | "xz" | "7z" | "rar" => MediaType::Archive,
+            | "scss" | "go" | "py" | "c" | "cpp" | "h" | "sh" | "bash" | "sql" | "xml" | "env"
+            | "swift" | "kt" | "kts" | "dart" | "vue" | "svelte" | "lua" | "zig" => MediaType::Code,
+            "zip" | "tar" | "gz" | "bz2" | "xz" | "7z" | "rar" | "apk" | "aab" | "ipa" | "iso"
+            | "dmg" | "pkg" | "deb" | "rpm" => MediaType::Archive,
             _ => MediaType::Other,
         }
     }

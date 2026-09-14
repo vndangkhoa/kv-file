@@ -6,7 +6,7 @@ weight: 400
 toc: true
 ---
 
-Ola exposes a full JSON REST API alongside a real-time WebSocket event pipeline. All API routes are prefixed with `/api/v1`.
+kv-file exposes a full JSON REST API alongside a real-time WebSocket event pipeline. All API routes are prefixed with `/api/v1`.
 
 ## Authentication
 
