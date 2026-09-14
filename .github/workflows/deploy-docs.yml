@@ -41,7 +41,7 @@ jobs:
       - name: Build Hugo Site
         run: |
           cd docs
-          hugo --minify
+          hugo --minify --baseURL "https://vndangkhoa.github.io/kv-file/"
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
