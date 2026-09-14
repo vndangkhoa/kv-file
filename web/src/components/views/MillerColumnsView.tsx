@@ -188,7 +188,7 @@ export const MillerColumnsView: React.FC = () => {
                         isSelected
                           ? 'bg-[#0062d2] text-white font-medium'
                           : 'text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#2a2d2e]'
-                      }`}
+                      } ${item.is_system ? 'opacity-70' : ''}`}
                     >
                       <div className="flex items-center gap-2.5 truncate min-w-0 flex-1">
                         <FileIcon item={item} size={18} />

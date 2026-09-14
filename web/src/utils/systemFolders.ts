@@ -416,20 +416,161 @@ export const LINUX_SYSTEM_FOLDERS: Record<string, SystemFolderInfo> = {
 };
 
 export function getSystemFolderHint(name: string, isAtRoot: boolean = true): SystemFolderInfo | null {
-  if (!isAtRoot) return null;
-  const key = name.toLowerCase();
-  // Check exact key match
-  if (LINUX_SYSTEM_FOLDERS[name]) return LINUX_SYSTEM_FOLDERS[name];
-  if (LINUX_SYSTEM_FOLDERS[key]) return LINUX_SYSTEM_FOLDERS[key];
-  // Check volume patterns (e.g. volume1, volume2, volumeUSB1)
-  if (key.startsWith('volume')) {
+  const rawKey = name.toLowerCase();
+
+  // 1. Synology DSM internal system folders (@appstore, @eaDir, @database, etc.)
+  if (name.startsWith('@')) {
     return {
-      friendlyName: `Synology Storage (${name})`,
-      badge: `Synology ${name}`,
-      badgeColor: 'bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 border-blue-300 dark:border-blue-700',
-      description: 'Synology Btrfs/ext4 storage volume pool',
-      iconType: 'storage',
+      friendlyName: `DSM Package/System (${name})`,
+      badge: 'DSM System',
+      badgeColor: 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800/80 dark:text-zinc-400 border-zinc-300 dark:border-zinc-700',
+      description: 'Synology DSM system package, cache, database, or runtime data',
+      iconType: 'system',
+      isInternal: true,
     };
   }
+
+  // 2. Hidden dotfiles (.git, .trash, .system, etc.)
+  if (name.startsWith('.')) {
+    return {
+      friendlyName: `Hidden System (${name})`,
+      badge: 'Hidden',
+      badgeColor: 'bg-zinc-100 text-zinc-500 dark:bg-zinc-800/80 dark:text-zinc-400 border-zinc-300 dark:border-zinc-700',
+      description: 'Unix hidden configuration or runtime data',
+      iconType: 'system',
+      isInternal: true,
+    };
+  }
+
+  // 3. Recycle Bins
+  if (rawKey === '#recycle' || rawKey === '.recycle' || rawKey === '$recycle.bin') {
+    return {
+      friendlyName: 'Network Recycle Bin',
+      badge: 'Recycle Bin',
+      badgeColor: 'bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300 border-red-300 dark:border-red-800',
+      description: 'NAS network share recycle bin',
+      iconType: 'storage',
+      isInternal: true,
+    };
+  }
+
+  // 4. Standard NAS Shares (Photos, Videos, Docker, Music, Documents, Downloads, Homes)
+  const cleanKey = rawKey.replace(/^[@._#]+/, '');
+  switch (cleanKey) {
+    case 'photo':
+    case 'photos':
+    case 'pictures':
+    case 'images':
+    case 'gallery':
+      return {
+        friendlyName: 'Photo Library',
+        badge: 'Photos',
+        badgeColor: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700',
+        description: 'Photo collection and album storage',
+        iconType: 'media',
+      };
+    case 'video':
+    case 'videos':
+    case 'movie':
+    case 'movies':
+    case 'film':
+    case 'films':
+    case 'series':
+    case 'tv':
+    case 'tvshows':
+      return {
+        friendlyName: 'Video & Movie Library',
+        badge: 'Videos',
+        badgeColor: 'bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300 border-purple-300 dark:border-purple-700',
+        description: 'Movies, TV shows, and video media collection',
+        iconType: 'media',
+      };
+    case 'music':
+    case 'audio':
+    case 'songs':
+      return {
+        friendlyName: 'Music & Audio Library',
+        badge: 'Music',
+        badgeColor: 'bg-pink-100 text-pink-800 dark:bg-pink-950/60 dark:text-pink-300 border-pink-300 dark:border-pink-700',
+        description: 'Music tracks, albums, and audio recordings',
+        iconType: 'media',
+      };
+    case 'docker':
+    case 'appdata':
+    case 'stacks':
+    case 'containers':
+      return {
+        friendlyName: 'Docker Containers & Apps',
+        badge: 'Docker',
+        badgeColor: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300 border-indigo-300 dark:border-indigo-700',
+        description: 'Docker Compose stacks and container persistent data',
+        iconType: 'docker',
+      };
+    case 'documents':
+    case 'docs':
+    case 'document':
+      return {
+        friendlyName: 'Documents & Records',
+        badge: 'Documents',
+        badgeColor: 'bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 border-blue-300 dark:border-blue-700',
+        description: 'Documents, office files, spreadsheets, and archives',
+        iconType: 'storage',
+      };
+    case 'download':
+    case 'downloads':
+      return {
+        friendlyName: 'Downloads Folder',
+        badge: 'Downloads',
+        badgeColor: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-950/60 dark:text-cyan-300 border-cyan-300 dark:border-cyan-700',
+        description: 'Downloaded packages, media, and torrent client output',
+        iconType: 'storage',
+      };
+    case 'home':
+    case 'homes':
+    case 'user':
+    case 'users':
+      return {
+        friendlyName: 'User Home Directories',
+        badge: 'Homes',
+        badgeColor: 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border-amber-300 dark:border-amber-700',
+        description: 'Personal storage folders for NAS user accounts',
+        iconType: 'user',
+      };
+    case 'backup':
+    case 'backups':
+    case 'snapshots':
+      return {
+        friendlyName: 'System & Data Backups',
+        badge: 'Backups',
+        badgeColor: 'bg-orange-100 text-orange-800 dark:bg-orange-950/60 dark:text-orange-300 border-orange-300 dark:border-orange-700',
+        description: 'Server snapshots, Hyper Backup targets, and archives',
+        iconType: 'storage',
+      };
+    case 'web':
+    case 'www':
+      return {
+        friendlyName: 'Web Hosting Root',
+        badge: 'Web',
+        badgeColor: 'bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300 border-sky-300 dark:border-sky-700',
+        description: 'Web server websites and public hosting directories',
+        iconType: 'web',
+      };
+  }
+
+  // 5. If at root, check Linux / platform system dictionaries
+  if (isAtRoot) {
+    if (LINUX_SYSTEM_FOLDERS[name]) return LINUX_SYSTEM_FOLDERS[name];
+    if (LINUX_SYSTEM_FOLDERS[rawKey]) return LINUX_SYSTEM_FOLDERS[rawKey];
+    if (rawKey.startsWith('volume')) {
+      return {
+        friendlyName: `Synology Storage (${name})`,
+        badge: `Synology ${name}`,
+        badgeColor: 'bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 border-blue-300 dark:border-blue-700',
+        description: 'Synology Btrfs/ext4 storage volume pool',
+        iconType: 'storage',
+      };
+    }
+  }
+
   return null;
 }

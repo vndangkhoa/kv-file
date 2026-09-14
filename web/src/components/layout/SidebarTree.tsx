@@ -504,6 +504,7 @@ export const SidebarTree: React.FC = () => {
   const {
     roots,
     currentRoot,
+    currentPath,
     setCurrentRoot,
     setTrashOpen,
     isSidebarOpen,

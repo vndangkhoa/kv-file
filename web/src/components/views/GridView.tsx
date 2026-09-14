@@ -3,8 +3,9 @@ import { useExplorerStore } from '../../stores/useExplorerStore';
 import { FileItem } from '../../types';
 import { ThumbnailPreview } from '../common/ThumbnailPreview';
 import { useLongPress } from '../../hooks/useLongPress';
-import { MoreVertical, Check, Eye, ZoomIn, ZoomOut, LayoutGrid } from 'lucide-react';
+import { MoreVertical, Check, Eye, ZoomIn, ZoomOut, LayoutGrid, ShieldAlert } from 'lucide-react';
 import { api } from '../../services/api';
+import { getSystemFolderHint } from '../../utils/systemFolders';
 
 type GridSize = 'compact' | 'medium' | 'large';
 
@@ -35,6 +36,7 @@ const GridItemCard: React.FC<GridItemCardProps> = ({
 }) => {
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
   const [isDropTarget, setIsDropTarget] = useState(false);
+  const hint = getSystemFolderHint(item.name, false);
 
   const longPressProps = useLongPress({
     onLongPress: (_e, clientX, clientY) => {
@@ -153,7 +155,7 @@ const GridItemCard: React.FC<GridItemCardProps> = ({
           : isSelected
           ? 'bg-blue-50/80 border-blue-500/60 text-blue-900 dark:bg-blue-950/30 dark:border-blue-500/80 dark:text-blue-200 shadow-sm ring-2 ring-blue-500/20'
           : 'border-gray-200/50 dark:border-[#2f2f2f] hover:border-gray-300 dark:hover:border-[#444] hover:bg-gray-50/80 dark:hover:bg-[#252526] text-gray-800 dark:text-gray-200 shadow-2xs hover:shadow-sm'
-      }`}
+      } ${item.is_system ? 'opacity-70' : ''}`}
     >
       {/* Top-left Selection Checkbox */}
       <div
@@ -161,22 +163,24 @@ const GridItemCard: React.FC<GridItemCardProps> = ({
           e.stopPropagation();
           onSelect(e, item, true);
         }}
-        className={`absolute top-3 left-3 z-20 w-4 h-4 rounded border flex items-center justify-center transition-all cursor-pointer ${
+        className={`absolute top-2 left-2 z-20 w-4 h-4 rounded border items-center justify-center transition-all ${
           isSelected
-            ? 'bg-blue-600 border-blue-600 text-white shadow-xs opacity-100 scale-100'
-            : 'border-gray-300 dark:border-gray-500 hover:border-blue-500 bg-white/90 dark:bg-[#1e1e1e]/90 opacity-0 group-hover:opacity-100 scale-95 hover:scale-105'
+            ? 'flex bg-blue-600 border-blue-600 text-white'
+            : 'hidden group-hover:flex border-gray-400/80 bg-white/80 dark:bg-black/60 hover:border-blue-500'
         }`}
-        title={isSelected ? 'Deselect item' : 'Select item'}
+        title="Select item"
       >
         {isSelected && <Check size={11} className="stroke-[3]" />}
       </div>
 
-      {/* Top-right Quick Look Eye Button */}
+      {/* Desktop Quick Look Eye Trigger (hover) */}
       {!item.is_dir && (
         <button
           onClick={(e) => {
             e.stopPropagation();
-            onOpen(item);
+            onSelect(e, item, false);
+            // Open quick look
+            useExplorerStore.getState().setQuickLookOpen(true);
           }}
           title="Quick Look (Space)"
           className="hidden sm:flex absolute top-3 right-3 z-20 p-1.5 rounded-full bg-black/60 hover:bg-blue-600 text-white shadow-md opacity-0 group-hover:opacity-100 transition-all backdrop-blur-xs scale-90 group-hover:scale-100"
@@ -216,11 +220,18 @@ const GridItemCard: React.FC<GridItemCardProps> = ({
       {/* File Name & Metadata */}
       <div className="w-full mt-2 flex flex-col items-center px-1">
         <span
-          className="text-xs break-words line-clamp-2 w-full font-medium leading-tight"
+          className="text-xs break-words line-clamp-2 w-full font-medium leading-tight text-center"
           title={item.name}
         >
           {item.name}
         </span>
+        {hint && (
+          <span
+            className={`mt-1 text-[9px] px-1.5 py-0.2 rounded border font-semibold truncate ${hint.badgeColor}`}
+          >
+            {hint.badge}
+          </span>
+        )}
 
         <div className="flex items-center gap-1 text-[10px] text-gray-400 font-mono mt-1 truncate">
           {!item.is_dir && <span>{item.human_size}</span>}
@@ -248,6 +259,7 @@ export const GridView: React.FC = () => {
     playVideo,
     startDirectUpload,
     refresh,
+    toggleShowHidden,
   } = useExplorerStore();
 
   const [gridSize, setGridSize] = useState<GridSize>(() => {
@@ -362,11 +374,37 @@ export const GridView: React.FC = () => {
         </div>
       </div>
 
+      {/* Hidden System Folders Banner */}
+      {listing?.hidden_count !== undefined && listing.hidden_count > 0 && (
+        <div className="p-2.5 px-3.5 bg-amber-50/70 dark:bg-amber-950/20 border-b border-amber-200/60 dark:border-amber-900/30 flex items-center justify-between text-xs shrink-0">
+          <div className="flex items-center gap-2 text-amber-900 dark:text-amber-200">
+            <ShieldAlert size={14} className="text-amber-600 dark:text-amber-400 shrink-0" />
+            <span>
+              <strong>{listing.hidden_count}</strong> system items (@/.) hidden for a clean view
+            </span>
+          </div>
+          <button
+            onClick={toggleShowHidden}
+            className="px-2.5 py-1 rounded bg-amber-200/80 dark:bg-amber-900/50 hover:bg-amber-300/80 dark:hover:bg-amber-900/80 text-amber-900 dark:text-amber-100 font-semibold text-[11px] transition-colors cursor-pointer"
+          >
+            Show System Items
+          </button>
+        </div>
+      )}
+
       {/* Main Grid Viewport */}
       <div className="flex-1 overflow-y-auto p-3.5 sm:p-4 pb-24 md:pb-4">
         {items.length === 0 ? (
-          <div className="h-full flex items-center justify-center text-gray-400 italic text-xs">
-            This folder is empty
+          <div className="h-full flex flex-col items-center justify-center text-gray-400 italic text-xs gap-2">
+            <span>This folder is empty</span>
+            {listing?.hidden_count !== undefined && listing.hidden_count > 0 && (
+              <button
+                onClick={toggleShowHidden}
+                className="text-xs text-blue-600 dark:text-blue-400 not-italic hover:underline cursor-pointer"
+              >
+                Reveal {listing.hidden_count} hidden system items
+              </button>
+            )}
           </div>
         ) : (
           <div className={gridClass}>

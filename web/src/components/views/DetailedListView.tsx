@@ -3,7 +3,7 @@ import { useExplorerStore } from '../../stores/useExplorerStore';
 import { FileIcon } from '../common/FileIcon';
 import { FileItem } from '../../types';
 import { formatDate } from '../../utils/format';
-import { ArrowUpDown, MoreVertical, Check, ShieldAlert, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowUpDown, MoreVertical, Check, ShieldAlert } from 'lucide-react';
 import { useLongPress } from '../../hooks/useLongPress';
 import { api } from '../../services/api';
 import { getSystemFolderHint } from '../../utils/systemFolders';
@@ -160,7 +160,7 @@ const DetailedListItem: React.FC<DetailedListItemProps> = ({
           : isSelected
           ? 'bg-blue-100 text-blue-900 dark:bg-[#0078d4]/30 dark:text-blue-200'
           : 'hover:bg-gray-50 dark:hover:bg-[#252526] text-gray-800 dark:text-gray-300'
-      }`}
+      } ${item.is_system ? 'opacity-70' : ''}`}
     >
       {/* Left side: Icon + 2-line title/subtitle on mobile, standard layout on desktop */}
       <div className="flex-1 md:flex-initial md:col-span-8 lg:col-span-6 flex items-center gap-3 md:gap-2.5 truncate min-w-0">
@@ -254,11 +254,11 @@ export const DetailedListView: React.FC = () => {
     playVideo,
     startDirectUpload,
     refresh,
+    toggleShowHidden,
   } = useExplorerStore();
 
   const [sortKey, setSortKey] = useState<SortKey>('name');
   const [sortAsc, setSortAsc] = useState(true);
-  const [showAllSystemFolders, setShowAllSystemFolders] = useState(false);
 
   const items = listing?.items || [];
 
@@ -399,74 +399,59 @@ export const DetailedListView: React.FC = () => {
 
       {/* Table Rows */}
       <div className="flex-1 overflow-y-auto pb-24 md:pb-0">
-        {(() => {
-          const isAtRoot = currentPath === '' && (currentRoot === 'root' || currentRoot === 'rootfs');
-          const userItems = sortedItems.filter((i) => {
-            const hint = getSystemFolderHint(i.name, isAtRoot);
-            return !hint?.isInternal;
-          });
-          const internalItems = sortedItems.filter((i) => {
-            const hint = getSystemFolderHint(i.name, isAtRoot);
-            return hint?.isInternal === true;
-          });
-          const shouldFilter = isAtRoot && internalItems.length > 0 && !showAllSystemFolders;
-          const displayedItems = shouldFilter ? userItems : sortedItems;
+        {/* Hidden System Folders Banner (if any are hidden) */}
+        {listing?.hidden_count !== undefined && listing.hidden_count > 0 && (
+          <div className="p-2.5 px-3.5 bg-amber-50/70 dark:bg-amber-950/20 border-b border-amber-200/60 dark:border-amber-900/30 flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2 text-amber-900 dark:text-amber-200">
+              <ShieldAlert size={14} className="text-amber-600 dark:text-amber-400 shrink-0" />
+              <span>
+                <strong>{listing.hidden_count}</strong> system & internal items (@/.) hidden for a clean view
+              </span>
+            </div>
+            <button
+              onClick={toggleShowHidden}
+              className="px-2.5 py-1 rounded bg-amber-200/80 dark:bg-amber-900/50 hover:bg-amber-300/80 dark:hover:bg-amber-900/80 text-amber-900 dark:text-amber-100 font-semibold text-[11px] transition-colors cursor-pointer"
+            >
+              Show System Items
+            </button>
+          </div>
+        )}
 
-          if (displayedItems.length === 0) {
+        {sortedItems.length === 0 ? (
+          <div className="h-48 flex flex-col items-center justify-center text-gray-400 italic gap-2">
+            <span>This folder is empty</span>
+            {listing?.hidden_count !== undefined && listing.hidden_count > 0 && (
+              <button
+                onClick={toggleShowHidden}
+                className="text-xs text-blue-600 dark:text-blue-400 not-italic hover:underline cursor-pointer"
+              >
+                Reveal {listing.hidden_count} hidden system items
+              </button>
+            )}
+          </div>
+        ) : (
+          sortedItems.map((item) => {
+            const isSelected = selectedItems.some((i) => i.path === item.path);
             return (
-              <div className="h-full flex items-center justify-center text-gray-400 italic">
-                This folder is empty
-              </div>
+              <DetailedListItem
+                key={item.path}
+                item={item}
+                isSelected={isSelected}
+                currentRoot={currentRoot}
+                isAtRoot={currentPath === ''}
+                selectedItems={selectedItems}
+                startDirectUpload={startDirectUpload}
+                refresh={refresh}
+                onSelect={handleItemClick}
+                onOpen={handleOpenItem}
+                onContextMenu={(x, y, item) => {
+                  selectItem(item, false);
+                  openContextMenu(x, y, item);
+                }}
+              />
             );
-          }
-
-          return (
-            <>
-              {displayedItems.map((item) => {
-                const isSelected = selectedItems.some((i) => i.path === item.path);
-
-                return (
-                  <DetailedListItem
-                    key={item.path}
-                    item={item}
-                    isSelected={isSelected}
-                    currentRoot={currentRoot}
-                    isAtRoot={isAtRoot}
-                    selectedItems={selectedItems}
-                    startDirectUpload={startDirectUpload}
-                    refresh={refresh}
-                    onSelect={handleItemClick}
-                    onOpen={handleOpenItem}
-                    onContextMenu={(x, y, item) => {
-                      selectItem(item, false);
-                      openContextMenu(x, y, item);
-                    }}
-                  />
-                );
-              })}
-
-              {/* OS Internals Collapsible Toggle for Root */}
-              {isAtRoot && internalItems.length > 0 && (
-                <div className="p-3 border-t border-gray-100 dark:border-[#2a2a2a]">
-                  <button
-                    onClick={() => setShowAllSystemFolders(!showAllSystemFolders)}
-                    className="w-full px-3 py-2 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 bg-gray-100/80 dark:bg-[#252526] hover:bg-gray-200 dark:hover:bg-[#2d2d2d] transition-all flex items-center justify-between border border-dashed border-gray-300 dark:border-gray-700"
-                  >
-                    <div className="flex items-center gap-2">
-                      <ShieldAlert size={14} className="text-amber-500 shrink-0" />
-                      <span>
-                        {showAllSystemFolders
-                          ? `Hide ${internalItems.length} OS internal folders`
-                          : `Show ${internalItems.length} OS internal folders (bin, proc, sys...)`}
-                      </span>
-                    </div>
-                    {showAllSystemFolders ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                  </button>
-                </div>
-              )}
-            </>
-          );
-        })()}
+          })
+        )}
       </div>
     </div>
   );
