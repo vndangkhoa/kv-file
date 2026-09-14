@@ -2,18 +2,18 @@ use clap::Parser;
 use std::path::PathBuf;
 
 #[derive(Parser, Debug, Clone)]
-#[command(name = "kv-files", author = "Khoa Vo", version = "2.0.0", about = "KV Files — Modern Self-Hosted File Manager")]
+#[command(name = "kv-file", author = "Khoa Vo", version = "2.0.0", about = "kv-file — Modern Self-Hosted File Manager")]
 pub struct Config {
-    #[arg(short = 'H', long, env = "KV_FILES_HOST", default_value = "0.0.0.0")]
+    #[arg(short = 'H', long, env = "KV_HOST", default_value = "0.0.0.0")]
     pub host: String,
 
-    #[arg(short, long, env = "KV_FILES_PORT", default_value_t = 8866)]
+    #[arg(short, long, env = "KV_PORT", default_value_t = 8866)]
     pub port: u16,
 
-    #[arg(long, env = "KV_FILES_DATA_DIR", default_value = "./data")]
+    #[arg(long, env = "KV_DATA_DIR", default_value = "./data")]
     pub data_dir: PathBuf,
 
-    #[arg(long, env = "KV_FILES_STORAGE_ROOTS", value_delimiter = ':', default_value = "./storage")]
+    #[arg(long, env = "KV_STORAGE_ROOTS", value_delimiter = ':', default_value = "./storage")]
     pub storage_roots: Vec<String>,
 }
 

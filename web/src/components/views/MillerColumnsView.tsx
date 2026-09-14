@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { ChevronRight, Download, Share2, Eye, Trash2, Music, Film, Play } from 'lucide-react';
+import { ChevronRight, Download, Share2, Eye, Trash2, Music, Film, Play, MoreVertical } from 'lucide-react';
 import { useExplorerStore } from '../../stores/useExplorerStore';
 import { useDownloadStore } from '../../stores/useDownloadStore';
 import { FileIcon } from '../common/FileIcon';
@@ -16,6 +16,7 @@ export const MillerColumnsView: React.FC = () => {
     setShareModalOpen,
     refresh,
     openContextMenu,
+    navigateTo,
     playAudio,
     playVideo,
   } = useExplorerStore();
@@ -52,12 +53,22 @@ export const MillerColumnsView: React.FC = () => {
   return (
     <div
       ref={containerRef}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        openContextMenu(e.clientX, e.clientY, null);
+      }}
       className="flex-1 flex flex-row overflow-x-auto overflow-y-hidden bg-white dark:bg-[#1e1e1e] select-none scrollbar-subtle snap-x snap-mandatory md:snap-none"
     >
       {columns.map((col, colIdx) => (
         <div
           key={`${col.path}-${colIdx}`}
-          className="w-[82vw] min-w-[82vw] max-w-[82vw] md:w-64 md:min-w-[16rem] md:max-w-[16rem] snap-start border-r border-gray-200 dark:border-[#333333] flex flex-col h-full shrink-0"
+          onContextMenu={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            navigateTo(col.path);
+            openContextMenu(e.clientX, e.clientY, null);
+          }}
+          className="w-full min-w-full md:w-64 md:min-w-[16rem] md:max-w-[16rem] snap-start border-r border-gray-200 dark:border-[#333333] flex flex-col h-full shrink-0"
         >
           {col.isLoading ? (
             <div className="flex-1 flex items-center justify-center text-gray-400 text-xs gap-2">
@@ -76,16 +87,7 @@ export const MillerColumnsView: React.FC = () => {
                 return (
                   <div
                     key={item.path}
-                    onClick={() => {
-                      selectColumnItem(colIdx, item);
-                      if (!item.is_dir) {
-                        if (item.media_type === 'video') {
-                          playVideo(item);
-                        } else if (item.media_type === 'audio') {
-                          playAudio(item);
-                        }
-                      }
-                    }}
+                    onClick={() => selectColumnItem(colIdx, item)}
                     onDoubleClick={() => {
                       if (!item.is_dir) {
                         if (item.media_type === 'audio') {
@@ -103,34 +105,38 @@ export const MillerColumnsView: React.FC = () => {
                       selectColumnItem(colIdx, item);
                       openContextMenu(e.clientX, e.clientY, item);
                     }}
-                    className={`flex items-center justify-between px-3 py-1.5 text-xs cursor-pointer transition-colors ${
+                    className={`flex items-center justify-between px-3 py-3 sm:py-1.5 min-h-[48px] sm:min-h-0 text-sm sm:text-xs cursor-pointer transition-colors border-b border-gray-100/50 dark:border-gray-800/50 sm:border-0 ${
                       isSelected
                         ? 'bg-[#0062d2] text-white font-medium'
                         : 'text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#2a2d2e]'
                     }`}
                   >
-                    <div className="flex items-center gap-2 truncate">
-                      <FileIcon item={item} size={15} />
-                      <span className="truncate">{item.name}</span>
-                      {(item.media_type === 'video' || item.media_type === 'audio') && (
-                        <span
-                          className={`shrink-0 text-[9px] px-1 py-0.5 rounded font-medium ${
-                            isSelected
-                              ? 'bg-white/20 text-white'
-                              : 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
-                          }`}
-                        >
-                          {item.media_type === 'video' ? '▶ Video' : '♫ Audio'}
-                        </span>
-                      )}
+                    <div className="flex items-center gap-2.5 truncate">
+                      <FileIcon item={item} size={18} />
+                      <span className="truncate font-medium">{item.name}</span>
                     </div>
 
-                    {item.is_dir && (
-                      <ChevronRight
-                        size={14}
-                        className={isSelected ? 'text-white' : 'text-gray-400'}
-                      />
-                    )}
+                    <div className="flex items-center gap-1">
+                      {item.is_dir ? (
+                        <ChevronRight
+                          size={18}
+                          className={isSelected ? 'text-white' : 'text-gray-400'}
+                        />
+                      ) : (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            selectColumnItem(colIdx, item);
+                            openContextMenu(e.clientX, e.clientY, item);
+                          }}
+                          className={`md:hidden p-1.5 rounded min-w-[32px] min-h-[32px] flex items-center justify-center ${
+                            isSelected ? 'text-white/80 hover:text-white' : 'text-gray-400 hover:text-gray-600'
+                          }`}
+                        >
+                          <MoreVertical size={16} />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 );
               })}
@@ -141,7 +147,14 @@ export const MillerColumnsView: React.FC = () => {
 
       {/* Terminal Inspector Column when a File is Selected */}
       {activeItem && !activeItem.is_dir && (
-        <div className="w-[85vw] min-w-[85vw] max-w-[85vw] md:w-80 md:min-w-[20rem] md:max-w-[20rem] snap-start border-r border-gray-200 dark:border-[#333333] flex flex-col h-full shrink-0 bg-gray-50/50 dark:bg-[#252526]/50 p-4 overflow-y-auto">
+        <div
+          onContextMenu={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            openContextMenu(e.clientX, e.clientY, activeItem);
+          }}
+          className="w-[85vw] min-w-[85vw] max-w-[85vw] md:w-80 md:min-w-[20rem] md:max-w-[20rem] snap-start border-r border-gray-200 dark:border-[#333333] flex flex-col h-full shrink-0 bg-gray-50/50 dark:bg-[#252526]/50 p-4 overflow-y-auto"
+        >
           {/* Large Preview / Icon */}
           <div className="w-full h-40 bg-white dark:bg-[#1e1e1e] rounded-lg border border-gray-200 dark:border-[#3c3c3c] flex items-center justify-center overflow-hidden mb-4 shadow-sm">
             {activeItem.media_type === 'image' ? (

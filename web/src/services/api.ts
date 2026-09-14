@@ -4,8 +4,8 @@ import { mockDataSource } from './mockDataSource';
 
 // Retrieve mode from localStorage or environment
 const savedMode = localStorage.getItem('kv_files_data_mode');
-// If not explicitly set, default to 'mock' so demo data works immediately out-of-the-box
-const initialMode: 'real' | 'mock' = savedMode === 'real' ? 'real' : 'mock';
+// Default to 'real' backend API for production use
+const initialMode: 'real' | 'mock' = savedMode === 'mock' ? 'mock' : 'real';
 
 let activeSource: FileSystemDataSource = initialMode === 'mock' ? mockDataSource : apiDataSource;
 

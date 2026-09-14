@@ -64,6 +64,102 @@ export const AudioPlayerModal: React.FC<AudioPlayerProps> = ({ item, root, onClo
     return () => window.removeEventListener('keydown', handleKeyDown, true);
   }, [item, onClose]);
 
+  // Native iOS Lock Screen / Dynamic Island & Android Quick Settings Media Playcard
+  useEffect(() => {
+    if (!item || !('mediaSession' in navigator)) return;
+
+    try {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: item.name,
+        artist: 'KV Files',
+        album: root || 'Audio Storage',
+        artwork: [
+          { src: '/icons/icon-96.png', sizes: '96x96', type: 'image/png' },
+          { src: '/icons/icon-128.png', sizes: '128x128', type: 'image/png' },
+          { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: '/icons/icon-256.png', sizes: '256x256', type: 'image/png' },
+          { src: '/icons/icon-384.png', sizes: '384x384', type: 'image/png' },
+          { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+        ],
+      });
+
+      navigator.mediaSession.setActionHandler('play', () => {
+        audioRef.current?.play().then(() => setIsPlaying(true)).catch(() => {});
+      });
+
+      navigator.mediaSession.setActionHandler('pause', () => {
+        audioRef.current?.pause();
+        setIsPlaying(false);
+      });
+
+      navigator.mediaSession.setActionHandler('seekbackward', (details) => {
+        const skipTime = details.seekOffset || 10;
+        if (audioRef.current) {
+          audioRef.current.currentTime = Math.max(0, audioRef.current.currentTime - skipTime);
+        }
+      });
+
+      navigator.mediaSession.setActionHandler('seekforward', (details) => {
+        const skipTime = details.seekOffset || 10;
+        if (audioRef.current) {
+          audioRef.current.currentTime = Math.min(
+            audioRef.current.duration || Infinity,
+            audioRef.current.currentTime + skipTime
+          );
+        }
+      });
+
+      navigator.mediaSession.setActionHandler('seekto', (details) => {
+        if (details.seekTime !== undefined && audioRef.current) {
+          audioRef.current.currentTime = details.seekTime;
+          setCurrentTime(details.seekTime);
+        }
+      });
+
+      navigator.mediaSession.setActionHandler('stop', () => {
+        audioRef.current?.pause();
+        setIsPlaying(false);
+        onClose();
+      });
+    } catch (e) {
+      console.warn('MediaSession initialization error:', e);
+    }
+
+    return () => {
+      if ('mediaSession' in navigator) {
+        try {
+          navigator.mediaSession.setActionHandler('play', null);
+          navigator.mediaSession.setActionHandler('pause', null);
+          navigator.mediaSession.setActionHandler('seekbackward', null);
+          navigator.mediaSession.setActionHandler('seekforward', null);
+          navigator.mediaSession.setActionHandler('seekto', null);
+          navigator.mediaSession.setActionHandler('stop', null);
+        } catch {}
+      }
+    };
+  }, [item, root, onClose]);
+
+  // Sync playback state & timeline position with Media Session
+  useEffect(() => {
+    if (!('mediaSession' in navigator)) return;
+    try {
+      navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+    } catch {}
+  }, [isPlaying]);
+
+  useEffect(() => {
+    if (!('mediaSession' in navigator) || !('setPositionState' in navigator.mediaSession)) return;
+    if (duration > 0 && !isNaN(duration) && !isNaN(currentTime)) {
+      try {
+        navigator.mediaSession.setPositionState({
+          duration: Math.max(0, duration),
+          playbackRate: playbackRate || 1.0,
+          position: Math.min(Math.max(0, currentTime), duration),
+        });
+      } catch {}
+    }
+  }, [currentTime, duration, playbackRate]);
+
   if (!item) return null;
 
   const audioSrc = api.getRawFileUrl(root, item.path);

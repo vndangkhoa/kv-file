@@ -7,15 +7,18 @@ import {
   Columns,
   List,
   LayoutGrid,
-  Play,
 } from 'lucide-react';
 import { useExplorerStore } from '../../stores/useExplorerStore';
 import { FileItem } from '../../types';
 import { FileIcon } from '../common/FileIcon';
+import { ThumbnailPreview } from '../common/ThumbnailPreview';
 import { MillerColumnsView } from './MillerColumnsView';
+import { formatDisplayPath } from '../layout/AddressBar';
+import { api } from '../../services/api';
 
 export const SplitView: React.FC = () => {
   const {
+    currentRoot,
     currentPath,
     listing,
     selectedItems,
@@ -29,9 +32,13 @@ export const SplitView: React.FC = () => {
     rightPaneViewMode,
     setRightPaneViewMode,
     rightPaneSelectedItems,
+    rightPaneActiveItem,
     selectRightPaneItem,
+    selectRightPaneMultiple,
     navigateRightPane,
 
+    activeItem,
+    selectMultiple,
     activePane,
     setActivePane,
 
@@ -44,25 +51,42 @@ export const SplitView: React.FC = () => {
     setQuickLookOpen,
     playAudio,
     playVideo,
+    startDirectUpload,
+    refresh,
   } = useExplorerStore();
 
   // Mobile active tab ('left' | 'right')
   const [mobileTab, setMobileTab] = useState<'left' | 'right'>('left');
+  const [leftPaneDropping, setLeftPaneDropping] = useState(false);
+  const [rightPaneDropping, setRightPaneDropping] = useState(false);
 
   const handleItemClick = (pane: 'left' | 'right', item: FileItem, e: React.MouseEvent) => {
     setActivePane(pane);
-    const isMulti = e.ctrlKey || e.metaKey || e.shiftKey;
-    if (pane === 'left') {
+    const isLeft = pane === 'left';
+    const active = isLeft ? activeItem : rightPaneActiveItem;
+    const items = isLeft ? listing?.items || [] : rightPaneListing?.items || [];
+
+    if (e.shiftKey && active && items.length > 0) {
+      const fromIdx = items.findIndex((i) => i.path === active.path);
+      const toIdx = items.findIndex((i) => i.path === item.path);
+      if (fromIdx !== -1 && toIdx !== -1) {
+        const start = Math.min(fromIdx, toIdx);
+        const end = Math.max(fromIdx, toIdx);
+        const range = items.slice(start, end + 1);
+        if (isLeft) {
+          selectMultiple(range);
+        } else {
+          selectRightPaneMultiple(range);
+        }
+        return;
+      }
+    }
+
+    const isMulti = e.ctrlKey || e.metaKey;
+    if (isLeft) {
       selectItem(item, isMulti);
     } else {
       selectRightPaneItem(item, isMulti);
-    }
-    if (!isMulti && !item.is_dir) {
-      if (item.media_type === 'video') {
-        playVideo(item);
-      } else if (item.media_type === 'audio') {
-        playAudio(item);
-      }
     }
   };
 
@@ -87,18 +111,131 @@ export const SplitView: React.FC = () => {
     }
   };
 
+  const handleDragStart = (
+    pane: 'left' | 'right',
+    item: FileItem,
+    e: React.DragEvent
+  ) => {
+    const isLeft = pane === 'left';
+    const selected = isLeft ? selectedItems : rightPaneSelectedItems;
+    const isSelectedAlready = selected.some((i) => i.path === item.path);
+    const itemsToDrag = isSelectedAlready ? selected : [item];
+
+    if (!isSelectedAlready) {
+      if (isLeft) {
+        selectItem(item, false);
+      } else {
+        selectRightPaneItem(item, false);
+      }
+    }
+
+    e.dataTransfer.setData(
+      'application/x-kv-file',
+      JSON.stringify({
+        root: currentRoot,
+        items: itemsToDrag.map((i) => ({ name: i.name, path: i.path, is_dir: i.is_dir })),
+      })
+    );
+    e.dataTransfer.effectAllowed = 'copyMove';
+
+    if (itemsToDrag.length > 1) {
+      const ghost = document.createElement('div');
+      ghost.className =
+        'fixed -top-[9999px] -left-[9999px] bg-blue-600 text-white font-medium text-xs px-2.5 py-1.5 rounded-lg shadow-xl flex items-center gap-1.5 z-50 pointer-events-none border border-white/20';
+      ghost.innerHTML = `<span>${itemsToDrag.length} items</span>`;
+      document.body.appendChild(ghost);
+      e.dataTransfer.setDragImage(ghost, 20, 20);
+      setTimeout(() => document.body.removeChild(ghost), 100);
+    }
+  };
+
+  const handlePaneDragOver = (pane: 'left' | 'right', e: React.DragEvent) => {
+    const isInternal = e.dataTransfer.types.includes('application/x-kv-file');
+    const isFiles = e.dataTransfer.types.includes('Files');
+    if (isInternal || isFiles) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = e.ctrlKey || e.altKey ? 'copy' : 'move';
+      if (pane === 'left' && !leftPaneDropping) setLeftPaneDropping(true);
+      if (pane === 'right' && !rightPaneDropping) setRightPaneDropping(true);
+    }
+  };
+
+  const handlePaneDragLeave = (pane: 'left' | 'right', e: React.DragEvent) => {
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      if (pane === 'left') setLeftPaneDropping(false);
+      if (pane === 'right') setRightPaneDropping(false);
+    }
+  };
+
+  const handlePaneDrop = async (
+    pane: 'left' | 'right',
+    targetFolderPath: string,
+    e: React.DragEvent
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (pane === 'left') setLeftPaneDropping(false);
+    if (pane === 'right') setRightPaneDropping(false);
+
+    // 1. External OS file upload
+    if (
+      e.dataTransfer.files &&
+      e.dataTransfer.files.length > 0 &&
+      !e.dataTransfer.types.includes('application/x-kv-file')
+    ) {
+      const files = Array.from(e.dataTransfer.files);
+      await startDirectUpload(currentRoot, targetFolderPath, files);
+      return;
+    }
+
+    // 2. Internal move / copy
+    const rawData = e.dataTransfer.getData('application/x-kv-file');
+    if (!rawData) return;
+
+    try {
+      const { root, items } = JSON.parse(rawData) as {
+        root: string;
+        items: { name: string; path: string; is_dir?: boolean }[];
+      };
+      const isCopy = e.ctrlKey || e.altKey;
+
+      for (const src of items) {
+        if (targetFolderPath === src.path || targetFolderPath.startsWith(`${src.path}/`)) {
+          continue;
+        }
+        const parentPath = src.path.includes('/')
+          ? src.path.substring(0, src.path.lastIndexOf('/'))
+          : '';
+        if (!isCopy && parentPath === targetFolderPath) {
+          continue;
+        }
+
+        if (isCopy) {
+          await api.copyItem(root, src.path, targetFolderPath);
+        } else {
+          await api.moveItem(root, src.path, targetFolderPath);
+        }
+      }
+      await refresh();
+    } catch (err) {
+      console.error('Failed to handle split view drop:', err);
+    }
+  };
+
   const renderPaneContent = (pane: 'left' | 'right') => {
     const isLeft = pane === 'left';
     const items = isLeft ? listing?.items || [] : rightPaneListing?.items || [];
     const mode = isLeft ? viewMode : rightPaneViewMode;
     const selected = isLeft ? selectedItems : rightPaneSelectedItems;
+    const isDropping = isLeft ? leftPaneDropping : rightPaneDropping;
+    const targetPath = isLeft ? currentPath : rightPanePath;
+
+    let content: React.ReactNode = null;
 
     if (isLeft && mode === 'columns') {
-      return <MillerColumnsView />;
-    }
-
-    if (mode === 'grid') {
-      return (
+      content = <MillerColumnsView />;
+    } else if (mode === 'grid') {
+      content = (
         <div
           onClick={() => setActivePane(pane)}
           onContextMenu={(e) => {
@@ -112,6 +249,26 @@ export const SplitView: React.FC = () => {
             return (
               <div
                 key={item.path}
+                draggable={true}
+                onDragStart={(e) => handleDragStart(pane, item, e)}
+                onDragOver={(e) => {
+                  if (item.is_dir) {
+                    const isInternal = e.dataTransfer.types.includes('application/x-kv-file');
+                    const isFiles = e.dataTransfer.types.includes('Files');
+                    if (isInternal || isFiles) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      e.dataTransfer.dropEffect = e.ctrlKey || e.altKey ? 'copy' : 'move';
+                    }
+                  }
+                }}
+                onDrop={(e) => {
+                  if (item.is_dir) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handlePaneDrop(pane, item.path, e);
+                  }
+                }}
                 onClick={(e) => handleItemClick(pane, item, e)}
                 onDoubleClick={() => handleItemDoubleClick(pane, item)}
                 onContextMenu={(e) => {
@@ -126,15 +283,8 @@ export const SplitView: React.FC = () => {
                     : 'border-gray-200/60 dark:border-[#333333] hover:bg-gray-50 dark:hover:bg-[#2a2d2e]'
                 }`}
               >
-                <div className="relative mb-2 transition-transform group-hover:scale-105">
-                  <FileIcon item={item} size={36} />
-                  {(item.media_type === 'video' || item.media_type === 'audio') && (
-                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 flex items-center justify-center rounded-lg transition-colors">
-                      <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-md">
-                        <Play size={10} className="translate-x-0.5" />
-                      </div>
-                    </div>
-                  )}
+                <div className="w-full h-24 mb-1.5 rounded-lg overflow-hidden border border-gray-200/50 dark:border-[#383838] bg-gray-50 dark:bg-[#1a1a1a] flex items-center justify-center">
+                  <ThumbnailPreview item={item} size="sm" />
                 </div>
                 <span className="text-xs font-medium text-gray-800 dark:text-gray-200 truncate w-full">
                   {item.name}
@@ -147,56 +297,89 @@ export const SplitView: React.FC = () => {
           })}
         </div>
       );
+    } else {
+      // Default: Detailed List
+      content = (
+        <div
+          onClick={() => setActivePane(pane)}
+          onContextMenu={(e) => {
+            e.preventDefault();
+            openContextMenu(e.clientX, e.clientY, null);
+          }}
+          className="flex-1 overflow-y-auto divide-y divide-gray-100 dark:divide-[#2d2d2d] bg-white dark:bg-[#1e1e1e]"
+        >
+          {items.length === 0 ? (
+            <div className="text-center py-12 text-xs text-gray-400 italic">This folder is empty</div>
+          ) : (
+            items.map((item) => {
+              const isSel = selected.some((s) => s.path === item.path);
+              return (
+                <div
+                  key={item.path}
+                  draggable={true}
+                  onDragStart={(e) => handleDragStart(pane, item, e)}
+                  onDragOver={(e) => {
+                    if (item.is_dir) {
+                      const isInternal = e.dataTransfer.types.includes('application/x-kv-file');
+                      const isFiles = e.dataTransfer.types.includes('Files');
+                      if (isInternal || isFiles) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        e.dataTransfer.dropEffect = e.ctrlKey || e.altKey ? 'copy' : 'move';
+                      }
+                    }
+                  }}
+                  onDrop={(e) => {
+                    if (item.is_dir) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handlePaneDrop(pane, item.path, e);
+                    }
+                  }}
+                  onClick={(e) => handleItemClick(pane, item, e)}
+                  onDoubleClick={() => handleItemDoubleClick(pane, item)}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleItemClick(pane, item, e);
+                    openContextMenu(e.clientX, e.clientY, item);
+                  }}
+                  className={`flex items-center justify-between px-3 py-2 cursor-pointer transition-colors text-xs ${
+                    isSel
+                      ? 'bg-blue-100/70 dark:bg-blue-950/60 text-blue-900 dark:text-blue-100'
+                      : 'hover:bg-gray-50 dark:hover:bg-[#25282a] text-gray-800 dark:text-gray-200'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <FileIcon item={item} size={16} />
+                    <span className="font-medium truncate">{item.name}</span>
+                  </div>
+                  <div className="flex items-center gap-4 shrink-0 text-gray-400 font-mono text-[11px]">
+                    <span>{item.is_dir ? '—' : item.human_size}</span>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      );
     }
 
-    // Default: Detailed List
     return (
       <div
-        onClick={() => setActivePane(pane)}
-        onContextMenu={(e) => {
-          e.preventDefault();
-          openContextMenu(e.clientX, e.clientY, null);
-        }}
-        className="flex-1 overflow-y-auto divide-y divide-gray-100 dark:divide-[#2d2d2d] bg-white dark:bg-[#1e1e1e]"
+        className="flex-1 flex flex-col relative overflow-hidden"
+        onDragOver={(e) => handlePaneDragOver(pane, e)}
+        onDragLeave={(e) => handlePaneDragLeave(pane, e)}
+        onDrop={(e) => handlePaneDrop(pane, targetPath, e)}
       >
-        {items.length === 0 ? (
-          <div className="text-center py-12 text-xs text-gray-400 italic">This folder is empty</div>
-        ) : (
-          items.map((item) => {
-            const isSel = selected.some((s) => s.path === item.path);
-            return (
-              <div
-                key={item.path}
-                onClick={(e) => handleItemClick(pane, item, e)}
-                onDoubleClick={() => handleItemDoubleClick(pane, item)}
-                onContextMenu={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  handleItemClick(pane, item, e);
-                  openContextMenu(e.clientX, e.clientY, item);
-                }}
-                className={`flex items-center justify-between px-3 py-2 cursor-pointer transition-colors text-xs ${
-                  isSel
-                    ? 'bg-blue-100/70 dark:bg-blue-950/60 text-blue-900 dark:text-blue-100'
-                    : 'hover:bg-gray-50 dark:hover:bg-[#25282a] text-gray-800 dark:text-gray-200'
-                }`}
-              >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <FileIcon item={item} size={16} />
-                  <span className="font-medium truncate">{item.name}</span>
-                  {(item.media_type === 'video' || item.media_type === 'audio') && (
-                    <span className="shrink-0 text-[9px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 font-medium">
-                      {item.media_type === 'video' ? '▶ Video' : '♫ Audio'}
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-4 shrink-0 text-gray-400 font-mono text-[11px]">
-                  <span>{item.is_dir ? '—' : item.human_size}</span>
-                </div>
-              </div>
-            );
-          })
+        {isDropping && (
+          <div className="absolute inset-0 bg-blue-500/10 dark:bg-blue-500/20 border-2 border-dashed border-blue-500 z-20 pointer-events-none flex items-center justify-center backdrop-blur-[1px]">
+            <div className="bg-white/95 dark:bg-[#202020]/95 px-3 py-1.5 rounded-full shadow-lg text-xs font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-1.5 border border-blue-200 dark:border-blue-900/50">
+              <span>Drop to transfer into {isLeft ? 'Pane 1' : 'Pane 2'}</span>
+            </div>
+          </div>
         )}
+        {content}
       </div>
     );
   };
@@ -282,7 +465,7 @@ export const SplitView: React.FC = () => {
               : 'border-transparent text-gray-500'
           }`}
         >
-          <span>Pane 1: /{currentPath || 'root'}</span>
+          <span>Pane 1: {formatDisplayPath(currentPath)}</span>
         </button>
         <button
           onClick={() => {
@@ -295,7 +478,7 @@ export const SplitView: React.FC = () => {
               : 'border-transparent text-gray-500'
           }`}
         >
-          <span>Pane 2: /{rightPanePath || 'root'}</span>
+          <span>Pane 2: {formatDisplayPath(rightPanePath)}</span>
         </button>
       </div>
 
@@ -319,7 +502,7 @@ export const SplitView: React.FC = () => {
             <div className="flex items-center gap-1.5 truncate text-xs font-medium">
               <span className="w-2 h-2 rounded-full bg-blue-500"></span>
               <span className="font-semibold">Pane 1</span>
-              <span className="text-gray-400 font-normal">/{currentPath}</span>
+              <span className="text-gray-400 font-normal">{formatDisplayPath(currentPath)}</span>
             </div>
 
             {/* View Switcher for Left Pane */}
@@ -379,7 +562,7 @@ export const SplitView: React.FC = () => {
             <div className="flex items-center gap-1.5 truncate text-xs font-medium">
               <span className="w-2 h-2 rounded-full bg-purple-500"></span>
               <span className="font-semibold">Pane 2</span>
-              <span className="text-gray-400 font-normal">/{rightPanePath}</span>
+              <span className="text-gray-400 font-normal">{formatDisplayPath(rightPanePath)}</span>
             </div>
 
             {/* View Switcher for Right Pane */}

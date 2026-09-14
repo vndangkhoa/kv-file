@@ -1,6 +1,6 @@
 # Ola Documentation
 
-This directory contains the documentation site for **Ola File Manager**, built with **Hugo** and **Lotus Docs**, styled to match the Ola Web App design system.
+This directory contains the documentation website for **Ola File Manager**, built with **Hugo (Extended)** and **Lotus Docs**, styled to match the Ola Web App design system.
 
 ## 🚀 Quick Commands
 
@@ -21,25 +21,34 @@ npm run docs:build   # Output into docs/public/
 
 ---
 
-## 📁 Content Structure
-
-Documentation is organized in `docs/content/docs/`:
+## 📁 Content Map
 
 ```text
 docs/content/docs/
-├── _index.md                    # Documentation home & architecture
-├── getting-started/             # Quickstart, installation & Docker
-│   ├── _index.md                # Quickstart guide (icon: rocket_launch)
-│   ├── installation.md          # Cargo build & native binary
-│   └── docker.md                # Docker & Compose
-├── features/                    # UI & capabilities
-│   ├── _index.md                # Miller Columns & Windows Explorer view (icon: diamond)
-│   └── storage-and-sync.md      # Real-time sync, sharing & trash
-├── configuration/               # Configuration
-│   ├── _index.md                # Environment variables & flags (icon: settings)
-│   └── security-and-roots.md    # Multi-root storage & Argon2id auth
-└── api/                         # Developer specs
-    └── _index.md                # REST endpoints & WebSockets (icon: terminal)
+├── _index.md                             # Documentation home & architecture
+│
+├── getting-started/                      # Getting Started
+│   ├── _index.md                         # Quickstart & setup wizard
+│   ├── installation.md                   # Cargo build & native binary
+│   ├── docker.md                         # Docker & Compose deployment
+│   └── reverse-proxy.md                  # Nginx, Caddy & Traefik setups
+│
+├── features/                             # Core Features
+│   ├── _index.md                         # Feature comparison matrix
+│   ├── views.md                          # Miller Columns, Windows List, Grid, Split View
+│   ├── preview-and-media.md              # Spacebar Quick Look & Audio Player
+│   ├── file-operations.md                # Ribbon, Context Menu & 18 Hotkeys
+│   ├── search.md                         # Instant search, filtering & Command Palette
+│   ├── realtime-sync.md                  # Inotify watcher & WebSockets
+│   └── sharing-and-trash.md              # Public UUID shares & Recycle Bin
+│
+├── configuration/                        # Configuration & Maintenance
+│   ├── _index.md                         # CLI flags & environment variables
+│   ├── security-and-roots.md             # Multi-root storage & Argon2id auth
+│   └── backup-and-maintenance.md         # SQLite WAL backups & kernel tuning
+│
+└── api/                                  # Developer Specs
+    └── _index.md                         # REST endpoints & WebSocket protocol
 ```
 
 ---
@@ -47,7 +56,8 @@ docs/content/docs/
 ## 🎨 Theme Tokens (`assets/docs/scss/_ola-theme.scss`)
 
 - **Primary Brand**: `#0078d4` (Windows Explorer blue) / `#0062d2` (Finder Selection)
-- **Dark Mode**: `#1e1e1e` (canvas background), `#252526` (cards), `#212224` (sidebar), `#333333` (borders)
-- **Light Mode**: `#ffffff` (canvas), `#f6f6f6` (sidebar), `#e5e5e5` (borders)
+- **Header**: 48px height matching `TitleBar.tsx` with `HardDrive` logo, `v2.0` badge, and `Ctrl+K` search pill
+- **Dark Mode**: `#1e1e1e` (canvas), `#252526` (cards/header), `#212224` (sidebar), `#333333` (borders)
+- **Light Mode**: `#ffffff` (canvas/cards), `#f6f6f6` (sidebar), `#e5e5e5` (borders)
 - **Desktop Scrollbars**: 6px subtle desktop scrollbars matching `web/src/index.css`
 - **Typography**: `'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif`

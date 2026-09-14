@@ -50,6 +50,16 @@ interface ExplorerState {
   isNewFolderOpen: boolean;
   isRenameOpen: boolean;
 
+  // Live Direct Upload Tracking
+  uploadStatus: {
+    isUploading: boolean;
+    progress: number;
+    count: number;
+    currentFileName?: string;
+  } | null;
+  startDirectUpload: (root: string, path: string, files: File[]) => Promise<void>;
+  dismissUploadStatus: () => void;
+
   // Context Menu
   contextMenu: {
     x: number;
@@ -58,6 +68,11 @@ interface ExplorerState {
     sidebarNode?: TreeNode | null;
     sidebarDrive?: string | null;
     sidebarFavorite?: any | null;
+    breadcrumb?: { name: string; path: string } | null;
+    sidebarEmpty?: boolean | null;
+    toolbar?: 'titlebar' | 'ribbon' | 'addressbar' | 'statusbar' | null;
+    searchResultsBackground?: boolean | null;
+    targetPath?: string | null;
   } | null;
   openContextMenu: (
     x: number,
@@ -67,6 +82,11 @@ interface ExplorerState {
       sidebarNode?: TreeNode | null;
       sidebarDrive?: string | null;
       sidebarFavorite?: any | null;
+      breadcrumb?: { name: string; path: string } | null;
+      sidebarEmpty?: boolean | null;
+      toolbar?: 'titlebar' | 'ribbon' | 'addressbar' | 'statusbar' | null;
+      searchResultsBackground?: boolean | null;
+      targetPath?: string | null;
     }
   ) => void;
   closeContextMenu: () => void;
@@ -94,6 +114,7 @@ interface ExplorerState {
   navigateRightPane: (path: string) => Promise<void>;
   setRightPaneViewMode: (mode: ViewMode) => void;
   selectRightPaneItem: (item: FileItem, isMulti?: boolean) => void;
+  selectRightPaneMultiple: (items: FileItem[]) => void;
   copyToOtherPane: () => Promise<void>;
   moveToOtherPane: () => Promise<void>;
   syncPanes: () => Promise<void>;
@@ -119,6 +140,8 @@ interface ExplorerState {
   // Selection
   setViewMode: (mode: ViewMode) => void;
   selectItem: (item: FileItem, isMulti?: boolean) => void;
+  selectMultiple: (items: FileItem[]) => void;
+  selectAll: () => void;
   clearSelection: () => void;
   setActiveItem: (item: FileItem | null) => void;
 
@@ -161,7 +184,7 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
   history: [''],
   historyIndex: 0,
 
-  viewMode: 'columns', // Default to macOS Column View!
+  viewMode: typeof window !== 'undefined' && window.innerWidth < 768 ? 'list' : 'columns',
   selectedItems: [],
   activeItem: null,
 
@@ -218,25 +241,27 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
     const root = get().currentRoot;
     if (!root) return;
 
+    const cleanPath = path.trim().replace(/^\/+|\/+$/g, '');
+
     set({ isLoading: true, error: null });
 
     try {
-      const listing = await api.listDirectory(root, path);
+      const listing = await api.listDirectory(root, cleanPath);
 
       // Manage history
       let { history, historyIndex } = get();
       if (saveHistory) {
         history = history.slice(0, historyIndex + 1);
-        history.push(path);
+        history.push(cleanPath);
         historyIndex = history.length - 1;
       }
 
       // Rebuild column stack for Miller Column View
-      const segments = path.split('/').filter(Boolean);
+      const segments = cleanPath.split('/').filter(Boolean);
       const cols: ColumnLevel[] = [];
 
       // First column is root folder
-      const rootListing = path === '' ? listing : await api.listDirectory(root, '');
+      const rootListing = cleanPath === '' ? listing : await api.listDirectory(root, '');
       cols.push({
         path: '',
         items: rootListing.items,
@@ -248,7 +273,7 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
       let curAcc = '';
       for (let i = 0; i < segments.length; i++) {
         curAcc = curAcc ? `${curAcc}/${segments[i]}` : segments[i];
-        const isCurrent = curAcc === path;
+        const isCurrent = curAcc === cleanPath;
         const colListing = isCurrent ? listing : await api.listDirectory(root, curAcc);
         cols.push({
           path: curAcc,
@@ -259,7 +284,7 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
       }
 
       set({
-        currentPath: path,
+        currentPath: cleanPath,
         listing,
         columns: cols,
         isLoading: false,
@@ -322,6 +347,29 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
     }
   },
 
+  selectMultiple: (items: FileItem[]) => {
+    set({ selectedItems: items, activeItem: items[items.length - 1] || null });
+  },
+
+  selectAll: () => {
+    const { listing, isSplitView, activePane, rightPaneListing } = get();
+    if (isSplitView && activePane === 'right') {
+      if (rightPaneListing && rightPaneListing.items) {
+        set({
+          rightPaneSelectedItems: [...rightPaneListing.items],
+          rightPaneActiveItem: rightPaneListing.items[0] || null,
+        });
+      }
+    } else {
+      if (listing && listing.items) {
+        set({
+          selectedItems: [...listing.items],
+          activeItem: listing.items[0] || null,
+        });
+      }
+    }
+  },
+
   clearSelection: () => set({ selectedItems: [], activeItem: null }),
 
   setActiveItem: (item: FileItem | null) => set({ activeItem: item }),
@@ -335,17 +383,18 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
     set({ activeItem: item, selectedItems: [item] });
 
     if (item.is_dir) {
+      const cleanPath = item.path.trim().replace(/^\/+|\/+$/g, '');
       // Append loading child column
       newCols.push({
-        path: item.path,
+        path: cleanPath,
         items: [],
         selectedName: null,
         isLoading: true,
       });
-      set({ columns: newCols, currentPath: item.path });
+      set({ columns: newCols, currentPath: cleanPath });
 
       try {
-        const childListing = await api.listDirectory(currentRoot, item.path);
+        const childListing = await api.listDirectory(currentRoot, cleanPath);
         newCols[columnIndex + 1].items = childListing.items;
         newCols[columnIndex + 1].isLoading = false;
         set({ columns: [...newCols], listing: childListing });
@@ -396,6 +445,48 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
   setNewFolderOpen: (open: boolean) => set({ isNewFolderOpen: open }),
   setRenameOpen: (open: boolean) => set({ isRenameOpen: open }),
 
+  // Direct Drag & Drop Upload
+  uploadStatus: null,
+  startDirectUpload: async (root: string, path: string, files: File[]) => {
+    if (!root || files.length === 0) return;
+    const cleanPath = path.trim().replace(/^\/+|\/+$/g, '');
+    const fileName = files.length === 1 ? files[0].name : `${files.length} files`;
+
+    set({
+      uploadStatus: {
+        isUploading: true,
+        progress: 0,
+        count: files.length,
+        currentFileName: fileName,
+      },
+    });
+
+    try {
+      await api.uploadFiles(root, cleanPath, files, (p) => {
+        const current = get().uploadStatus;
+        if (current) {
+          set({ uploadStatus: { ...current, progress: p } });
+        }
+      });
+      await get().refresh();
+      set({
+        uploadStatus: {
+          isUploading: false,
+          progress: 100,
+          count: files.length,
+          currentFileName: fileName,
+        },
+      });
+      setTimeout(() => {
+        get().dismissUploadStatus();
+      }, 3500);
+    } catch (err: any) {
+      set({ uploadStatus: null });
+      alert(`Upload failed: ${err.message}`);
+    }
+  },
+  dismissUploadStatus: () => set({ uploadStatus: null }),
+
   // Context Menu
   openContextMenu: (x, y, item = null, options = {}) =>
     set({
@@ -406,6 +497,11 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
         sidebarNode: options.sidebarNode || null,
         sidebarDrive: options.sidebarDrive || null,
         sidebarFavorite: options.sidebarFavorite || null,
+        breadcrumb: options.breadcrumb || null,
+        sidebarEmpty: options.sidebarEmpty || null,
+        toolbar: options.toolbar || null,
+        searchResultsBackground: options.searchResultsBackground || null,
+        targetPath: options.targetPath || null,
       },
     }),
   closeContextMenu: () => set({ contextMenu: null }),
@@ -429,10 +525,11 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
   navigateRightPane: async (path: string) => {
     const root = get().currentRoot;
     if (!root) return;
+    const cleanPath = path.trim().replace(/^\/+|\/+$/g, '');
     try {
-      const listing = await api.listDirectory(root, path);
+      const listing = await api.listDirectory(root, cleanPath);
       set({
-        rightPanePath: path,
+        rightPanePath: cleanPath,
         rightPaneListing: listing,
         rightPaneSelectedItems: [],
         rightPaneActiveItem: null,
@@ -455,6 +552,9 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
     } else {
       set({ rightPaneSelectedItems: [item], rightPaneActiveItem: item });
     }
+  },
+  selectRightPaneMultiple: (items) => {
+    set({ rightPaneSelectedItems: items, rightPaneActiveItem: items[items.length - 1] || null });
   },
   copyToOtherPane: async () => {
     const { activePane, currentRoot, currentPath, rightPanePath, selectedItems, rightPaneSelectedItems } = get();

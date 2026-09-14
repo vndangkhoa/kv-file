@@ -82,6 +82,105 @@ export const VideoPlayerModal: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown, true);
   }, [isVideoPlayerOpen, closeVideoPlayer, isPlaying]);
 
+  // Native iOS Lock Screen / Dynamic Island & Android Quick Settings Media Playcard
+  useEffect(() => {
+    if (!videoTrack || !isVideoPlayerOpen || !('mediaSession' in navigator)) return;
+
+    try {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: videoTrack.name,
+        artist: 'KV Files',
+        album: currentRoot || 'Video Storage',
+        artwork: [
+          { src: '/icons/icon-96.png', sizes: '96x96', type: 'image/png' },
+          { src: '/icons/icon-128.png', sizes: '128x128', type: 'image/png' },
+          { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: '/icons/icon-256.png', sizes: '256x256', type: 'image/png' },
+          { src: '/icons/icon-384.png', sizes: '384x384', type: 'image/png' },
+          { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+        ],
+      });
+
+      navigator.mediaSession.setActionHandler('play', () => {
+        if (videoRef.current) {
+          videoRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
+        }
+      });
+
+      navigator.mediaSession.setActionHandler('pause', () => {
+        videoRef.current?.pause();
+        setIsPlaying(false);
+      });
+
+      navigator.mediaSession.setActionHandler('seekbackward', (details) => {
+        const skipTime = details.seekOffset || 10;
+        if (videoRef.current) {
+          videoRef.current.currentTime = Math.max(0, videoRef.current.currentTime - skipTime);
+        }
+      });
+
+      navigator.mediaSession.setActionHandler('seekforward', (details) => {
+        const skipTime = details.seekOffset || 10;
+        if (videoRef.current) {
+          videoRef.current.currentTime = Math.min(
+            videoRef.current.duration || Infinity,
+            videoRef.current.currentTime + skipTime
+          );
+        }
+      });
+
+      navigator.mediaSession.setActionHandler('seekto', (details) => {
+        if (details.seekTime !== undefined && videoRef.current) {
+          videoRef.current.currentTime = details.seekTime;
+          setCurrentTime(details.seekTime);
+        }
+      });
+
+      navigator.mediaSession.setActionHandler('stop', () => {
+        videoRef.current?.pause();
+        setIsPlaying(false);
+        closeVideoPlayer();
+      });
+    } catch (e) {
+      console.warn('MediaSession initialization error:', e);
+    }
+
+    return () => {
+      if ('mediaSession' in navigator) {
+        try {
+          navigator.mediaSession.setActionHandler('play', null);
+          navigator.mediaSession.setActionHandler('pause', null);
+          navigator.mediaSession.setActionHandler('seekbackward', null);
+          navigator.mediaSession.setActionHandler('seekforward', null);
+          navigator.mediaSession.setActionHandler('seekto', null);
+          navigator.mediaSession.setActionHandler('stop', null);
+        } catch {}
+      }
+    };
+  }, [videoTrack, isVideoPlayerOpen, currentRoot, closeVideoPlayer]);
+
+  // Sync playback state with Media Session
+  useEffect(() => {
+    if (!('mediaSession' in navigator)) return;
+    try {
+      navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+    } catch {}
+  }, [isPlaying]);
+
+  // Sync timeline position with Media Session
+  useEffect(() => {
+    if (!('mediaSession' in navigator) || !('setPositionState' in navigator.mediaSession)) return;
+    if (duration > 0 && !isNaN(duration) && !isNaN(currentTime)) {
+      try {
+        navigator.mediaSession.setPositionState({
+          duration: Math.max(0, duration),
+          playbackRate: playbackRate || 1.0,
+          position: Math.min(Math.max(0, currentTime), duration),
+        });
+      } catch {}
+    }
+  }, [currentTime, duration, playbackRate]);
+
   if (!isVideoPlayerOpen || !videoTrack) return null;
 
   const rawUrl = api.getRawFileUrl(videoTrack.root_name || currentRoot, videoTrack.path);

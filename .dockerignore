@@ -1,0 +1,11 @@
+target/*
+!target/release/kv-files
+.git/
+.github/
+web/node_modules/
+data/
+storage/
+test_storage/
+*.db
+*.db-journal
+*.log

@@ -1,9 +1,11 @@
 import { FileSystemDataSource } from './dataSource';
 import {
+  AuthResponse,
   BreadcrumbItem,
   DirectoryListing,
   FileItem,
   MediaType,
+  Setup2faResponse,
   ShareItem,
   StorageRootInfo,
   TrashItem,
@@ -99,7 +101,7 @@ Welcome to the KV Files demo!
     extension: 'pdf',
     media_type: 'pdf',
     mime_type: 'application/pdf',
-    previewUrl: 'https://raw.githubusercontent.com/mozilla/pdf.js/master/examples/learning/helloworld.pdf',
+    previewUrl: '/media/system_architecture.pdf',
   },
   {
     name: 'Q3_Financial_Review.xlsx',
@@ -429,6 +431,7 @@ class MockFileSystem implements FileSystemDataSource {
     { id: 'usr-2', username: 'alex_editor', role: 'editor', created_at: new Date('2026-02-15').toISOString() },
     { id: 'usr-3', username: 'sarah_viewer', role: 'viewer', created_at: new Date('2026-03-10').toISOString() },
   ];
+  private isTotpEnabled = false;
   private settings: Record<string, string> = {
     trash_retention_days: '30',
     max_upload_size_mb: '1024',
@@ -444,13 +447,70 @@ class MockFileSystem implements FileSystemDataSource {
     return { success: true, token: 'mock-token', user };
   }
 
-  async login(username: string): Promise<{ success: boolean; token: string; user: User }> {
-    const user: User = { id: 'mock-user', username: username || 'demo_admin', role: 'admin', created_at: new Date().toISOString() };
+  async login(username: string): Promise<AuthResponse> {
+    const user: User = {
+      id: 'mock-user',
+      username: username || 'demo_admin',
+      role: 'admin',
+      created_at: new Date().toISOString(),
+      is_totp_enabled: this.isTotpEnabled,
+    };
+    if (this.isTotpEnabled) {
+      return {
+        success: true,
+        requires_2fa: true,
+        pre_auth_token: 'mock-pre-auth-token-12345',
+      };
+    }
     return { success: true, token: 'mock-token', user };
   }
 
   async getMe(): Promise<User> {
-    return { id: 'mock-user', username: 'demo_admin', role: 'admin', created_at: new Date().toISOString() };
+    return {
+      id: 'mock-user',
+      username: 'demo_admin',
+      role: 'admin',
+      created_at: new Date().toISOString(),
+      is_totp_enabled: this.isTotpEnabled,
+    };
+  }
+
+  async setup2fa(): Promise<Setup2faResponse> {
+    return {
+      secret: 'JBSWY3DPEHPK3PXP',
+      qr_code:
+        "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='white'/><path d='M10 10h30v30h-30zM50 10h10v10h-10zM70 10h20v20h-20zM15 15v20h20v-20zM20 20h10v10h-10zM75 15v10h10v-10zM10 50h10v10h-10zM30 50h20v10h-20zM10 70h30v30h-30zM15 75v20h20v-20zM20 80h10v10h-10zM60 50h10v30h-10zM80 50h10v10h-10zM50 70h10v10h-10zM70 70h20v20h-20zM50 90h20v10h-20z' fill='%231e293b'/></svg>",
+      otpauth_url: 'otpauth://totp/KV%20Files:demo_admin?secret=JBSWY3DPEHPK3PXP&issuer=KV%20Files',
+      backup_codes: [
+        'A1B2-C3D4',
+        'E5F6-G7H8',
+        'J9K0-L1M2',
+        'N3P4-Q5R6',
+        'S7T8-U9V0',
+        'W1X2-Y3Z4',
+        'B5C6-D7E8',
+        'F9G0-H1J2',
+      ],
+    };
+  }
+
+  async enable2fa(_code: string): Promise<void> {
+    this.isTotpEnabled = true;
+  }
+
+  async verifyLogin2fa(_pre_auth_token: string, _code: string): Promise<AuthResponse> {
+    const user: User = {
+      id: 'mock-user',
+      username: 'demo_admin',
+      role: 'admin',
+      created_at: new Date().toISOString(),
+      is_totp_enabled: true,
+    };
+    return { success: true, token: 'mock-token', user };
+  }
+
+  async disable2fa(_password: string): Promise<void> {
+    this.isTotpEnabled = false;
   }
 
   async logout(): Promise<void> {}

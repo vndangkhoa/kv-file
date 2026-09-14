@@ -17,6 +17,7 @@ export function useKeyboardShortcuts() {
     setRenameOpen,
     setNewFolderOpen,
     selectItem,
+    selectAll,
     clearSelection,
     refresh,
     goUp,
@@ -115,11 +116,7 @@ export function useKeyboardShortcuts() {
       // 4. Ctrl+A -> Select All
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a' && !anyModalOpen) {
         e.preventDefault();
-        if (listing && listing.items.length > 0) {
-          for (const item of listing.items) {
-            selectItem(item, true);
-          }
-        }
+        selectAll();
         return;
       }
 

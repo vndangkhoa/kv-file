@@ -1,7 +1,9 @@
 import { FileSystemDataSource } from './dataSource';
 import {
+  AuthResponse,
   DirectoryListing,
   FileItem,
+  Setup2faResponse,
   ShareItem,
   StorageRootInfo,
   TrashItem,
@@ -43,7 +45,7 @@ export const apiDataSource: FileSystemDataSource = {
       body: JSON.stringify({ username, password }),
     });
   },
-  async login(username: string, password: string): Promise<{ success: boolean; token: string; user: User }> {
+  async login(username: string, password: string): Promise<AuthResponse> {
     return request('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ username, password }),
@@ -72,6 +74,28 @@ export const apiDataSource: FileSystemDataSource = {
   },
   async deleteUser(id: string): Promise<void> {
     await request(`/users/${id}`, { method: 'DELETE' });
+  },
+
+  async setup2fa(): Promise<Setup2faResponse> {
+    return request('/auth/2fa/setup', { method: 'POST' });
+  },
+  async enable2fa(code: string): Promise<void> {
+    await request('/auth/2fa/enable', {
+      method: 'POST',
+      body: JSON.stringify({ code }),
+    });
+  },
+  async verifyLogin2fa(pre_auth_token: string, code: string): Promise<AuthResponse> {
+    return request('/auth/2fa/verify', {
+      method: 'POST',
+      body: JSON.stringify({ pre_auth_token, code }),
+    });
+  },
+  async disable2fa(password: string): Promise<void> {
+    await request('/auth/2fa/disable', {
+      method: 'POST',
+      body: JSON.stringify({ password }),
+    });
   },
   async getSettings(): Promise<Record<string, string>> {
     return request('/settings');

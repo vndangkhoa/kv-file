@@ -7,7 +7,7 @@ interface StatusBarProps {
 }
 
 export const StatusBar: React.FC<StatusBarProps> = ({ wsConnected }) => {
-  const { listing, selectedItems, roots, currentRoot } = useExplorerStore();
+  const { listing, selectedItems, roots, currentRoot, openContextMenu } = useExplorerStore();
 
   const totalItems = listing?.total_items || 0;
   const selectedCount = selectedItems.length;
@@ -18,7 +18,13 @@ export const StatusBar: React.FC<StatusBarProps> = ({ wsConnected }) => {
   const totalGB = activeRoot ? Math.round(activeRoot.total_bytes / 1024 / 1024 / 1024) : 0;
 
   return (
-    <footer className="h-6 bg-gray-100 dark:bg-[#1e1e1e] border-t border-gray-200 dark:border-[#333333] flex items-center justify-between px-3 text-[11px] text-gray-500 dark:text-gray-400 select-none shrink-0">
+    <footer
+      onContextMenu={(e) => {
+        e.preventDefault();
+        openContextMenu(e.clientX, e.clientY, null, { toolbar: 'statusbar' });
+      }}
+      className="h-6 bg-gray-100 dark:bg-[#1e1e1e] border-t border-gray-200 dark:border-[#333333] flex items-center justify-between px-3 text-[11px] text-gray-500 dark:text-gray-400 select-none shrink-0"
+    >
       {/* Items & Selection */}
       <div className="flex items-center gap-3">
         <span>{totalItems} {totalItems === 1 ? 'item' : 'items'}</span>
@@ -35,12 +41,12 @@ export const StatusBar: React.FC<StatusBarProps> = ({ wsConnected }) => {
       {/* Drive Capacity & Live Sync Pulse */}
       <div className="flex items-center gap-3">
         {activeRoot && (
-          <span>
+          <span className="hidden sm:inline">
             Storage: {freeGB} GB free of {totalGB} GB
           </span>
         )}
 
-        <span>|</span>
+        <span className="hidden sm:inline">|</span>
 
         {/* Live WebSocket Status */}
         <div className="flex items-center gap-1.5" title={wsConnected ? 'Real-time sync connected' : 'Connecting real-time sync...'}>

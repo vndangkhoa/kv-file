@@ -1,0 +1,69 @@
+{{ if eq .Type "mermaid" }}
+<pre class="mermaid">
+    {{- .Inner }}
+</pre>
+{{ .Page.Store.Set "hasMermaid" true }}
+{{ else }}
+  {{- $lang := .Type | default "bash" -}}
+  {{- $title := .Attributes.title | default "" -}}
+  {{- $displayLang := $title -}}
+  {{- if not $displayLang -}}
+    {{- if in (slice "bash" "sh" "shell" "zsh") $lang -}}
+      {{- $displayLang = "bash" -}}
+    {{- else if eq $lang "curl" -}}
+      {{- $displayLang = "curl" -}}
+    {{- else if eq $lang "json" -}}
+      {{- $displayLang = "json" -}}
+    {{- else if eq $lang "http" -}}
+      {{- $displayLang = "http" -}}
+    {{- else if eq $lang "rust" -}}
+      {{- $displayLang = "rust" -}}
+    {{- else if eq $lang "toml" -}}
+      {{- $displayLang = "toml" -}}
+    {{- else if eq $lang "yaml" -}}
+      {{- $displayLang = "yaml" -}}
+    {{- else if eq $lang "docker" -}}
+      {{- $displayLang = "docker" -}}
+    {{- else if eq $lang "dockerfile" -}}
+      {{- $displayLang = "dockerfile" -}}
+    {{- else if eq $lang "nginx" -}}
+      {{- $displayLang = "nginx" -}}
+    {{- else if eq $lang "systemd" -}}
+      {{- $displayLang = "systemd" -}}
+    {{- else if eq $lang "text" -}}
+      {{- $displayLang = "output" -}}
+    {{- else -}}
+      {{- $displayLang = $lang -}}
+    {{- end -}}
+  {{- end -}}
+  {{- $result := transform.HighlightCodeBlock . -}}
+  <div class="cmd-box">
+    <div class="cmd-box-header">
+      <div class="cmd-box-header-left">
+        <div class="cmd-box-dots">
+          <span class="cmd-dot cmd-dot-red"></span>
+          <span class="cmd-dot cmd-dot-yellow"></span>
+          <span class="cmd-dot cmd-dot-green"></span>
+        </div>
+        <span class="cmd-box-badge">{{ $displayLang }}</span>
+      </div>
+      <button class="cmd-copy-btn" type="button" aria-label="Copy code to clipboard" title="Copy to clipboard" onclick="copyCmdBlock(this)">
+        <span class="cmd-copy-icon">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+        </span>
+        <span class="cmd-copied-icon d-none">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </span>
+        <span class="cmd-copy-text">Copy</span>
+      </button>
+    </div>
+    <div class="cmd-box-content">
+      {{ $result.Wrapped }}
+    </div>
+  </div>
+{{ end }}

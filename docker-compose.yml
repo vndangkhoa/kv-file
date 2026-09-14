@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  kv-file:
+    image: ghcr.io/vndangkhoa/kv-file:latest
+    container_name: kv-file
+    restart: unless-stopped
+    ports:
+      - "8866:8866"
+    environment:
+      - KV_HOST=0.0.0.0
+      - KV_PORT=8866
+      - KV_DATA_DIR=/data
+      - KV_STORAGE_ROOTS=/storage
+      - RUST_LOG=kv_files=info,tower_http=info
+    volumes:
+      - ./data:/data
+      - ./storage:/storage
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8866/api/v1/auth/setup-status || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

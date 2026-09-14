@@ -1,6 +1,7 @@
 use crate::error::{AppError, Result};
 use crate::models::{ShareItem, TrashItem, User, format_human_size};
 use rusqlite::{params, Connection};
+use std::collections::HashMap;
 use std::path::Path;
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -43,7 +44,10 @@ impl Database {
                 username TEXT UNIQUE NOT NULL,
                 password_hash TEXT NOT NULL,
                 role TEXT NOT NULL DEFAULT 'admin',
-                created_at TEXT NOT NULL
+                created_at TEXT NOT NULL,
+                is_totp_enabled INTEGER NOT NULL DEFAULT 0,
+                totp_secret TEXT,
+                backup_codes TEXT
             );
 
             CREATE TABLE IF NOT EXISTS shares (
@@ -77,6 +81,37 @@ impl Database {
         )
         .map_err(|e| AppError::Db(format!("Failed to initialize database schema: {}", e)))?;
 
+        Self::migrate_schema(conn)?;
+
+        Ok(())
+    }
+
+    fn migrate_schema(conn: &Connection) -> Result<()> {
+        let mut stmt = conn
+            .prepare("PRAGMA table_info(users)")
+            .map_err(|e| AppError::Db(e.to_string()))?;
+        let columns: Vec<String> = stmt
+            .query_map([], |row| row.get(1))
+            .map_err(|e| AppError::Db(e.to_string()))?
+            .filter_map(|r| r.ok())
+            .collect();
+
+        if !columns.contains(&"is_totp_enabled".to_string()) {
+            conn.execute(
+                "ALTER TABLE users ADD COLUMN is_totp_enabled INTEGER NOT NULL DEFAULT 0",
+                [],
+            )
+            .map_err(|e| AppError::Db(e.to_string()))?;
+        }
+        if !columns.contains(&"totp_secret".to_string()) {
+            conn.execute("ALTER TABLE users ADD COLUMN totp_secret TEXT", [])
+                .map_err(|e| AppError::Db(e.to_string()))?;
+        }
+        if !columns.contains(&"backup_codes".to_string()) {
+            conn.execute("ALTER TABLE users ADD COLUMN backup_codes TEXT", [])
+                .map_err(|e| AppError::Db(e.to_string()))?;
+        }
+
         Ok(())
     }
 
@@ -108,22 +143,25 @@ impl Database {
             username: username.to_string(),
             role: role.to_string(),
             created_at,
+            is_totp_enabled: false,
         })
     }
 
     pub async fn get_user_by_username(&self, username: &str) -> Result<Option<(User, String)>> {
         let conn = self.conn.lock().await;
         let mut stmt = conn
-            .prepare("SELECT id, username, password_hash, role, created_at FROM users WHERE username = ?1")
+            .prepare("SELECT id, username, password_hash, role, created_at, is_totp_enabled FROM users WHERE username = ?1")
             .map_err(|e| AppError::Db(e.to_string()))?;
 
         let user_opt = stmt
             .query_row(params![username], |row| {
+                let is_totp: i32 = row.get(5).unwrap_or(0);
                 let user = User {
                     id: row.get(0)?,
                     username: row.get(1)?,
                     role: row.get(3)?,
                     created_at: row.get(4)?,
+                    is_totp_enabled: is_totp != 0,
                 };
                 let hash: String = row.get(2)?;
                 Ok((user, hash))
@@ -137,21 +175,167 @@ impl Database {
     pub async fn get_user_by_id(&self, id: &str) -> Result<Option<User>> {
         let conn = self.conn.lock().await;
         let mut stmt = conn
-            .prepare("SELECT id, username, role, created_at FROM users WHERE id = ?1")
+            .prepare("SELECT id, username, role, created_at, is_totp_enabled FROM users WHERE id = ?1")
             .map_err(|e| AppError::Db(e.to_string()))?;
 
         let user_opt = stmt
             .query_row(params![id], |row| {
+                let is_totp: i32 = row.get(4).unwrap_or(0);
                 Ok(User {
                     id: row.get(0)?,
                     username: row.get(1)?,
                     role: row.get(2)?,
                     created_at: row.get(3)?,
+                    is_totp_enabled: is_totp != 0,
                 })
             })
             .ok();
 
         Ok(user_opt)
+    }
+
+    pub async fn get_user_with_hash_by_id(&self, id: &str) -> Result<Option<(User, String)>> {
+        let conn = self.conn.lock().await;
+        let mut stmt = conn
+            .prepare("SELECT id, username, password_hash, role, created_at, is_totp_enabled FROM users WHERE id = ?1")
+            .map_err(|e| AppError::Db(e.to_string()))?;
+
+        let user_opt = stmt
+            .query_row(params![id], |row| {
+                let is_totp: i32 = row.get(5).unwrap_or(0);
+                let user = User {
+                    id: row.get(0)?,
+                    username: row.get(1)?,
+                    role: row.get(3)?,
+                    created_at: row.get(4)?,
+                    is_totp_enabled: is_totp != 0,
+                };
+                let hash: String = row.get(2)?;
+                Ok((user, hash))
+            })
+            .ok();
+
+        Ok(user_opt)
+    }
+
+    pub async fn list_users(&self) -> Result<Vec<User>> {
+        let conn = self.conn.lock().await;
+        let mut stmt = conn
+            .prepare("SELECT id, username, role, created_at, is_totp_enabled FROM users ORDER BY created_at ASC")
+            .map_err(|e| AppError::Db(e.to_string()))?;
+
+        let rows = stmt
+            .query_map([], |row| {
+                let is_totp: i32 = row.get(4).unwrap_or(0);
+                Ok(User {
+                    id: row.get(0)?,
+                    username: row.get(1)?,
+                    role: row.get(2)?,
+                    created_at: row.get(3)?,
+                    is_totp_enabled: is_totp != 0,
+                })
+            })
+            .map_err(|e| AppError::Db(e.to_string()))?;
+
+        let mut users = Vec::new();
+        for r in rows {
+            if let Ok(u) = r {
+                users.push(u);
+            }
+        }
+        Ok(users)
+    }
+
+    pub async fn update_user_password(&self, id: &str, password_hash: &str) -> Result<()> {
+        let conn = self.conn.lock().await;
+        conn.execute(
+            "UPDATE users SET password_hash = ?1 WHERE id = ?2",
+            params![password_hash, id],
+        )
+        .map_err(|e| AppError::Db(format!("Failed to update password: {}", e)))?;
+        Ok(())
+    }
+
+    pub async fn save_pending_totp(&self, user_id: &str, secret: &str, backup_codes_json: &str) -> Result<()> {
+        let conn = self.conn.lock().await;
+        conn.execute(
+            "UPDATE users SET totp_secret = ?1, backup_codes = ?2 WHERE id = ?3",
+            params![secret, backup_codes_json, user_id],
+        )
+        .map_err(|e| AppError::Db(format!("Failed to save 2FA setup: {}", e)))?;
+        Ok(())
+    }
+
+    pub async fn enable_totp(&self, user_id: &str) -> Result<()> {
+        let conn = self.conn.lock().await;
+        conn.execute(
+            "UPDATE users SET is_totp_enabled = 1 WHERE id = ?1",
+            params![user_id],
+        )
+        .map_err(|e| AppError::Db(format!("Failed to enable 2FA: {}", e)))?;
+        Ok(())
+    }
+
+    pub async fn disable_totp(&self, user_id: &str) -> Result<()> {
+        let conn = self.conn.lock().await;
+        conn.execute(
+            "UPDATE users SET is_totp_enabled = 0, totp_secret = NULL, backup_codes = NULL WHERE id = ?1",
+            params![user_id],
+        )
+        .map_err(|e| AppError::Db(format!("Failed to disable 2FA: {}", e)))?;
+        Ok(())
+    }
+
+    pub async fn get_totp_secret(&self, user_id: &str) -> Result<Option<String>> {
+        let conn = self.conn.lock().await;
+        let mut stmt = conn
+            .prepare("SELECT totp_secret FROM users WHERE id = ?1")
+            .map_err(|e| AppError::Db(e.to_string()))?;
+        let secret: Option<String> = stmt
+            .query_row(params![user_id], |row| row.get(0))
+            .ok();
+        Ok(secret)
+    }
+
+    pub async fn validate_and_consume_backup_code(&self, user_id: &str, code: &str) -> Result<bool> {
+        let conn = self.conn.lock().await;
+        let mut stmt = conn
+            .prepare("SELECT backup_codes FROM users WHERE id = ?1")
+            .map_err(|e| AppError::Db(e.to_string()))?;
+        let codes_json_opt: Option<String> = stmt
+            .query_row(params![user_id], |row| row.get(0))
+            .ok()
+            .flatten();
+
+        let Some(json_str) = codes_json_opt else {
+            return Ok(false);
+        };
+
+        let Ok(mut codes): std::result::Result<Vec<String>, _> = serde_json::from_str(&json_str) else {
+            return Ok(false);
+        };
+
+        let clean_code = code.trim().to_uppercase();
+        if let Some(pos) = codes.iter().position(|c| c.to_uppercase() == clean_code) {
+            codes.remove(pos);
+            let updated_json = serde_json::to_string(&codes)
+                .map_err(|e| AppError::Internal(e.to_string()))?;
+            conn.execute(
+                "UPDATE users SET backup_codes = ?1 WHERE id = ?2",
+                params![updated_json, user_id],
+            )
+            .map_err(|e| AppError::Db(format!("Failed to update backup codes: {}", e)))?;
+            Ok(true)
+        } else {
+            Ok(false)
+        }
+    }
+
+    pub async fn delete_user(&self, id: &str) -> Result<()> {
+        let conn = self.conn.lock().await;
+        conn.execute("DELETE FROM users WHERE id = ?1", params![id])
+            .map_err(|e| AppError::Db(format!("Failed to delete user: {}", e)))?;
+        Ok(())
     }
 
     // --- Shares ---
@@ -397,6 +581,40 @@ impl Database {
         let conn = self.conn.lock().await;
         conn.execute("DELETE FROM trash", [])
             .map_err(|e| AppError::Db(e.to_string()))?;
+        Ok(())
+    }
+
+    // --- Settings ---
+    pub async fn get_all_settings(&self) -> Result<HashMap<String, String>> {
+        let conn = self.conn.lock().await;
+        let mut stmt = conn
+            .prepare("SELECT key, value FROM settings")
+            .map_err(|e| AppError::Db(e.to_string()))?;
+
+        let rows = stmt
+            .query_map([], |row| {
+                let k: String = row.get(0)?;
+                let v: String = row.get(1)?;
+                Ok((k, v))
+            })
+            .map_err(|e| AppError::Db(e.to_string()))?;
+
+        let mut map = HashMap::new();
+        for r in rows {
+            if let Ok((k, v)) = r {
+                map.insert(k, v);
+            }
+        }
+        Ok(map)
+    }
+
+    pub async fn set_setting(&self, key: &str, value: &str) -> Result<()> {
+        let conn = self.conn.lock().await;
+        conn.execute(
+            "INSERT INTO settings (key, value) VALUES (?1, ?2) ON CONFLICT(key) DO UPDATE SET value = ?2",
+            params![key, value],
+        )
+        .map_err(|e| AppError::Db(format!("Failed to save setting '{}': {}", key, e)))?;
         Ok(())
     }
 }

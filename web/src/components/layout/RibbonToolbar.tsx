@@ -12,7 +12,6 @@ import {
   LayoutGrid,
   Eye,
   Download,
-  Search,
 } from 'lucide-react';
 import { useExplorerStore } from '../../stores/useExplorerStore';
 import { useDownloadStore } from '../../stores/useDownloadStore';
@@ -36,7 +35,7 @@ export const RibbonToolbar: React.FC = () => {
     refresh,
     isSplitView,
     toggleSplitView,
-    setCommandPaletteOpen,
+    openContextMenu,
   } = useExplorerStore();
 
   const { startDownload } = useDownloadStore();
@@ -94,32 +93,40 @@ export const RibbonToolbar: React.FC = () => {
   };
 
   return (
-    <div className="h-11 bg-white dark:bg-[#252526] border-b border-gray-200 dark:border-[#333333] flex items-center justify-between px-3 text-xs select-none shrink-0 overflow-x-auto">
+    <div
+      onContextMenu={(e) => {
+        e.preventDefault();
+        openContextMenu(e.clientX, e.clientY, null, { toolbar: 'ribbon' });
+      }}
+      className="hidden md:flex h-11 bg-white dark:bg-[#252526] border-b border-gray-200 dark:border-[#333333] items-center justify-between px-3 text-xs select-none shrink-0 overflow-x-auto scrollbar-none gap-2"
+    >
       {/* File Action Commands */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1 shrink-0">
         <button
           onClick={() => setNewFolderOpen(true)}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded hover:bg-gray-100 dark:hover:bg-[#333333] text-gray-700 dark:text-gray-200 transition-colors font-medium"
+          title="New Folder"
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#333333] text-gray-700 dark:text-gray-200 transition-colors font-medium shrink-0 min-h-[32px]"
         >
           <FolderPlus size={15} className="text-amber-500" />
-          <span>New Folder</span>
+          <span className="hidden min-[480px]:inline">New Folder</span>
         </button>
 
         <button
           onClick={() => setUploadOpen(true)}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded hover:bg-gray-100 dark:hover:bg-[#333333] text-gray-700 dark:text-gray-200 transition-colors font-medium"
+          title="Upload"
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#333333] text-gray-700 dark:text-gray-200 transition-colors font-medium shrink-0 min-h-[32px]"
         >
           <Upload size={15} className="text-blue-500" />
-          <span>Upload</span>
+          <span className="hidden min-[480px]:inline">Upload</span>
         </button>
 
-        <div className="h-5 w-[1px] bg-gray-200 dark:bg-[#3c3c3c] mx-1" />
+        <div className="h-5 w-[1px] bg-gray-200 dark:bg-[#3c3c3c] mx-0.5 sm:mx-1 shrink-0" />
 
         <button
           onClick={handleCut}
           disabled={!hasSelection}
           title="Cut (Ctrl+X)"
-          className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-[#333333] text-gray-700 dark:text-gray-300 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+          className="p-2 sm:p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#333333] text-gray-700 dark:text-gray-300 disabled:opacity-30 disabled:hover:bg-transparent transition-colors min-w-[32px] min-h-[32px] flex items-center justify-center shrink-0"
         >
           <Scissors size={15} />
         </button>
@@ -128,7 +135,7 @@ export const RibbonToolbar: React.FC = () => {
           onClick={handleCopy}
           disabled={!hasSelection}
           title="Copy (Ctrl+C)"
-          className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-[#333333] text-gray-700 dark:text-gray-300 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+          className="p-2 sm:p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#333333] text-gray-700 dark:text-gray-300 disabled:opacity-30 disabled:hover:bg-transparent transition-colors min-w-[32px] min-h-[32px] flex items-center justify-center shrink-0"
         >
           <Copy size={15} />
         </button>
@@ -137,7 +144,7 @@ export const RibbonToolbar: React.FC = () => {
           onClick={handlePaste}
           disabled={!canPaste}
           title="Paste (Ctrl+V)"
-          className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-[#333333] text-gray-700 dark:text-gray-300 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+          className="p-2 sm:p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#333333] text-gray-700 dark:text-gray-300 disabled:opacity-30 disabled:hover:bg-transparent transition-colors min-w-[32px] min-h-[32px] flex items-center justify-center shrink-0"
         >
           <ClipboardPaste size={15} />
         </button>
@@ -146,7 +153,7 @@ export const RibbonToolbar: React.FC = () => {
           onClick={() => setRenameOpen(true)}
           disabled={!singleSelection}
           title="Rename (F2)"
-          className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-[#333333] text-gray-700 dark:text-gray-300 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+          className="p-2 sm:p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#333333] text-gray-700 dark:text-gray-300 disabled:opacity-30 disabled:hover:bg-transparent transition-colors min-w-[32px] min-h-[32px] flex items-center justify-center shrink-0"
         >
           <Edit size={15} />
         </button>
@@ -155,29 +162,31 @@ export const RibbonToolbar: React.FC = () => {
           onClick={handleDelete}
           disabled={!hasSelection}
           title="Delete to Trash (Delete)"
-          className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-[#333333] text-red-500 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+          className="p-2 sm:p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#333333] text-red-500 disabled:opacity-30 disabled:hover:bg-transparent transition-colors min-w-[32px] min-h-[32px] flex items-center justify-center shrink-0"
         >
           <Trash2 size={15} />
         </button>
 
-        <div className="h-5 w-[1px] bg-gray-200 dark:bg-[#3c3c3c] mx-1" />
+        <div className="h-5 w-[1px] bg-gray-200 dark:bg-[#3c3c3c] mx-0.5 sm:mx-1 shrink-0" />
 
         <button
           onClick={() => setShareModalOpen(true)}
           disabled={!singleSelection}
-          className="flex items-center gap-1 px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-[#333333] text-gray-700 dark:text-gray-300 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+          title="Share"
+          className="flex items-center gap-1 px-2 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#333333] text-gray-700 dark:text-gray-300 disabled:opacity-30 disabled:hover:bg-transparent transition-colors shrink-0 min-h-[32px]"
         >
           <Share2 size={14} className="text-emerald-500" />
-          <span>Share</span>
+          <span className="hidden md:inline">Share</span>
         </button>
 
         <button
           onClick={() => setQuickLookOpen(true)}
           disabled={!singleSelection}
-          className="flex items-center gap-1 px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-[#333333] text-gray-700 dark:text-gray-300 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+          title="Preview"
+          className="flex items-center gap-1 px-2 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#333333] text-gray-700 dark:text-gray-300 disabled:opacity-30 disabled:hover:bg-transparent transition-colors shrink-0 min-h-[32px]"
         >
           <Eye size={14} className="text-indigo-500" />
-          <span>Preview</span>
+          <span className="hidden md:inline">Preview</span>
         </button>
 
         <button
@@ -187,19 +196,19 @@ export const RibbonToolbar: React.FC = () => {
             }
           }}
           disabled={!singleSelection || selectedItems[0]?.is_dir}
-          className="flex items-center gap-1 px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-[#333333] text-gray-700 dark:text-gray-300 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+          className="flex items-center gap-1 px-2 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#333333] text-gray-700 dark:text-gray-300 disabled:opacity-30 disabled:hover:bg-transparent transition-colors shrink-0 min-h-[32px]"
           title="Direct Download with Live Progress Bar"
         >
           <Download size={14} className="text-blue-500" />
-          <span>Download</span>
+          <span className="hidden md:inline">Download</span>
         </button>
 
-        <div className="h-5 w-[1px] bg-gray-200 dark:bg-[#3c3c3c] mx-1" />
+        <div className="h-5 w-[1px] bg-gray-200 dark:bg-[#3c3c3c] mx-0.5 sm:mx-1 shrink-0" />
 
         {/* Split View Toggle */}
         <button
           onClick={toggleSplitView}
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded font-medium transition-colors ${
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-medium transition-colors shrink-0 min-h-[32px] ${
             isSplitView
               ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-200 shadow-inner'
               : 'hover:bg-gray-100 dark:hover:bg-[#333333] text-gray-700 dark:text-gray-200'
@@ -211,18 +220,8 @@ export const RibbonToolbar: React.FC = () => {
         </button>
       </div>
 
-      {/* Right side: Power Search & View Mode Switcher */}
+      {/* Right side: View Mode Switcher */}
       <div className="flex items-center gap-2">
-        <button
-          onClick={() => setCommandPaletteOpen(true)}
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-gray-100 dark:bg-[#1e1e1e] hover:bg-gray-200 dark:hover:bg-[#333333] text-gray-600 dark:text-gray-300 transition-colors font-medium border border-gray-200 dark:border-[#383838]"
-          title="Power Search & Command Palette (Ctrl+K)"
-        >
-          <Search size={13} className="text-blue-500" />
-          <span className="hidden md:inline text-[11px]">Power Search</span>
-          <kbd className="hidden lg:inline text-[10px] opacity-60 font-mono">Ctrl+K</kbd>
-        </button>
-
         {/* View Mode Switcher (Columns / List / Grid) */}
         <div className="flex items-center bg-gray-100 dark:bg-[#1e1e1e] p-0.5 rounded border border-gray-200 dark:border-[#3c3c3c]">
           <button

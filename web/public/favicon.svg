@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1d4ed8"/>
+      <stop offset="50%" stop-color="#2563eb"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+    <linearGradient id="folder-front" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#f0f9ff" stop-opacity="0.88"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="125%" height="125%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#0f172a" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- Background rounded app card -->
+  <rect x="24" y="24" width="464" height="464" rx="104" fill="url(#bg-grad)"/>
+
+  <!-- Subtle inner border highlight -->
+  <rect x="24" y="24" width="464" height="464" rx="104" stroke="#60a5fa" stroke-width="3" stroke-opacity="0.4" fill="none"/>
+
+  <!-- Back Tab of Folder -->
+  <path d="M 120 170 C 120 156 131 145 145 145 L 210 145 C 220 145 228 150 234 158 L 252 182 C 258 190 266 195 276 195 L 367 195 C 381 195 392 206 392 220 L 392 270 L 120 270 Z" fill="#ffffff" fill-opacity="0.4"/>
+
+  <!-- Front Folder Body with Glass / Soft Shadow -->
+  <rect x="110" y="195" width="292" height="195" rx="28" fill="url(#folder-front)" filter="url(#shadow)"/>
+
+  <!-- Dynamic lightning / sync pulse in center -->
+  <path d="M 264 225 L 222 292 L 254 292 L 248 355 L 292 284 L 260 284 Z" fill="#2563eb"/>
+</svg>

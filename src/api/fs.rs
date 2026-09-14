@@ -265,6 +265,12 @@ pub async fn stream_file(
             .to_string(),
     };
 
+    let filename = abs_path
+        .file_name()
+        .and_then(|n| n.to_str())
+        .unwrap_or("file");
+    let content_disp = format!("inline; filename=\"{}\"", filename);
+
     // Check for HTTP Range header (essential for streaming video/audio seeking)
     if let Some(range_header) = headers.get(header::RANGE) {
         if let Ok(range_str) = range_header.to_str() {
@@ -282,6 +288,7 @@ pub async fn stream_file(
                     StatusCode::PARTIAL_CONTENT,
                     [
                         (header::CONTENT_TYPE, mime_type),
+                        (header::CONTENT_DISPOSITION, content_disp),
                         (header::ACCEPT_RANGES, "bytes".to_string()),
                         (header::CONTENT_RANGE, content_range),
                         (header::CONTENT_LENGTH, length.to_string()),
@@ -301,6 +308,7 @@ pub async fn stream_file(
         StatusCode::OK,
         [
             (header::CONTENT_TYPE, mime_type),
+            (header::CONTENT_DISPOSITION, content_disp),
             (header::ACCEPT_RANGES, "bytes".to_string()),
             (header::CONTENT_LENGTH, file_size.to_string()),
         ],

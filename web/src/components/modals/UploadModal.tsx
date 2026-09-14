@@ -3,6 +3,7 @@ import { X, UploadCloud, File, AlertCircle } from 'lucide-react';
 import { useExplorerStore } from '../../stores/useExplorerStore';
 import { api } from '../../services/api';
 import { formatHumanSize } from '../../utils/format';
+import { formatDisplayPath } from '../layout/AddressBar';
 
 export const UploadModal: React.FC = () => {
   const { isUploadOpen, setUploadOpen, currentRoot, currentPath, refresh } = useExplorerStore();
@@ -81,7 +82,7 @@ export const UploadModal: React.FC = () => {
             Drag & drop files here, or <span className="text-blue-500">browse</span>
           </p>
           <p className="text-[10px] text-gray-400 mt-1">
-            Uploading to: <span className="font-mono">{currentRoot}/{currentPath || ''}</span>
+            Uploading to: <span className="font-mono">{currentRoot}:{formatDisplayPath(currentPath)}</span>
           </p>
           <input
             ref={fileInputRef}

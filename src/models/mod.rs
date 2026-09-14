@@ -93,6 +93,8 @@ pub struct User {
     pub username: String,
     pub role: String,
     pub created_at: String,
+    #[serde(default)]
+    pub is_totp_enabled: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

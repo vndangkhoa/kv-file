@@ -1,5 +1,6 @@
 pub mod auth;
 pub mod fs;
+pub mod settings;
 pub mod shares;
 pub mod static_files;
 pub mod trash;
@@ -21,12 +22,21 @@ pub fn create_router(state: AppState) -> Router {
         .allow_headers(Any);
 
     let api_router = Router::new()
-        // Auth
+        // Auth & User Management
         .route("/api/v1/auth/setup-status", get(auth::setup_status))
         .route("/api/v1/auth/setup", post(auth::initial_setup))
         .route("/api/v1/auth/login", post(auth::login))
         .route("/api/v1/auth/me", get(auth::get_me))
         .route("/api/v1/auth/logout", post(auth::logout))
+        .route("/api/v1/auth/change-password", post(auth::change_password))
+        .route("/api/v1/auth/2fa/setup", post(auth::setup_2fa))
+        .route("/api/v1/auth/2fa/enable", post(auth::enable_2fa))
+        .route("/api/v1/auth/2fa/verify", post(auth::verify_2fa_login))
+        .route("/api/v1/auth/2fa/disable", post(auth::disable_2fa))
+        .route("/api/v1/users", get(auth::list_users).post(auth::create_user))
+        .route("/api/v1/users/{id}", delete(auth::delete_user))
+        // System Settings
+        .route("/api/v1/settings", get(settings::get_settings).put(settings::update_settings))
         // Filesystem
         .route("/api/v1/fs/roots", get(fs::get_roots))
         .route("/api/v1/fs/list", get(fs::list_directory))

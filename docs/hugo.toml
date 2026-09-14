@@ -19,6 +19,9 @@ enableEmoji = true
     endLevel = 3
   [markup.goldmark.renderer]
     unsafe = true
+  [markup.highlight]
+    style = "github-dark"
+    guessSyntax = false
 
 [params]
   sans_serif_font = "'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif"

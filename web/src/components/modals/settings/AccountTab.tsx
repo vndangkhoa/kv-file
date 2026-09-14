@@ -8,15 +8,24 @@ import {
   Check,
   AlertCircle,
   Loader2,
+  Smartphone,
 } from 'lucide-react';
 import { useAuthStore } from '../../../stores/useAuthStore';
 import { useSettingsStore } from '../../../stores/useSettingsStore';
 import { api } from '../../../services/api';
 import { User } from '../../../types';
+import { TwoFactorSetupModal } from '../../modals/TwoFactorSetupModal';
 
 export const AccountTab: React.FC = () => {
-  const { user, logout } = useAuthStore();
+  const { user, logout, checkAuth } = useAuthStore();
   const { closeSettings } = useSettingsStore();
+
+  // 2FA state
+  const [is2faModalOpen, setIs2faModalOpen] = useState(false);
+  const [showDisableDialog, setShowDisableDialog] = useState(false);
+  const [disablePassword, setDisablePassword] = useState('');
+  const [disableLoading, setDisableLoading] = useState(false);
+  const [disableError, setDisableError] = useState<string | null>(null);
 
   // Password change state
   const [currentPassword, setCurrentPassword] = useState('');
@@ -83,6 +92,22 @@ export const AccountTab: React.FC = () => {
       setPwdError(err.message || 'Failed to change password.');
     } finally {
       setPwdLoading(false);
+    }
+  };
+
+  const handleDisable2fa = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setDisableError(null);
+    setDisableLoading(true);
+    try {
+      await api.disable2fa(disablePassword);
+      setDisablePassword('');
+      setShowDisableDialog(false);
+      await checkAuth();
+    } catch (err: any) {
+      setDisableError(err.message || 'Failed to disable 2FA.');
+    } finally {
+      setDisableLoading(false);
     }
   };
 
@@ -244,7 +269,113 @@ export const AccountTab: React.FC = () => {
         </form>
       </section>
 
-      {/* 3. User Management (Admin Only) */}
+      {/* 3. Two-Factor Authentication (2FA) */}
+      <section className="p-4 bg-gray-50/50 dark:bg-[#1e1e1e]/60 rounded-xl border border-gray-200 dark:border-[#333333] space-y-3">
+        <div className="flex items-center justify-between pb-2 border-b border-gray-200 dark:border-[#333333]">
+          <div className="flex items-center gap-2">
+            <Smartphone size={15} className="text-blue-500" />
+            <h3 className="font-semibold text-gray-800 dark:text-gray-200 uppercase tracking-wide text-[11px]">
+              Two-Factor Authentication (2FA / OTP)
+            </h3>
+          </div>
+          {user?.is_totp_enabled ? (
+            <span className="flex items-center gap-1 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800/40">
+              <ShieldCheck size={12} />
+              <span>Enabled & Protected</span>
+            </span>
+          ) : (
+            <span className="text-[10px] text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-full border border-amber-200 dark:border-amber-800/40 font-medium">
+              Not Enabled
+            </span>
+          )}
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="space-y-0.5 max-w-md">
+            <p className="font-medium text-gray-800 dark:text-gray-200">
+              {user?.is_totp_enabled
+                ? 'Your account is secured with a time-based authenticator app.'
+                : 'Require a 6-digit one-time password code from your phone when logging in.'}
+            </p>
+            <p className="text-[11px] text-gray-400">
+              Works with Google Authenticator, Microsoft Authenticator, 1Password, Authy, and Apple Keychain.
+            </p>
+          </div>
+
+          <div className="shrink-0">
+            {user?.is_totp_enabled ? (
+              <button
+                type="button"
+                onClick={() => setShowDisableDialog(true)}
+                className="px-3 py-1.5 border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg font-medium transition-colors"
+              >
+                Disable 2FA
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setIs2faModalOpen(true)}
+                className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+              >
+                Enable 2FA
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Inline Disable Password Confirmation Dialog */}
+        {showDisableDialog && (
+          <form
+            onSubmit={handleDisable2fa}
+            className="mt-3 p-3 bg-red-50/50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/40 rounded-xl space-y-2 animate-in fade-in"
+          >
+            <span className="font-semibold text-red-700 dark:text-red-300 block text-[11px]">
+              Confirm Password to Turn Off 2FA
+            </span>
+            {disableError && (
+              <div className="text-red-600 dark:text-red-400 text-[11px]">{disableError}</div>
+            )}
+            <div className="flex items-center gap-2">
+              <input
+                type="password"
+                placeholder="Enter current password"
+                required
+                value={disablePassword}
+                onChange={(e) => setDisablePassword(e.target.value)}
+                className="flex-1 px-3 py-1.5 bg-white dark:bg-[#252526] border border-gray-300 dark:border-[#3c3c3c] rounded-lg text-xs"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDisableDialog(false);
+                  setDisablePassword('');
+                }}
+                className="px-3 py-1.5 border border-gray-300 dark:border-[#3c3c3c] rounded-lg text-gray-600 dark:text-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={disableLoading}
+                className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium disabled:opacity-50 flex items-center gap-1"
+              >
+                {disableLoading && <Loader2 size={12} className="animate-spin" />}
+                <span>Turn Off</span>
+              </button>
+            </div>
+          </form>
+        )}
+      </section>
+
+      <TwoFactorSetupModal
+        isOpen={is2faModalOpen}
+        onClose={() => setIs2faModalOpen(false)}
+        onSuccess={async () => {
+          await checkAuth();
+        }}
+      />
+
+      {/* 4. User Management (Admin Only) */}
       {isAdmin && (
         <section className="p-4 bg-gray-50/50 dark:bg-[#1e1e1e]/60 rounded-xl border border-gray-200 dark:border-[#333333] space-y-3">
           <div className="flex items-center justify-between pb-2 border-b border-gray-200 dark:border-[#333333]">

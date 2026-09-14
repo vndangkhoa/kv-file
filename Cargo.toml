@@ -40,3 +40,4 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 # Embedded Assets (SPA)
 rust-embed = { version = "8.5", features = ["mime-guess"] }
+totp-rs = { version = "6.0.0", features = ["qr", "gen_secret"] }

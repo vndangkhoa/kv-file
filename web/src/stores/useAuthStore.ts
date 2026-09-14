@@ -9,19 +9,27 @@ interface AuthState {
   isAuthModalOpen: boolean;
   authMode: 'setup' | 'login';
 
+  // 2FA state during login challenge
+  requires2fa: boolean;
+  preAuthToken: string | null;
+
   checkAuth: () => Promise<void>;
   login: (u: string, p: string) => Promise<void>;
+  verify2fa: (code: string) => Promise<void>;
+  cancel2fa: () => void;
   setup: (u: string, p: string) => Promise<void>;
   logout: () => Promise<void>;
   setAuthModalOpen: (open: boolean, mode?: 'setup' | 'login') => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   isInitialized: true,
   isLoading: true,
   isAuthModalOpen: false,
   authMode: 'login',
+  requires2fa: false,
+  preAuthToken: null,
 
   checkAuth: async () => {
     set({ isLoading: true });
@@ -44,7 +52,34 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   login: async (username, password) => {
     const res = await api.login(username, password);
-    set({ user: res.user, isAuthModalOpen: false });
+    if (res.requires_2fa && res.pre_auth_token) {
+      set({ requires2fa: true, preAuthToken: res.pre_auth_token });
+      return;
+    }
+    set({
+      user: res.user || null,
+      isAuthModalOpen: false,
+      requires2fa: false,
+      preAuthToken: null,
+    });
+  },
+
+  verify2fa: async (code) => {
+    const { preAuthToken } = get();
+    if (!preAuthToken) {
+      throw new Error('No 2FA challenge found. Please log in again.');
+    }
+    const res = await api.verifyLogin2fa(preAuthToken, code);
+    set({
+      user: res.user || null,
+      isAuthModalOpen: false,
+      requires2fa: false,
+      preAuthToken: null,
+    });
+  },
+
+  cancel2fa: () => {
+    set({ requires2fa: false, preAuthToken: null });
   },
 
   setup: async (username, password) => {
@@ -54,8 +89,20 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   logout: async () => {
     await api.logout();
-    set({ user: null, isAuthModalOpen: true, authMode: 'login' });
+    set({
+      user: null,
+      isAuthModalOpen: true,
+      authMode: 'login',
+      requires2fa: false,
+      preAuthToken: null,
+    });
   },
 
-  setAuthModalOpen: (open, mode = 'login') => set({ isAuthModalOpen: open, authMode: mode }),
+  setAuthModalOpen: (open, mode = 'login') =>
+    set({
+      isAuthModalOpen: open,
+      authMode: mode,
+      requires2fa: false,
+      preAuthToken: null,
+    }),
 }));

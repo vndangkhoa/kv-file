@@ -15,6 +15,7 @@ import {
   ChevronRight,
   Code,
   Eye,
+  ExternalLink,
 } from 'lucide-react';
 import { useExplorerStore } from '../../stores/useExplorerStore';
 import { useDownloadStore } from '../../stores/useDownloadStore';
@@ -95,39 +96,41 @@ export const QuickLookModal: React.FC = () => {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-150 select-none"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in duration-150 select-none"
       onClick={() => setQuickLookOpen(false)}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className={`bg-white dark:bg-[#1e1e1e] rounded-xl shadow-2xl border border-gray-200 dark:border-[#333333] flex flex-col overflow-hidden transition-all ${
-          isFullscreen ? 'w-full h-full rounded-none' : 'w-full max-w-4xl max-h-[85vh] h-[78vh]'
+        className={`bg-white dark:bg-[#1e1e1e] sm:rounded-xl shadow-2xl border-0 sm:border border-gray-200 dark:border-[#333333] flex flex-col overflow-hidden transition-all ${
+          isFullscreen
+            ? 'w-full h-full rounded-none'
+            : 'w-full h-full sm:h-[78vh] sm:max-h-[85vh] sm:max-w-4xl rounded-none sm:rounded-xl'
         }`}
       >
         {/* Header Bar */}
-        <div className="h-10 bg-gray-100 dark:bg-[#252526] border-b border-gray-200 dark:border-[#333333] flex items-center justify-between px-3 shrink-0">
-          <div className="flex items-center gap-2 truncate">
+        <div className="h-12 sm:h-10 bg-gray-100 dark:bg-[#252526] border-b border-gray-200 dark:border-[#333333] flex items-center justify-between px-3 shrink-0">
+          <div className="flex items-center gap-2 truncate pr-2">
             <span className="font-semibold text-xs text-gray-800 dark:text-gray-200 truncate">
               {item.name}
             </span>
-            <span className="text-[10px] text-gray-400 font-mono">
+            <span className="text-[10px] text-gray-400 font-mono hidden xs:inline shrink-0">
               ({formatHumanSize(item.size)})
             </span>
-            <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-gray-200 dark:bg-[#333333] text-gray-600 dark:text-gray-400">
+            <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-gray-200 dark:bg-[#333333] text-gray-600 dark:text-gray-400 shrink-0">
               {item.extension || item.media_type}
             </span>
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 shrink-0">
             {ext === 'md' && textContent && (
               <button
                 onClick={() =>
                   setMarkdownRenderMode(markdownRenderMode === 'rendered' ? 'raw' : 'rendered')
                 }
-                className="flex items-center gap-1 px-2 py-1 rounded text-xs text-purple-600 dark:text-purple-400 hover:bg-gray-200 dark:hover:bg-[#333333] transition-colors"
+                className="flex items-center gap-1 px-2.5 py-1.5 sm:py-1 rounded-lg sm:rounded text-xs text-purple-600 dark:text-purple-400 hover:bg-gray-200 dark:hover:bg-[#333333] transition-colors min-h-[36px] sm:min-h-0"
                 title="Toggle Rendered Preview"
               >
-                {markdownRenderMode === 'rendered' ? <Code size={13} /> : <Eye size={13} />}
+                {markdownRenderMode === 'rendered' ? <Code size={14} /> : <Eye size={14} />}
                 <span className="hidden sm:inline">
                   {markdownRenderMode === 'rendered' ? 'Raw Code' : 'Preview'}
                 </span>
@@ -137,16 +140,16 @@ export const QuickLookModal: React.FC = () => {
             <button
               onClick={handleDownload}
               title="Direct Download"
-              className="flex items-center gap-1 px-2 py-1 rounded text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 hover:bg-gray-200 dark:hover:bg-[#333333] transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 sm:py-1 rounded-lg sm:rounded text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 hover:bg-gray-200 dark:hover:bg-[#333333] transition-colors min-h-[36px] sm:min-h-0"
             >
-              <Download size={14} />
+              <Download size={15} />
               <span className="hidden sm:inline">Download</span>
             </button>
 
             <button
               onClick={() => setIsFullscreen(!isFullscreen)}
               title="Toggle Fullscreen"
-              className="p-1 rounded text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 hover:bg-gray-200 dark:hover:bg-[#333333] transition-colors"
+              className="p-1 rounded text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 hover:bg-gray-200 dark:hover:bg-[#333333] transition-colors hidden sm:flex"
             >
               {isFullscreen ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
             </button>
@@ -154,15 +157,15 @@ export const QuickLookModal: React.FC = () => {
             <button
               onClick={() => setQuickLookOpen(false)}
               title="Close (Space / Esc)"
-              className="p-1 rounded text-gray-500 hover:text-red-500 hover:bg-gray-200 dark:hover:bg-[#333333] transition-colors"
+              className="p-2 sm:p-1 rounded-lg sm:rounded text-gray-500 hover:text-red-500 hover:bg-gray-200 dark:hover:bg-[#333333] transition-colors min-w-[38px] min-h-[38px] sm:min-w-0 sm:min-h-0 flex items-center justify-center"
             >
-              <X size={16} />
+              <X size={18} />
             </button>
           </div>
         </div>
 
         {/* Content Viewer Body */}
-        <div className="flex-1 overflow-auto flex items-center justify-center p-4 bg-gray-50 dark:bg-[#181818]">
+        <div className="flex-1 overflow-auto flex items-center justify-center p-2 sm:p-4 bg-gray-50 dark:bg-[#181818]">
           {item.media_type === 'image' ? (
             ['heic', 'heif'].includes(ext) ? (
               <div className="w-full h-full flex flex-col items-center justify-center p-4">
@@ -254,7 +257,64 @@ export const QuickLookModal: React.FC = () => {
               </button>
             </div>
           ) : item.media_type === 'pdf' ? (
-            <iframe src={rawUrl} title={item.name} className="w-full h-full rounded border-0" />
+            /* Dedicated PDF Document Previewer */
+            <div className="w-full h-full flex flex-col bg-white dark:bg-[#1e1e1e] rounded-lg border border-gray-200 dark:border-[#333333] overflow-hidden shadow-inner">
+              <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-[#333333] bg-gray-50 dark:bg-[#252526]">
+                <div className="flex items-center gap-2 text-xs font-medium text-red-600 dark:text-red-400">
+                  <FileText size={16} />
+                  <span className="truncate max-w-[200px] sm:max-w-md">{item.name}</span>
+                  <span className="text-[10px] text-gray-400 font-mono">({formatHumanSize(item.size)})</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <a
+                    href={rawUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 px-3 py-1 bg-gray-100 dark:bg-[#333333] hover:bg-gray-200 dark:hover:bg-[#3c3c3c] text-gray-700 dark:text-gray-200 rounded text-xs transition-colors"
+                    title="Open PDF in a new browser tab"
+                  >
+                    <ExternalLink size={13} />
+                    <span>Open in Tab</span>
+                  </a>
+                  <button
+                    onClick={handleDownload}
+                    className="flex items-center gap-1.5 px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-xs transition-colors"
+                  >
+                    <Download size={13} />
+                    <span>Download</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex-1 w-full h-full relative bg-gray-100 dark:bg-[#151515]">
+                <object
+                  data={rawUrl}
+                  type="application/pdf"
+                  className="w-full h-full"
+                >
+                  <iframe
+                    src={rawUrl}
+                    title={item.name}
+                    className="w-full h-full border-0"
+                  >
+                    <div className="flex flex-col items-center justify-center h-full p-6 text-center text-gray-500 dark:text-gray-400 space-y-3">
+                      <FileText size={48} className="text-red-500 opacity-60" />
+                      <p className="text-sm font-medium">Unable to display PDF preview inline.</p>
+                      <p className="text-xs text-gray-400">Your browser may not have an embedded PDF plugin enabled.</p>
+                      <a
+                        href={rawUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-4 py-2 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center gap-1.5"
+                      >
+                        <ExternalLink size={14} />
+                        Open PDF in New Window
+                      </a>
+                    </div>
+                  </iframe>
+                </object>
+              </div>
+            </div>
           ) : item.media_type === 'doc' || ['doc', 'docx', 'odt', 'rtf', 'pages'].includes(ext) ? (
             /* 1. Office / Apple Document Previewer */
             <div className="w-full h-full flex flex-col bg-white dark:bg-[#1e1e1e] rounded-lg border border-gray-200 dark:border-[#333333] overflow-hidden shadow-inner">
@@ -470,7 +530,7 @@ export const QuickLookModal: React.FC = () => {
                 <div className="flex items-center gap-1">
                   <button
                     onClick={handleCopyText}
-                    className="flex items-center gap-1 px-2.5 py-1 rounded bg-gray-200 dark:bg-[#333333] text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-[#444] transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 sm:py-1 rounded-lg sm:rounded bg-gray-200 dark:bg-[#333333] text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-[#444] transition-colors min-h-[34px] sm:min-h-0"
                   >
                     {copied ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
                     <span>{copied ? 'Copied' : 'Copy Content'}</span>

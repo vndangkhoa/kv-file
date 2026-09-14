@@ -43,9 +43,16 @@
   --link-color: #0078d4;
   --link-hover-color: #005a9e;
   --icon-color: #0078d4;
+
+  /* Code & Terminal Blocks (Pure Deep Dark in both modes) */
+  --code-block-bg: #0d1117;
+  --prism-code-bg: #0d1117;
 }
 
 [data-dark-mode] {
+  /* Code & Terminal Blocks */
+  --code-block-bg: #0d1117;
+  --prism-code-bg: #0d1117;
   /* Surfaces - Dark Mode (Ola Dark Palette) */
   --dark: #1e1e1e;
   --body-bg: #1e1e1e;
@@ -329,15 +336,209 @@
   border-color: var(--card-border-hover-color) !important;
 }
 
-/* Code Blocks */
-pre {
-  background-color: #1e1e1e !important;
-  border: 1px solid #333333 !important;
+/* ==========================================================================
+   Enhanced Command & Code Text Boxes (Terminal Window Design)
+   ========================================================================== */
+.cmd-box {
+  background-color: #0d1117 !important;
+  border: 1px solid #30363d !important;
   border-radius: 8px !important;
-  padding: 1rem !important;
-  font-size: 0.82rem !important;
+  margin: 1.25rem 0 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22) !important;
+  overflow: hidden !important;
+  position: relative !important;
 }
 
+.cmd-box-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 0.4rem 0.85rem !important;
+  background-color: #161b22 !important;
+  border-bottom: 1px solid #21262d !important;
+  user-select: none;
+}
+
+.cmd-box-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cmd-box-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cmd-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.cmd-dot-red {
+  background-color: #ff5f56;
+}
+
+.cmd-dot-yellow {
+  background-color: #ffbd2e;
+}
+
+.cmd-dot-green {
+  background-color: #27c93f;
+}
+
+.cmd-box-badge {
+  font-family: var(--font-family-monospace, monospace);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #8b949e;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.cmd-copy-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 3px 9px !important;
+  border-radius: 5px !important;
+  font-size: 0.73rem !important;
+  font-weight: 500 !important;
+  font-family: var(--font-family-sans-serif, sans-serif) !important;
+  color: #8b949e !important;
+  background-color: transparent !important;
+  border: 1px solid transparent !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  line-height: 1.2 !important;
+
+  &:hover {
+    color: #f0f6fc !important;
+    background-color: rgba(255, 255, 255, 0.08) !important;
+    border-color: rgba(255, 255, 255, 0.16) !important;
+  }
+
+  &.copied {
+    color: #3fb950 !important;
+    background-color: rgba(63, 185, 80, 0.12) !important;
+    border-color: rgba(63, 185, 80, 0.28) !important;
+  }
+}
+
+.cmd-box-content {
+  background-color: #0d1117 !important;
+
+  .highlight,
+  pre {
+    margin: 0 !important;
+    padding: 1rem 1.25rem !important;
+    background-color: #0d1117 !important;
+    background: #0d1117 !important;
+    border: none !important;
+    border-radius: 0 !important;
+  }
+}
+
+/* Universal Code Block & Terminal Overrides */
+.docs-content .main-content pre,
+.docs-content .main-content div.highlight,
+div.highlight,
+div.highlight pre,
+pre[class*="language-"],
+.prism-codeblock pre {
+  background-color: #0d1117 !important;
+  background: #0d1117 !important;
+  color: #e6edf3 !important;
+  border-radius: 8px;
+  font-family: var(--font-family-monospace, monospace) !important;
+  font-size: 0.84rem !important;
+  line-height: 1.65 !important;
+  tab-size: 2 !important;
+
+  code {
+    background-color: transparent !important;
+    background: transparent !important;
+    color: inherit !important;
+    border: none !important;
+    padding: 0 !important;
+    font-family: inherit !important;
+    font-size: inherit !important;
+  }
+}
+
+/* Eliminate error token background highlight and error red text */
+.chroma .err,
+.highlight .err,
+.cmd-box span[style*="background-color"],
+pre code span[style*="background-color"] {
+  background-color: transparent !important;
+}
+
+.chroma .err,
+.highlight .err,
+.cmd-box span[style*="color:#f85149"],
+pre code span[style*="color:#f85149"] {
+  color: #e6edf3 !important;
+}
+
+/* API Endpoint Header Bar */
+.api-endpoint {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  padding: 0.45rem 0.85rem;
+  margin: 1rem 0 0.5rem;
+  font-family: var(--font-family-monospace, monospace);
+  font-size: 0.86rem;
+
+  .endpoint-path {
+    font-weight: 600;
+    color: #e6edf3;
+    letter-spacing: -0.01em;
+  }
+
+  .badge-method {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .badge-get {
+    background-color: rgba(46, 160, 67, 0.18);
+    color: #3fb950;
+    border: 1px solid rgba(46, 160, 67, 0.35);
+  }
+
+  .badge-post {
+    background-color: rgba(56, 139, 253, 0.18);
+    color: #58a6ff;
+    border: 1px solid rgba(56, 139, 253, 0.35);
+  }
+
+  .badge-delete {
+    background-color: rgba(248, 81, 73, 0.18);
+    color: #f85149;
+    border: 1px solid rgba(248, 81, 73, 0.35);
+  }
+
+  .badge-put,
+  .badge-patch {
+    background-color: rgba(210, 153, 34, 0.18);
+    color: #d29922;
+    border: 1px solid rgba(210, 153, 34, 0.35);
+  }
+}
+
+/* Inline Code Badges */
 code:not(pre code) {
   background-color: rgba(125, 125, 125, 0.12);
   border: 1px solid rgba(125, 125, 125, 0.18);
@@ -345,6 +546,7 @@ code:not(pre code) {
   border-radius: 4px;
   font-size: 0.82em;
   color: var(--primary);
+  font-family: var(--font-family-monospace, monospace);
 }
 
 /* Desktop Scrollbars matching web/src/index.css */

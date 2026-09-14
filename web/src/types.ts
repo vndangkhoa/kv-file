@@ -51,6 +51,22 @@ export interface User {
   username: string;
   role: string;
   created_at: string;
+  is_totp_enabled?: boolean;
+}
+
+export interface Setup2faResponse {
+  secret: string;
+  qr_code: string;
+  otpauth_url: string;
+  backup_codes: string[];
+}
+
+export interface AuthResponse {
+  success: boolean;
+  token?: string;
+  user?: User;
+  requires_2fa?: boolean;
+  pre_auth_token?: string;
 }
 
 export interface CreateUserRequest {

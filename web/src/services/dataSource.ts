@@ -1,6 +1,8 @@
 import {
+  AuthResponse,
   DirectoryListing,
   FileItem,
+  Setup2faResponse,
   ShareItem,
   StorageRootInfo,
   TrashItem,
@@ -14,13 +16,19 @@ export interface FileSystemDataSource {
   // Auth & User Management
   checkSetup(): Promise<{ is_initialized: boolean }>;
   initialSetup(username: string, password: string): Promise<{ success: boolean; token: string; user: User }>;
-  login(username: string, password: string): Promise<{ success: boolean; token: string; user: User }>;
+  login(username: string, password: string): Promise<AuthResponse>;
   getMe(): Promise<User>;
   logout(): Promise<void>;
   changePassword(current_password: string, new_password: string): Promise<void>;
   listUsers(): Promise<User[]>;
   createUser(username: string, password: string, role?: string): Promise<User>;
   deleteUser(id: string): Promise<void>;
+
+  // Two-Factor Authentication
+  setup2fa(): Promise<Setup2faResponse>;
+  enable2fa(code: string): Promise<void>;
+  verifyLogin2fa(pre_auth_token: string, code: string): Promise<AuthResponse>;
+  disable2fa(password: string): Promise<void>;
 
   // System Settings
   getSettings(): Promise<Record<string, string>>;
