@@ -147,6 +147,7 @@ const DetailedListItem: React.FC<DetailedListItemProps> = ({
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
+      onClick={(e) => onSelect(e, item, false)}
       onDoubleClick={() => onOpen(item)}
       onContextMenu={(e) => {
         e.preventDefault();

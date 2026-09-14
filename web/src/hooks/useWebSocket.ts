@@ -5,8 +5,6 @@ import { FsEvent } from '../types';
 
 export function useWebSocket() {
   const [isConnected, setIsConnected] = useState(false);
-  const currentRoot = useExplorerStore((state) => state.currentRoot);
-  const refresh = useExplorerStore((state) => state.refresh);
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<any>(null);
   const debounceTimeoutRef = useRef<any>(null);
@@ -62,14 +60,45 @@ export function useWebSocket() {
         ws.onmessage = (event) => {
           try {
             const fsEvent: FsEvent = JSON.parse(event.data);
-            if (fsEvent.root_name === currentRoot) {
-              if (debounceTimeoutRef.current) {
-                clearTimeout(debounceTimeoutRef.current);
-              }
-              debounceTimeoutRef.current = setTimeout(() => {
-                refresh();
-              }, 500);
+            const state = useExplorerStore.getState();
+
+            // Ignore events from other roots
+            if (fsEvent.root_name !== state.currentRoot) return;
+
+            // Ignore temporary, lock, or internal database journal files
+            const p = (fsEvent.path || '').toLowerCase();
+            if (
+              p.endsWith('-wal') ||
+              p.endsWith('-shm') ||
+              p.endsWith('.journal') ||
+              p.endsWith('.tmp') ||
+              p.endsWith('.swp') ||
+              p.endsWith('.lock') ||
+              p.endsWith('.pid') ||
+              p.includes('/beszel_data/')
+            ) {
+              return;
             }
+
+            // Check if the event is relevant to the active directory or visible columns
+            const eventDir = fsEvent.path.includes('/')
+              ? fsEvent.path.substring(0, fsEvent.path.lastIndexOf('/'))
+              : '';
+
+            const isCurrentDir = eventDir === state.currentPath;
+            const isVisibleColumn = state.columns.some((col) => col.path === eventDir);
+
+            if (!isCurrentDir && !isVisibleColumn) {
+              // Not currently visible, ignore to avoid unnecessary re-renders
+              return;
+            }
+
+            if (debounceTimeoutRef.current) {
+              clearTimeout(debounceTimeoutRef.current);
+            }
+            debounceTimeoutRef.current = setTimeout(() => {
+              state.refresh(true); // Preserve active selection on background file sync!
+            }, 800);
           } catch (e) {
             console.error('Failed to parse WebSocket event:', e);
           }
@@ -115,7 +144,7 @@ export function useWebSocket() {
         wsRef.current = null;
       }
     };
-  }, [currentRoot, refresh]);
+  }, []);
 
   return { isConnected };
 }

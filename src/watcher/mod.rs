@@ -58,13 +58,21 @@ impl FileWatcher {
         };
 
         for path in event.paths {
-            // Ignore hidden files and internal directories like .trash, proc, sys, dev, run
+            // Ignore hidden files, temporary files, and internal directories
             let path_str = path.to_string_lossy();
             if path_str.contains("/.")
                 || path_str.contains("/proc/")
                 || path_str.contains("/sys/")
                 || path_str.contains("/dev/")
                 || path_str.contains("/run/")
+                || path_str.ends_with("-wal")
+                || path_str.ends_with("-shm")
+                || path_str.ends_with(".journal")
+                || path_str.ends_with(".tmp")
+                || path_str.ends_with(".swp")
+                || path_str.ends_with(".lock")
+                || path_str.ends_with(".pid")
+                || path_str.contains("/beszel_data/")
             {
                 continue;
             }

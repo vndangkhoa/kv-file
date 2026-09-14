@@ -8,6 +8,67 @@ import { api } from '../../services/api';
 import { formatDate } from '../../utils/format';
 import { getSystemFolderHint } from '../../utils/systemFolders';
 
+const InlineTextInspectorPreview: React.FC<{ item: FileItem; onOpenQuickLook: () => void }> = ({
+  item,
+  onOpenQuickLook,
+}) => {
+  const [content, setContent] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    fetch(api.getRawFileUrl(item.root_name, item.path))
+      .then((res) => res.text())
+      .then((text) => {
+        if (!cancelled) {
+          const preview = text.split('\n').slice(0, 30).join('\n');
+          setContent(preview);
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setContent(null);
+          setLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [item.path, item.root_name]);
+
+  if (loading) {
+    return (
+      <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs gap-2">
+        <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent animate-spin rounded-full" />
+        <span>Loading preview...</span>
+      </div>
+    );
+  }
+
+  if (!content) {
+    return <FileIcon item={item} size={64} />;
+  }
+
+  return (
+    <div
+      onClick={onOpenQuickLook}
+      className="w-full h-full bg-gray-50 dark:bg-[#181818] p-2.5 overflow-hidden text-[10px] font-mono leading-relaxed text-gray-700 dark:text-gray-300 select-text cursor-pointer relative group"
+      title="Click to view full preview"
+    >
+      <pre className="overflow-hidden whitespace-pre-wrap break-all font-mono">
+        {content}
+      </pre>
+      <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-gray-50 dark:from-[#181818] to-transparent pointer-events-none flex items-end justify-center pb-0.5">
+        <span className="text-[9px] text-blue-600 dark:text-blue-400 font-sans font-medium bg-white/90 dark:bg-[#252526]/90 px-1.5 py-0.5 rounded shadow-xs opacity-0 group-hover:opacity-100 transition-opacity">
+          Click for Full Quick Look
+        </span>
+      </div>
+    </div>
+  );
+};
+
 export const MillerColumnsView: React.FC = () => {
   const {
     columns,
@@ -37,7 +98,7 @@ export const MillerColumnsView: React.FC = () => {
         behavior: 'smooth',
       });
     }
-  }, [columns.length, activeItem]);
+  }, [columns.length]);
 
   const handleDownload = (item: FileItem) => {
     startDownload(item.root_name, item);
@@ -215,12 +276,14 @@ export const MillerColumnsView: React.FC = () => {
           className="w-[85vw] min-w-[85vw] max-w-[85vw] md:w-80 md:min-w-[20rem] md:max-w-[20rem] snap-start border-r border-gray-200 dark:border-[#333333] flex flex-col h-full shrink-0 bg-gray-50/50 dark:bg-[#252526]/50 p-4 overflow-y-auto"
         >
           {/* Large Preview / Icon */}
-          <div className="w-full h-40 bg-white dark:bg-[#1e1e1e] rounded-lg border border-gray-200 dark:border-[#3c3c3c] flex items-center justify-center overflow-hidden mb-4 shadow-sm">
+          <div className="w-full h-44 bg-white dark:bg-[#1e1e1e] rounded-lg border border-gray-200 dark:border-[#3c3c3c] flex items-center justify-center overflow-hidden mb-4 shadow-sm">
             {activeItem.media_type === 'image' ? (
               <img
                 src={api.getRawFileUrl(activeItem.root_name, activeItem.path)}
                 alt={activeItem.name}
-                className="w-full h-full object-contain"
+                className="w-full h-full object-contain cursor-pointer"
+                onClick={() => setQuickLookOpen(true)}
+                title="Click to view full preview"
               />
             ) : activeItem.media_type === 'video' ? (
               <div
@@ -249,6 +312,15 @@ export const MillerColumnsView: React.FC = () => {
                   <Music size={32} />
                 </div>
               </div>
+            ) : activeItem.media_type === 'text' ||
+              activeItem.media_type === 'code' ||
+              ['txt', 'toml', 'yaml', 'yml', 'json', 'md', 'ini', 'env', 'conf', 'sql', 'sh', 'log', 'rs', 'ts', 'js', 'py', 'html', 'css', 'db', 'pub'].includes(
+                activeItem.extension?.toLowerCase() || ''
+              ) ? (
+              <InlineTextInspectorPreview
+                item={activeItem}
+                onOpenQuickLook={() => setQuickLookOpen(true)}
+              />
             ) : (
               <FileIcon item={activeItem} size={64} />
             )}

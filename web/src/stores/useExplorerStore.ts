@@ -135,7 +135,7 @@ interface ExplorerState {
   goBack: () => Promise<void>;
   goForward: () => Promise<void>;
   goUp: () => Promise<void>;
-  refresh: () => Promise<void>;
+  refresh: (preserveSelection?: boolean) => Promise<void>;
 
   // Selection
   setViewMode: (mode: ViewMode) => void;
@@ -325,9 +325,57 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
     await get().navigateTo(parentPath);
   },
 
-  refresh: async () => {
-    const { currentPath } = get();
-    await get().navigateTo(currentPath, false);
+  refresh: async (preserveSelection: boolean = true) => {
+    const { currentRoot, currentPath, selectedItems, activeItem, columns } = get();
+    if (!currentRoot) return;
+
+    try {
+      const listing = await api.listDirectory(currentRoot, currentPath);
+
+      let updatedSelected = selectedItems;
+      let updatedActive = activeItem;
+
+      if (preserveSelection) {
+        // Keep selected items that still exist in the new listing
+        const currentPaths = new Set(listing.items.map((i) => i.path));
+        updatedSelected = selectedItems.filter((i) => {
+          const itemParent = i.path.includes('/') ? i.path.substring(0, i.path.lastIndexOf('/')) : '';
+          if (itemParent === currentPath) {
+            return currentPaths.has(i.path);
+          }
+          return true;
+        });
+
+        if (activeItem) {
+          const activeParent = activeItem.path.includes('/')
+            ? activeItem.path.substring(0, activeItem.path.lastIndexOf('/'))
+            : '';
+          if (activeParent === currentPath && !currentPaths.has(activeItem.path)) {
+            updatedActive = updatedSelected[0] || null;
+          }
+        }
+      } else {
+        updatedSelected = [];
+        updatedActive = null;
+      }
+
+      // Update columns without clearing selectedName or dropping columns
+      const updatedCols = columns.map((col) => {
+        if (col.path === currentPath) {
+          return { ...col, items: listing.items };
+        }
+        return col;
+      });
+
+      set({
+        listing,
+        columns: updatedCols.length > 0 ? updatedCols : columns,
+        selectedItems: updatedSelected,
+        activeItem: updatedActive,
+      });
+    } catch (err: any) {
+      console.warn('Silent refresh error:', err);
+    }
   },
 
   setViewMode: (mode: ViewMode) => set({ viewMode: mode }),

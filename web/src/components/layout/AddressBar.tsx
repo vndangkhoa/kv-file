@@ -242,7 +242,7 @@ export const AddressBar: React.FC = () => {
         </button>
 
         <button
-          onClick={refresh}
+          onClick={() => refresh()}
           title="Refresh (F5)"
           className={`p-2 sm:p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-[#333333] transition-colors min-w-[38px] min-h-[38px] sm:min-w-[34px] sm:min-h-[34px] flex items-center justify-center active:scale-95 ${
             isLoading ? 'animate-spin text-blue-500' : ''

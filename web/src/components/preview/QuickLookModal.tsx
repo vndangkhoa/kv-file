@@ -21,6 +21,7 @@ import { useExplorerStore } from '../../stores/useExplorerStore';
 import { useDownloadStore } from '../../stores/useDownloadStore';
 import { api } from '../../services/api';
 import { formatHumanSize } from '../../utils/format';
+import { FileItem } from '../../types';
 
 export const QuickLookModal: React.FC = () => {
   const {
@@ -41,7 +42,18 @@ export const QuickLookModal: React.FC = () => {
   const [activeSheetTab, setActiveSheetTab] = useState(0);
   const [activeSlide, setActiveSlide] = useState(1);
 
-  const item = activeItem || (selectedItems.length > 0 ? selectedItems[0] : null);
+  const currentCandidate = activeItem || (selectedItems.length > 0 ? selectedItems[0] : null);
+  const [lockedItem, setLockedItem] = useState<FileItem | null>(null);
+
+  useEffect(() => {
+    if (isQuickLookOpen && currentCandidate) {
+      setLockedItem(currentCandidate);
+    } else if (!isQuickLookOpen) {
+      setLockedItem(null);
+    }
+  }, [isQuickLookOpen, currentCandidate]);
+
+  const item = currentCandidate || lockedItem;
 
   const isTextOrCode =
     item &&
