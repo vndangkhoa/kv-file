@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom scrollbars matching desktop aesthetics */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(150, 150, 150, 0.4);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(150, 150, 150, 0.7);
+}
+
+/* Hide horizontal scrollbar when not hovering for a cleaner macOS look */
+.scrollbar-subtle::-webkit-scrollbar {
+  height: 5px;
+}
+
+/* Prevent text selection while dragging or multi-selecting */
+.no-select {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Prioritize-inspired floating animations */
+@keyframes float-slow {
+  0%, 100% {
+    transform: translateY(0px) rotate(var(--tw-rotate, 0deg));
+  }
+  50% {
+    transform: translateY(-10px) rotate(var(--tw-rotate, 0deg));
+  }
+}
+
+@keyframes float-reverse {
+  0%, 100% {
+    transform: translateY(0px) rotate(var(--tw-rotate, 0deg));
+  }
+  50% {
+    transform: translateY(10px) rotate(var(--tw-rotate, 0deg));
+  }
+}
+
+.animate-float-1 {
+  animation: float-slow 6s ease-in-out infinite;
+}
+
+.animate-float-2 {
+  animation: float-reverse 7s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+.animate-float-3 {
+  animation: float-slow 6.5s ease-in-out infinite;
+  animation-delay: 2s;
+}
+
+.animate-float-4 {
+  animation: float-reverse 8s ease-in-out infinite;
+  animation-delay: 0.5s;
+}
+
+.dot-grid-pattern {
+  background-image: radial-gradient(rgba(148, 163, 184, 0.35) 1.2px, transparent 1.2px);
+  background-size: 24px 24px;
+}
+
+.dark .dot-grid-pattern {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.12) 1.2px, transparent 1.2px);
+  background-size: 24px 24px;
+}
+

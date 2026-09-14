@@ -1,0 +1,129 @@
+import React, { useEffect } from 'react';
+import { TitleBar } from './components/layout/TitleBar';
+import { AddressBar } from './components/layout/AddressBar';
+import { RibbonToolbar } from './components/layout/RibbonToolbar';
+import { SidebarTree } from './components/layout/SidebarTree';
+import { StatusBar } from './components/layout/StatusBar';
+import { MillerColumnsView } from './components/views/MillerColumnsView';
+import { DetailedListView } from './components/views/DetailedListView';
+import { GridView } from './components/views/GridView';
+import { QuickLookModal } from './components/preview/QuickLookModal';
+import { UploadModal } from './components/modals/UploadModal';
+import { ShareModal } from './components/modals/ShareModal';
+import { TrashBinModal } from './components/modals/TrashBinModal';
+import { NewFolderModal } from './components/modals/NewFolderModal';
+import { RenameModal } from './components/modals/RenameModal';
+import { SetupLoginModal } from './components/modals/SetupLoginModal';
+import { useExplorerStore } from './stores/useExplorerStore';
+import { useAuthStore } from './stores/useAuthStore';
+import { useWebSocket } from './hooks/useWebSocket';
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
+import { FileIcon } from './components/common/FileIcon';
+
+export const App: React.FC = () => {
+  const {
+    viewMode,
+    fetchRoots,
+    searchResults,
+    clearSearch,
+    navigateTo,
+    setQuickLookOpen,
+    selectItem,
+  } = useExplorerStore();
+
+  const { checkAuth } = useAuthStore();
+  const { isConnected: wsConnected } = useWebSocket();
+  useKeyboardShortcuts();
+
+  useEffect(() => {
+    fetchRoots();
+    checkAuth();
+  }, [fetchRoots, checkAuth]);
+
+  return (
+    <div className="flex flex-col h-screen w-screen bg-[#f3f3f3] dark:bg-[#1e1e1e] text-gray-900 dark:text-gray-100 overflow-hidden font-sans">
+      {/* 1. Windows Explorer Top Title & Search Bar */}
+      <TitleBar />
+
+      {/* 2. Windows Explorer Breadcrumb & Address Bar */}
+      <AddressBar />
+
+      {/* 3. Action Ribbon Toolbar */}
+      <RibbonToolbar />
+
+      {/* 4. Main Body: Windows Explorer Left Tree + macOS Finder Center/Right View */}
+      <div className="flex-1 flex flex-row overflow-hidden relative">
+        <SidebarTree />
+
+        {/* Search Results Overlay View */}
+        {searchResults !== null ? (
+          <div className="flex-1 flex flex-col overflow-y-auto p-4 bg-white dark:bg-[#1e1e1e]">
+            <div className="flex items-center justify-between pb-3 border-b border-gray-200 dark:border-[#333333] mb-4">
+              <span className="font-semibold text-xs text-gray-700 dark:text-gray-300">
+                Search Results ({searchResults.length} found)
+              </span>
+              <button
+                onClick={clearSearch}
+                className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+              >
+                Clear Search
+              </button>
+            </div>
+
+            {searchResults.length === 0 ? (
+              <div className="text-gray-400 text-xs italic text-center py-8">
+                No matching files or folders found.
+              </div>
+            ) : (
+              <div className="space-y-1">
+                {searchResults.map((item) => (
+                  <div
+                    key={item.path}
+                    onClick={() => selectItem(item, false)}
+                    onDoubleClick={() => {
+                      if (item.is_dir) {
+                        clearSearch();
+                        navigateTo(item.path);
+                      } else {
+                        setQuickLookOpen(true);
+                      }
+                    }}
+                    className="flex items-center justify-between p-2 rounded hover:bg-gray-100 dark:hover:bg-[#2a2d2e] cursor-pointer text-xs"
+                  >
+                    <div className="flex items-center gap-2 truncate">
+                      <FileIcon item={item} size={16} />
+                      <span className="font-medium text-gray-800 dark:text-gray-200">{item.name}</span>
+                      <span className="text-[11px] text-gray-400 truncate">in /{item.path}</span>
+                    </div>
+                    <span className="text-[11px] text-gray-400 font-mono">
+                      {item.is_dir ? 'Folder' : item.human_size}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Main Explorer Views */
+          <main className="flex-1 flex flex-col overflow-hidden">
+            {viewMode === 'columns' && <MillerColumnsView />}
+            {viewMode === 'list' && <DetailedListView />}
+            {viewMode === 'grid' && <GridView />}
+          </main>
+        )}
+      </div>
+
+      {/* 5. Status Bar */}
+      <StatusBar wsConnected={wsConnected} />
+
+      {/* 6. Modals & Overlays */}
+      <QuickLookModal />
+      <UploadModal />
+      <ShareModal />
+      <TrashBinModal />
+      <NewFolderModal />
+      <RenameModal />
+      <SetupLoginModal />
+    </div>
+  );
+};

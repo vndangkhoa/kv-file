@@ -1,0 +1,23 @@
+# Rust build artifacts
+/target/
+**/*.rs.bk
+
+# Frontend
+/web/node_modules/
+/web/dist/
+/web/.vite/
+
+# Application runtime data
+/data/
+/storage/
+*.db
+*.db-wal
+*.db-shm
+
+# OS & Editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo

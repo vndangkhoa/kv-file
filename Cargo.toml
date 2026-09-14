@@ -1,0 +1,42 @@
+[package]
+name = "ola"
+version = "2.0.0"
+edition = "2021"
+authors = ["Khoa Vo <vndangkhoa>"]
+description = "High-performance self-hosted file manager with Windows Explorer and macOS Miller Columns UI"
+
+[dependencies]
+# Web Framework & Async Runtime
+axum = { version = "0.8", features = ["multipart", "ws"] }
+tokio = { version = "1", features = ["full"] }
+tower = "0.5"
+tower-http = { version = "0.6", features = ["cors", "trace", "fs", "compression-gzip"] }
+
+# Serialization & JSON
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Database (Embedded SQLite)
+rusqlite = { version = "0.32", features = ["bundled", "chrono", "uuid"] }
+
+# Filesystem & Utilities
+dunce = "1.0"
+mime_guess = "2.0"
+libc = "0.2"
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1.10", features = ["v4", "serde"] }
+argon2 = "0.5"
+notify = "6.1"
+thiserror = "2.0"
+tokio-util = { version = "0.7", features = ["io"] }
+futures-util = "0.3"
+async-stream = "0.3"
+zip = { version = "2.2", default-features = false, features = ["deflate"] }
+
+# CLI & Configuration
+clap = { version = "4.5", features = ["derive", "env"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Embedded Assets (SPA)
+rust-embed = { version = "8.5", features = ["mime-guess"] }
