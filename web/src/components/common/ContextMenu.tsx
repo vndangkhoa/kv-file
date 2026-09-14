@@ -13,9 +13,13 @@ import {
   RefreshCw,
   Columns,
   Music,
+  Link,
+  Terminal,
+  Archive,
 } from 'lucide-react';
 import { useExplorerStore } from '../../stores/useExplorerStore';
 import { useDownloadStore } from '../../stores/useDownloadStore';
+import { api } from '../../services/api';
 
 export const ContextMenu: React.FC = () => {
   const {
@@ -127,7 +131,7 @@ export const ContextMenu: React.FC = () => {
               </>
             )}
 
-            {/* Direct Download with live progress */}
+            {/* Direct Download with live progress / ZIP for folders */}
             <button
               onClick={() => {
                 closeContextMenu();
@@ -135,8 +139,35 @@ export const ContextMenu: React.FC = () => {
               }}
               className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg hover:bg-blue-600 hover:text-white transition-colors"
             >
-              <Download size={15} />
-              <span>Direct Download</span>
+              {item.is_dir ? <Archive size={15} /> : <Download size={15} />}
+              <span>{item.is_dir ? 'Download Folder as ZIP' : 'Direct Download'}</span>
+            </button>
+
+            {/* Copy Download Link */}
+            <button
+              onClick={() => {
+                closeContextMenu();
+                const url = `${window.location.origin}${api.getDownloadUrl(currentRoot, item.path)}`;
+                navigator.clipboard.writeText(url);
+              }}
+              className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg hover:bg-blue-600 hover:text-white transition-colors"
+            >
+              <Link size={15} />
+              <span>Copy Download Link</span>
+            </button>
+
+            {/* Copy curl Command */}
+            <button
+              onClick={() => {
+                closeContextMenu();
+                const url = `${window.location.origin}${api.getDownloadUrl(currentRoot, item.path)}`;
+                const cmd = `curl -OJ "${url}"`;
+                navigator.clipboard.writeText(cmd);
+              }}
+              className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg hover:bg-blue-600 hover:text-white transition-colors"
+            >
+              <Terminal size={15} />
+              <span>Copy curl Command</span>
             </button>
 
             {/* Share Link */}

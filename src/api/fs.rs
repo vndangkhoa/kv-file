@@ -295,6 +295,35 @@ pub async fn download_file(
     State(state): State<AppState>,
     Query(params): Query<FileParams>,
 ) -> Result<Response> {
+    let root_name = params
+        .root
+        .clone()
+        .unwrap_or_else(|| state.roots.get_first_root_name());
+
+    let abs_path = state.roots.resolve_safe(&root_name, &params.path)?;
+
+    // If target is a directory, automatically package and stream as .zip on the fly!
+    if abs_path.is_dir() {
+        let zip_data = FileOperations::create_zip_archive(&abs_path).await?;
+        let folder_name = abs_path
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or("archive");
+        let zip_filename = format!("{}.zip", folder_name);
+        let disp = format!("attachment; filename=\"{}\"", zip_filename);
+
+        return Ok((
+            StatusCode::OK,
+            [
+                (header::CONTENT_TYPE, "application/zip".to_string()),
+                (header::CONTENT_DISPOSITION, disp),
+                (header::CONTENT_LENGTH, zip_data.len().to_string()),
+            ],
+            Body::from(zip_data),
+        )
+            .into_response());
+    }
+
     let mut resp = stream_file(headers, State(state), Query(params.clone())).await?;
     let filename = std::path::Path::new(&params.path)
         .file_name()

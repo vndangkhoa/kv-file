@@ -519,6 +519,48 @@ impl FileOperations {
         Ok(results)
     }
 
+    pub async fn create_zip_archive(dir_path: &Path) -> Result<Vec<u8>> {
+        use std::io::Write;
+        use zip::write::SimpleFileOptions;
+
+        let mut buffer = Vec::new();
+        {
+            let mut zip = zip::ZipWriter::new(std::io::Cursor::new(&mut buffer));
+            let options = SimpleFileOptions::default()
+                .compression_method(zip::CompressionMethod::Deflated);
+
+            let mut stack = vec![dir_path.to_path_buf()];
+            while let Some(current_dir) = stack.pop() {
+                let mut entries = tokio::fs::read_dir(&current_dir).await?;
+                while let Some(entry) = entries.next_entry().await? {
+                    let file_name = entry.file_name().to_string_lossy().to_string();
+                    if file_name.starts_with('.') {
+                        continue;
+                    }
+                    let path = entry.path();
+                    let rel_path = path
+                        .strip_prefix(dir_path)
+                        .map_err(|e| AppError::Internal(e.to_string()))?;
+                    let rel_str = rel_path.to_string_lossy().to_string();
+
+                    if path.is_dir() {
+                        zip.add_directory(&rel_str, options)
+                            .map_err(|e| AppError::Internal(e.to_string()))?;
+                        stack.push(path);
+                    } else if path.is_file() {
+                        zip.start_file(&rel_str, options)
+                            .map_err(|e| AppError::Internal(e.to_string()))?;
+                        let data = tokio::fs::read(&path).await?;
+                        zip.write_all(&data)
+                            .map_err(|e| AppError::Internal(e.to_string()))?;
+                    }
+                }
+            }
+            zip.finish().map_err(|e| AppError::Internal(e.to_string()))?;
+        }
+        Ok(buffer)
+    }
+
     pub fn get_disk_info(path: &Path) -> (u64, u64, u64) {
         let c_path = match CString::new(path.to_string_lossy().as_bytes()) {
             Ok(c) => c,

@@ -52,6 +52,12 @@ async fn test_filesystem_operations_and_trash() {
     let no_match = FileOperations::search(&root_manager, "storage", "ext:mp4", 10).await.unwrap();
     assert_eq!(no_match.len(), 0);
 
+    // 8. Test folder zip archive creation
+    let zip_bytes = FileOperations::create_zip_archive(&storage_dir.join("documents")).await.unwrap();
+    assert!(!zip_bytes.is_empty());
+    // Valid ZIP starts with PK\x03\x04
+    assert_eq!(&zip_bytes[0..4], b"PK\x03\x04");
+
     // Clean up
     let _ = std::fs::remove_dir_all(&temp_dir);
 }

@@ -36,13 +36,16 @@ export const useDownloadStore = create<DownloadState>((set, get) => ({
   startDownload: async (root: string, item: FileItem) => {
     const taskId = `dl-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
     const abortController = new AbortController();
+    const downloadFilename = item.is_dir
+      ? (item.name.endsWith('.zip') ? item.name : `${item.name}.zip`)
+      : item.name;
 
     const initialTask: DownloadTask = {
       id: taskId,
-      name: item.name,
+      name: downloadFilename,
       path: item.path,
       root,
-      totalBytes: item.size || 1024 * 1024,
+      totalBytes: item.size || (item.is_dir ? 5 * 1024 * 1024 : 1024 * 1024),
       loadedBytes: 0,
       progress: 0,
       speedMBps: 0,
@@ -121,9 +124,9 @@ export const useDownloadStore = create<DownloadState>((set, get) => ({
 
       // Assemble all chunks into final blob
       const combinedBlob = new Blob(chunks as BlobPart[], {
-        type: item.mime_type || 'application/octet-stream',
+        type: item.is_dir ? 'application/zip' : item.mime_type || 'application/octet-stream',
       });
-      triggerBrowserSave(combinedBlob, item.name);
+      triggerBrowserSave(combinedBlob, downloadFilename);
 
       set((state) => ({
         tasks: state.tasks.map((t) =>
