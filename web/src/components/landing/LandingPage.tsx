@@ -35,6 +35,30 @@ import {
   Crown
 } from 'lucide-react';
 
+const KvLogo: React.FC<{ className?: string }> = ({ className = 'w-8 h-8' }) => (
+  <svg viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} aria-label="kv-file logo">
+    <defs>
+      <linearGradient id="kv-logo-bg" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stopColor="#1d4ed8" />
+        <stop offset="50%" stopColor="#2563eb" />
+        <stop offset="100%" stopColor="#0284c7" />
+      </linearGradient>
+      <linearGradient id="kv-logo-folder" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#ffffff" stopOpacity="0.95" />
+        <stop offset="100%" stopColor="#f0f9ff" stopOpacity="0.88" />
+      </linearGradient>
+      <filter id="kv-logo-shadow" x="-10%" y="-10%" width="125%" height="125%">
+        <feDropShadow dx="0" dy="12" stdDeviation="16" floodColor="#0f172a" floodOpacity="0.25" />
+      </filter>
+    </defs>
+    <rect x="24" y="24" width="464" height="464" rx="104" fill="url(#kv-logo-bg)" />
+    <rect x="24" y="24" width="464" height="464" rx="104" stroke="#60a5fa" strokeWidth="3" strokeOpacity="0.4" fill="none" />
+    <path d="M 120 170 C 120 156 131 145 145 145 L 210 145 C 220 145 228 150 234 158 L 252 182 C 258 190 266 195 276 195 L 367 195 C 381 195 392 206 392 220 L 392 270 L 120 270 Z" fill="#ffffff" fillOpacity="0.4" />
+    <rect x="110" y="195" width="292" height="195" rx="28" fill="url(#kv-logo-folder)" filter="url(#kv-logo-shadow)" />
+    <path d="M 264 225 L 222 292 L 254 292 L 248 355 L 292 284 L 260 284 Z" fill="#2563eb" />
+  </svg>
+);
+
 export const LandingPage: React.FC = () => {
   const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
   const [copiedDocker, setCopiedDocker] = useState(false);
@@ -73,40 +97,38 @@ export const LandingPage: React.FC = () => {
       {/* 1. TOP NAVIGATION BAR                                                     */}
       {/* ========================================================================= */}
       <header className="sticky top-0 z-50 w-full bg-[#fbfbfd]/80 dark:bg-[#0d0e12]/80 backdrop-blur-md border-b border-slate-200/60 dark:border-slate-800/60">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black shadow-md shadow-blue-500/25">
-              ⯃
-            </div>
-            <div className="flex items-center gap-2">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 h-16 flex items-center justify-between gap-4">
+          <a href="#" className="flex items-center gap-2.5 shrink-0 select-none group">
+            <KvLogo className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl shadow-md shadow-blue-500/25 transition-transform group-hover:scale-105" />
+            <div className="flex items-center gap-1.5 whitespace-nowrap">
               <span className="text-lg sm:text-xl font-extrabold tracking-tight">kv-file</span>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300">
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300">
                 v2.0
               </span>
             </div>
-          </div>
+          </a>
 
           {/* Desktop Nav Links */}
-          <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-slate-600 dark:text-slate-300">
-            <a href="#features" className="hover:text-blue-600 transition-colors">Features</a>
-            <a href="#miller-columns" className="hover:text-blue-600 transition-colors">Miller Columns</a>
-            <a href="#pro" className="hover:text-amber-500 transition-colors flex items-center gap-1.5 font-semibold text-slate-900 dark:text-slate-100">
-              <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-              <span>KV Files PRO</span>
-              <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-xs">
-                COMING SOON
+          <nav className="hidden md:flex items-center gap-4 lg:gap-6 text-sm font-medium text-slate-600 dark:text-slate-300 shrink-0">
+            <a href="#features" className="hover:text-blue-600 transition-colors whitespace-nowrap">Features</a>
+            <a href="#miller-columns" className="hover:text-blue-600 transition-colors whitespace-nowrap">Miller Columns</a>
+            <a href="#pro" className="hover:text-amber-500 transition-colors flex items-center gap-1.5 font-semibold text-slate-900 dark:text-slate-100 whitespace-nowrap">
+              <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-500 shrink-0" />
+              <span>PRO</span>
+              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 whitespace-nowrap">
+                Soon
               </span>
             </a>
-            <a href="#editions" className="hover:text-blue-600 transition-colors">Comparison</a>
-            <a href="docs/" className="hover:text-blue-600 transition-colors flex items-center gap-1">
-              <BookOpen className="w-3.5 h-3.5" />
-              <span>Documentation</span>
+            <a href="#editions" className="hover:text-blue-600 transition-colors whitespace-nowrap">Compare</a>
+            <a href="docs/" className="hover:text-blue-600 transition-colors flex items-center gap-1 whitespace-nowrap">
+              <BookOpen className="w-3.5 h-3.5 shrink-0" />
+              <span>Docs</span>
             </a>
-            <a href="#deploy" className="hover:text-blue-600 transition-colors">Deploy</a>
+            <a href="#deploy" className="hover:text-blue-600 transition-colors whitespace-nowrap">Deploy</a>
           </nav>
 
           {/* Right Action Controls */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <button
               onClick={toggleTheme}
               className="p-2 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 rounded-xl transition-colors cursor-pointer"
@@ -117,16 +139,8 @@ export const LandingPage: React.FC = () => {
             </button>
 
             <a
-              href="#pro"
-              className="hidden sm:inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20 transition-all"
-            >
-              <Crown className="w-3.5 h-3.5 text-amber-500" />
-              <span>PRO (Coming Soon)</span>
-            </a>
-
-            <a
               href="#deploy"
-              className="text-xs sm:text-sm font-semibold px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-500/20 transition-all"
+              className="text-xs sm:text-sm font-semibold px-3.5 sm:px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-500/20 transition-all whitespace-nowrap shrink-0"
             >
               Get Started
             </a>
@@ -294,10 +308,8 @@ export const LandingPage: React.FC = () => {
             </a>
 
             {/* Glassmorphic Logo Card */}
-            <div className="w-14 h-14 sm:w-16 sm:h-16 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700 shadow-xl shadow-slate-200/60 dark:shadow-black/40 flex items-center justify-center mb-6 sm:mb-8 hover:scale-105 transition-transform">
-              <div className="w-9 h-9 sm:w-10 sm:h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white text-xl font-black shadow-inner">
-                ⯃
-              </div>
+            <div className="w-14 h-14 sm:w-16 sm:h-16 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700 shadow-xl shadow-slate-200/60 dark:shadow-black/40 flex items-center justify-center mb-6 sm:mb-8 hover:scale-105 transition-transform p-2.5">
+              <KvLogo className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl shadow-md shadow-blue-500/25" />
             </div>
 
             {/* High-Impact 2-Tone Headline */}
@@ -1285,7 +1297,7 @@ export const LandingPage: React.FC = () => {
                   <th className="p-4 sm:p-5 font-bold text-slate-900 dark:text-white">Feature / Capability</th>
                   <th className="p-4 sm:p-5 font-bold text-slate-900 dark:text-white w-1/3">
                     <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 rounded bg-blue-600 text-white flex items-center justify-center text-[10px] font-black">⯃</div>
+                      <KvLogo className="w-5 h-5 rounded-md shadow-xs shrink-0" />
                       <span>Community Edition</span>
                     </div>
                     <div className="text-[11px] font-normal text-slate-500 dark:text-slate-400 mt-0.5">Free & Open Source Forever</div>
@@ -1458,11 +1470,9 @@ export const LandingPage: React.FC = () => {
       <footer className="w-full py-12 px-4 sm:px-8 border-t border-slate-200/60 dark:border-slate-800/60 bg-slate-50 dark:bg-[#0a0b0e] text-xs text-slate-500">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">
-              ⯃
-            </div>
-            <span className="font-semibold text-slate-700 dark:text-slate-300">kv-file v2.0.0</span>
-            <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-400 font-bold text-[10px] border border-amber-500/30">
+            <KvLogo className="w-6 h-6 rounded-lg shadow-xs shrink-0" />
+            <span className="font-semibold text-slate-700 dark:text-slate-300 whitespace-nowrap">kv-file v2.0.0</span>
+            <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-400 font-bold text-[10px] border border-amber-500/30 whitespace-nowrap">
               PRO Coming Soon
             </span>
           </div>

@@ -75,7 +75,7 @@ export const TitleBar: React.FC = () => {
         </button>
 
         <div className="flex items-center gap-2 font-bold text-sm sm:text-base tracking-tight text-blue-600 dark:text-blue-400">
-          <img src="/icons/favicon.svg" alt="KV Files" className="w-5 h-5 rounded-md shadow-xs object-contain" />
+          <img src={`${import.meta.env.BASE_URL}icons/favicon.svg`} alt="KV Files" className="w-5 h-5 rounded-md shadow-xs object-contain" />
           <span>KV Files</span>
         </div>
 
