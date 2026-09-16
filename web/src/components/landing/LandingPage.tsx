@@ -94,7 +94,7 @@ export const LandingPage: React.FC = () => {
               <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
               <span>KV Files PRO</span>
               <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-xs">
-                PRO
+                COMING SOON
               </span>
             </a>
             <a href="#editions" className="hover:text-blue-600 transition-colors">Comparison</a>
@@ -121,7 +121,7 @@ export const LandingPage: React.FC = () => {
               className="hidden sm:inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20 transition-all"
             >
               <Crown className="w-3.5 h-3.5 text-amber-500" />
-              <span>PRO Edition</span>
+              <span>PRO (Coming Soon)</span>
             </a>
 
             <a
@@ -289,7 +289,7 @@ export const LandingPage: React.FC = () => {
               className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 border border-amber-500/30 hover:border-amber-500/60 text-amber-800 dark:text-amber-300 text-xs font-semibold mb-6 transition-all shadow-xs hover:-translate-y-0.5 group cursor-pointer"
             >
               <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-              <span>Introducing <strong>KV Files PRO v2.1</strong> — 3D CAD, Adobe Studio & Offline Licensing</span>
+              <span>Coming Soon: <strong>KV Files PRO</strong> — 3D CAD/BIM, Adobe Studio & Offline Licensing</span>
               <ArrowRight className="w-3 h-3 text-amber-500 group-hover:translate-x-0.5 transition-transform" />
             </a>
 
@@ -700,8 +700,8 @@ export const LandingPage: React.FC = () => {
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-amber-500/15 via-orange-500/15 to-amber-500/15 border border-amber-500/30 text-amber-800 dark:text-amber-300 text-xs font-bold uppercase tracking-wider mb-4 shadow-xs">
               <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
               <span>Commercial & Enterprise Edition</span>
-              <span className="px-1.5 py-0.5 rounded bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black text-[9px] shadow-xs">
-                PRO v2.1
+              <span className="px-2 py-0.5 rounded bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black text-[9px] shadow-xs">
+                COMING SOON
               </span>
             </div>
 
@@ -710,7 +710,7 @@ export const LandingPage: React.FC = () => {
             </h2>
 
             <p className="mt-4 text-slate-600 dark:text-slate-300 text-sm sm:text-base leading-relaxed">
-              Designed for engineering firms, architecture studios, creative teams, and privacy-first enterprises. Inspect multi-gigabyte 3D CAD models, Adobe PSD layer hierarchies, typography specimens, and architecture flows with zero data leaving your server.
+              Currently in active development. Built for engineering firms, architecture studios, creative teams, and privacy-first enterprises. Inspect multi-gigabyte 3D CAD models, Adobe PSD layer hierarchies, typography specimens, and architecture flows with zero data leaving your server.
             </p>
           </div>
 
@@ -1226,12 +1226,15 @@ export const LandingPage: React.FC = () => {
           {/* PRO Call to Action Banner */}
           <div className="mt-12 p-8 rounded-3xl bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-500/15 border border-amber-500/40 flex flex-col sm:flex-row items-center justify-between gap-6">
             <div>
+              <div className="inline-block px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[11px] font-bold uppercase tracking-wider mb-2">
+                In Active Development • Coming Soon
+              </div>
               <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Crown className="w-5 h-5 text-amber-500" />
-                <span>Ready to Supercharge Your Self-Hosted Cloud?</span>
+                <span>Get Early Access & Updates</span>
               </h3>
               <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-1">
-                Deploy KV Files PRO today with the pre-built Docker image or compile directly from the commercial repository.
+                KV Files PRO is launching soon. Star the repository or follow the development progress to be notified on general availability.
               </p>
             </div>
             <div className="flex items-center gap-3 w-full sm:w-auto">
@@ -1247,7 +1250,7 @@ export const LandingPage: React.FC = () => {
                 rel="noreferrer"
                 className="w-full sm:w-auto px-5 py-3 rounded-xl bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white font-semibold text-xs sm:text-sm border border-slate-700/80 transition-all flex items-center justify-center gap-1.5"
               >
-                <span>PRO Repo</span>
+                <span>View PRO Progress</span>
                 <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
               </a>
             </div>
@@ -1291,9 +1294,9 @@ export const LandingPage: React.FC = () => {
                     <div className="flex items-center gap-2">
                       <Sparkles className="w-4 h-4 text-amber-500 fill-amber-500" />
                       <span className="font-extrabold text-amber-600 dark:text-amber-400">KV Files PRO</span>
-                      <span className="px-1.5 py-0.5 rounded bg-amber-500 text-slate-950 font-black text-[9px]">PRO</span>
+                      <span className="px-1.5 py-0.5 rounded bg-amber-500 text-slate-950 font-black text-[9px]">COMING SOON</span>
                     </div>
-                    <div className="text-[11px] font-normal text-slate-500 dark:text-slate-400 mt-0.5">Commercial & Studio Workspace</div>
+                    <div className="text-[11px] font-normal text-slate-500 dark:text-slate-400 mt-0.5">Commercial & Studio Workspace (In Development)</div>
                   </th>
                 </tr>
               </thead>
@@ -1409,7 +1412,10 @@ export const LandingPage: React.FC = () => {
             <div className="bg-gradient-to-r from-amber-950/40 via-slate-950 to-slate-950 text-slate-200 rounded-2xl p-5 border border-amber-500/40 shadow-2xl">
               <div className="flex items-center justify-between pb-3 border-b border-amber-500/20 mb-3">
                 <span className="text-xs font-semibold text-amber-400 flex items-center gap-2">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-400 fill-amber-400" /> KV Files PRO — Docker Run (Commercial)
+                  <Sparkles className="w-3.5 h-3.5 text-amber-400 fill-amber-400" /> KV Files PRO — Docker Image
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                    Coming Soon
+                  </span>
                 </span>
                 <button
                   onClick={() => copyCommand('docker run -d -p 8866:8866 -v ./data:/data -v /path/to/storage:/storage vndangkhoa/kv-file-pro:latest', 'pro')}
@@ -1455,9 +1461,9 @@ export const LandingPage: React.FC = () => {
             <div className="w-6 h-6 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">
               ⯃
             </div>
-            <span className="font-semibold text-slate-700 dark:text-slate-300">kv-file v2.1.0</span>
+            <span className="font-semibold text-slate-700 dark:text-slate-300">kv-file v2.0.0</span>
             <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-400 font-bold text-[10px] border border-amber-500/30">
-              PRO Available
+              PRO Coming Soon
             </span>
           </div>
           <p>
@@ -1467,7 +1473,7 @@ export const LandingPage: React.FC = () => {
             <a href="#deploy" className="hover:text-slate-800 dark:hover:text-slate-200 transition-colors">Deploy</a>
             <a href="#features" className="hover:text-slate-800 dark:hover:text-slate-200 transition-colors">Features</a>
             <a href="#pro" className="hover:text-amber-500 font-semibold transition-colors flex items-center gap-1">
-              <Sparkles className="w-3 h-3 text-amber-500" /> PRO Edition
+              <Sparkles className="w-3 h-3 text-amber-500" /> PRO (Coming Soon)
             </a>
             <a href="#editions" className="hover:text-slate-800 dark:hover:text-slate-200 transition-colors">Comparison</a>
             <a href="docs/" className="hover:text-slate-800 dark:hover:text-slate-200 transition-colors">Documentation</a>
