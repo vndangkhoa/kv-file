@@ -12,8 +12,8 @@ weight: 10
 Looking for the product overview and interactive showcases? Visit the **[kv-file Official Website →](https://vndangkhoa.github.io/kv-file/?ref=docs_overview)**
 {{< /alert >}}
 
-{{< alert context="warning" >}}
-⚡ **KV Files PRO (Coming Soon)**: Upcoming Commercial & Enterprise edition with Universal 3D CAD/BIM Studio (AutoCAD DWG, DXF, IFC, STEP, STL), Adobe Creative Suite Layer Parser (PSD, PSB, AI, INDD, XD), Typography Studio, SysVis Flow Animator, and 100% Offline Ed25519 Cryptographic Licensing. **[Explore the PRO Preview →](https://vndangkhoa.github.io/kv-file/#pro)**
+{{< alert context="success" >}}
+🎉 **KV FILE PRO Is Officially Released!** The Commercial & Enterprise edition is now live with Universal 3D CAD/BIM Studio (AutoCAD DWG, DXF, IFC, STEP, STL), Adobe Creative Suite Layer Parser (PSD, PSB, AI, INDD, XD), Typography Studio, SysVis Flow Animator, and 100% Offline Ed25519 Cryptographic Licensing. **[Explore KV FILE PRO →](https://vndangkhoa.github.io/kv-file/#pro)**
 {{< /alert >}}
 
 kv-file delivers full feature parity with **FileBrowser Quantum** while introducing next-generation capabilities: real-time kernel filesystem watching, instant soft-delete trash restoration, zero-copy HTTP Range video seeking, and an integrated Command Palette (`Ctrl+K`).
@@ -57,10 +57,10 @@ kv-file delivers full feature parity with **FileBrowser Quantum** while introduc
     <div class="card p-3 h-100 border border-warning shadow-sm">
       <div class="d-flex align-items-center mb-2">
         <i class="material-icons text-warning me-2">stars</i>
-        <h5 class="mb-0 fw-bold">KV Files PRO <span class="badge bg-warning text-dark small ms-1">Coming Soon</span></h5>
+        <h5 class="mb-0 fw-bold">KV FILE PRO <span class="badge bg-warning text-dark small ms-1">Released Now</span></h5>
       </div>
       <p class="text-muted small mb-3">Universal 3D CAD/BIM viewports, Adobe Creative Suite studio, offline Ed25519 licensing, SysVis flow animator, and deep archive browsing.</p>
-      <a href="https://vndangkhoa.github.io/kv-file/#pro" class="btn btn-sm btn-warning text-dark fw-bold">Preview PRO Features &rarr;</a>
+      <a href="https://vndangkhoa.github.io/kv-file/#pro" class="btn btn-sm btn-warning text-dark fw-bold">Explore KV FILE PRO &rarr;</a>
     </div>
   </div>
 </div>

@@ -14,6 +14,7 @@
   <a href="https://github.com/vndangkhoa/kv-file/stargazers"><img src="https://img.shields.io/github/stars/vndangkhoa/kv-file?style=for-the-badge&logo=apachespark&color=f59e0b" alt="GitHub Stars"></a>
   <a href="https://hub.docker.com/r/vndangkhoa/kv-file"><img src="https://img.shields.io/docker/pulls/vndangkhoa/kv-file?style=for-the-badge&logo=docker&logoColor=white&label=Pulls&color=2563eb" alt="Docker Hub Pulls"></a>
   <a href="https://github.com/vndangkhoa/kv-file/releases"><img src="https://img.shields.io/github/v/release/vndangkhoa/kv-file?style=for-the-badge&logo=github&color=059669" alt="Latest Release"></a>
+  <a href="https://vndangkhoa.github.io/kv-file/#pro"><img src="https://img.shields.io/badge/KV_FILE_PRO-Released_Now-f59e0b?style=for-the-badge&logo=sparkles&logoColor=white" alt="KV FILE PRO Released"></a>
   <a href="https://vndangkhoa.github.io/kv-file/?ref=readme"><img src="https://img.shields.io/badge/Website_&_Docs-Visit-6366f1?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Docs"></a>
   <a href="#license"><img src="https://img.shields.io/badge/License-MIT-gray?style=for-the-badge" alt="License MIT"></a>
 </p>
@@ -23,9 +24,13 @@
   <a href="#-why-kv-files"><b>Why KV Files?</b></a> •
   <a href="#-killer-features"><b>Features</b></a> •
   <a href="#-keyboard-shortcuts"><b>Shortcuts</b></a> •
+  <a href="https://vndangkhoa.github.io/kv-file/#pro"><b>KV FILE PRO ✨</b></a> •
   <a href="#-documentation--api"><b>API & Docs</b></a> •
   <a href="#-star-history"><b>Star History</b></a>
 </p>
+
+> [!TIP]
+> 🚀 **KV FILE PRO Is Officially Released!** Commercial & enterprise capabilities are now live: Universal 3D CAD/BIM Viewport (DWG, DXF, IFC, STEP, STL), Adobe Creative Suite Layer Parser (PSD, AI, INDD), Typography Studio, and 100% Offline Ed25519 Licensing. **[Explore KV FILE PRO &rarr;](https://vndangkhoa.github.io/kv-file/#pro)**
 
 ---
 

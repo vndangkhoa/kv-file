@@ -64,6 +64,10 @@ enableEmoji = true
   url = "docs/"
   weight = 10
 [[menu.primary]]
+  name = "KV FILE PRO"
+  url = "https://vndangkhoa.github.io/kv-file/#pro"
+  weight = 15
+[[menu.primary]]
   name = "GitHub"
   url = "https://github.com/vndangkhoa/kv-file"
   weight = 20

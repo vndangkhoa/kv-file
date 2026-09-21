@@ -94,6 +94,23 @@ export const LandingPage: React.FC = () => {
     <div className="min-h-screen w-full bg-[#fbfbfd] dark:bg-[#0d0e12] text-slate-900 dark:text-slate-100 flex flex-col font-sans transition-colors duration-200">
       
       {/* ========================================================================= */}
+      {/* 0. GLOBAL RELEASE ANNOUNCEMENT BANNER                                     */}
+      {/* ========================================================================= */}
+      <div className="w-full bg-gradient-to-r from-amber-600 via-amber-500 to-orange-500 text-slate-950 py-2.5 px-4 text-center text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-sm z-50">
+        <Sparkles className="w-4 h-4 fill-slate-950 text-slate-950 shrink-0" />
+        <span>
+          🎉 <strong>KV FILE PRO is officially released!</strong> 3D CAD/BIM Studio, Adobe Suite parser, and offline Ed25519 licensing are now live.
+        </span>
+        <a 
+          href="#pro" 
+          className="ml-1.5 underline font-black hover:text-white transition-colors inline-flex items-center gap-0.5 shrink-0"
+        >
+          <span>Explore PRO</span>
+          <ArrowRight className="w-3.5 h-3.5" />
+        </a>
+      </div>
+
+      {/* ========================================================================= */}
       {/* 1. TOP NAVIGATION BAR                                                     */}
       {/* ========================================================================= */}
       <header className="sticky top-0 z-50 w-full bg-[#fbfbfd]/80 dark:bg-[#0d0e12]/80 backdrop-blur-md border-b border-slate-200/60 dark:border-slate-800/60">
@@ -115,8 +132,8 @@ export const LandingPage: React.FC = () => {
             <a href="#pro" className="hover:text-amber-500 transition-colors flex items-center gap-1.5 font-semibold text-slate-900 dark:text-slate-100 whitespace-nowrap">
               <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-500 shrink-0" />
               <span>PRO</span>
-              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 whitespace-nowrap">
-                Soon
+              <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 border border-amber-400 whitespace-nowrap shadow-xs animate-pulse">
+                OUT NOW
               </span>
             </a>
             <a href="#editions" className="hover:text-blue-600 transition-colors whitespace-nowrap">Compare</a>
@@ -300,11 +317,15 @@ export const LandingPage: React.FC = () => {
             {/* PRO Announcement Pill */}
             <a
               href="#pro"
-              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 border border-amber-500/30 hover:border-amber-500/60 text-amber-800 dark:text-amber-300 text-xs font-semibold mb-6 transition-all shadow-xs hover:-translate-y-0.5 group cursor-pointer"
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-500/15 via-orange-500/15 to-amber-500/15 border border-amber-500/40 hover:border-amber-500/70 text-amber-800 dark:text-amber-300 text-xs font-semibold mb-6 transition-all shadow-xs hover:-translate-y-0.5 group cursor-pointer"
             >
-              <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-              <span>Coming Soon: <strong>KV Files PRO</strong> — 3D CAD/BIM, Adobe Studio & Offline Licensing</span>
-              <ArrowRight className="w-3 h-3 text-amber-500 group-hover:translate-x-0.5 transition-transform" />
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+              </span>
+              <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-500 shrink-0" />
+              <span>🎉 <strong>KV FILE PRO is Released!</strong> — 3D CAD/BIM, Adobe Studio & Offline Licensing</span>
+              <ArrowRight className="w-3 h-3 text-amber-500 group-hover:translate-x-0.5 transition-transform shrink-0" />
             </a>
 
             {/* Glassmorphic Logo Card */}
@@ -712,8 +733,8 @@ export const LandingPage: React.FC = () => {
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-amber-500/15 via-orange-500/15 to-amber-500/15 border border-amber-500/30 text-amber-800 dark:text-amber-300 text-xs font-bold uppercase tracking-wider mb-4 shadow-xs">
               <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
               <span>Commercial & Enterprise Edition</span>
-              <span className="px-2 py-0.5 rounded bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black text-[9px] shadow-xs">
-                COMING SOON
+              <span className="px-2 py-0.5 rounded bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black text-[9px] shadow-xs">
+                OFFICIALLY RELEASED
               </span>
             </div>
 
@@ -722,7 +743,7 @@ export const LandingPage: React.FC = () => {
             </h2>
 
             <p className="mt-4 text-slate-600 dark:text-slate-300 text-sm sm:text-base leading-relaxed">
-              Currently in active development. Built for engineering firms, architecture studios, creative teams, and privacy-first enterprises. Inspect multi-gigabyte 3D CAD models, Adobe PSD layer hierarchies, typography specimens, and architecture flows with zero data leaving your server.
+              Now officially released and available. Built for engineering firms, architecture studios, creative teams, and privacy-first enterprises. Inspect multi-gigabyte 3D CAD models, Adobe PSD layer hierarchies, typography specimens, and architecture flows with zero data leaving your server.
             </p>
           </div>
 
@@ -1238,23 +1259,23 @@ export const LandingPage: React.FC = () => {
           {/* PRO Call to Action Banner */}
           <div className="mt-12 p-8 rounded-3xl bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-500/15 border border-amber-500/40 flex flex-col sm:flex-row items-center justify-between gap-6">
             <div>
-              <div className="inline-block px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[11px] font-bold uppercase tracking-wider mb-2">
-                In Active Development • Coming Soon
+              <div className="inline-block px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 text-[11px] font-black uppercase tracking-wider mb-2 shadow-xs">
+                Official Commercial Release • Available Now
               </div>
               <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Crown className="w-5 h-5 text-amber-500" />
-                <span>Get Early Access & Updates</span>
+                <span>Ready to Supercharge Your Self-Hosted Cloud with PRO?</span>
               </h3>
               <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-1">
-                KV Files PRO is launching soon. Star the repository or follow the development progress to be notified on general availability.
+                KV FILE PRO is now officially released! Deploy today with the pre-built Docker container or access the repository.
               </p>
             </div>
             <div className="flex items-center gap-3 w-full sm:w-auto">
               <a
-                href="#editions"
+                href="#deploy"
                 className="w-full sm:w-auto px-5 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-bold text-xs sm:text-sm shadow-lg shadow-amber-500/20 transition-all text-center cursor-pointer"
               >
-                Compare Editions
+                Deploy PRO Now
               </a>
               <a
                 href="https://github.com/vndangkhoa/kv-file-pro"
@@ -1262,7 +1283,7 @@ export const LandingPage: React.FC = () => {
                 rel="noreferrer"
                 className="w-full sm:w-auto px-5 py-3 rounded-xl bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white font-semibold text-xs sm:text-sm border border-slate-700/80 transition-all flex items-center justify-center gap-1.5"
               >
-                <span>View PRO Progress</span>
+                <span>KV FILE PRO Repo</span>
                 <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
               </a>
             </div>
@@ -1305,10 +1326,10 @@ export const LandingPage: React.FC = () => {
                   <th className="p-4 sm:p-5 font-bold text-amber-600 dark:text-amber-400 w-1/3 bg-amber-500/5 dark:bg-amber-950/20 border-l border-amber-500/20">
                     <div className="flex items-center gap-2">
                       <Sparkles className="w-4 h-4 text-amber-500 fill-amber-500" />
-                      <span className="font-extrabold text-amber-600 dark:text-amber-400">KV Files PRO</span>
-                      <span className="px-1.5 py-0.5 rounded bg-amber-500 text-slate-950 font-black text-[9px]">COMING SOON</span>
+                      <span className="font-extrabold text-amber-600 dark:text-amber-400">KV FILE PRO</span>
+                      <span className="px-1.5 py-0.5 rounded bg-amber-500 text-slate-950 font-black text-[9px]">NOW AVAILABLE</span>
                     </div>
-                    <div className="text-[11px] font-normal text-slate-500 dark:text-slate-400 mt-0.5">Commercial & Studio Workspace (In Development)</div>
+                    <div className="text-[11px] font-normal text-slate-500 dark:text-slate-400 mt-0.5">Commercial & Studio Workspace (Official Release)</div>
                   </th>
                 </tr>
               </thead>
@@ -1420,13 +1441,13 @@ export const LandingPage: React.FC = () => {
               </code>
             </div>
 
-            {/* KV Files PRO Docker Command Card */}
+            {/* KV FILE PRO Docker Command Card */}
             <div className="bg-gradient-to-r from-amber-950/40 via-slate-950 to-slate-950 text-slate-200 rounded-2xl p-5 border border-amber-500/40 shadow-2xl">
               <div className="flex items-center justify-between pb-3 border-b border-amber-500/20 mb-3">
                 <span className="text-xs font-semibold text-amber-400 flex items-center gap-2">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-400 fill-amber-400" /> KV Files PRO — Docker Image
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">
-                    Coming Soon
+                  <Sparkles className="w-3.5 h-3.5 text-amber-400 fill-amber-400" /> KV FILE PRO — Docker Run (Commercial)
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 shadow-xs">
+                    Released Now
                   </span>
                 </span>
                 <button
@@ -1473,7 +1494,7 @@ export const LandingPage: React.FC = () => {
             <KvLogo className="w-6 h-6 rounded-lg shadow-xs shrink-0" />
             <span className="font-semibold text-slate-700 dark:text-slate-300 whitespace-nowrap">kv-file v2.0.0</span>
             <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-400 font-bold text-[10px] border border-amber-500/30 whitespace-nowrap">
-              PRO Coming Soon
+              PRO Released
             </span>
           </div>
           <p>
@@ -1483,7 +1504,7 @@ export const LandingPage: React.FC = () => {
             <a href="#deploy" className="hover:text-slate-800 dark:hover:text-slate-200 transition-colors">Deploy</a>
             <a href="#features" className="hover:text-slate-800 dark:hover:text-slate-200 transition-colors">Features</a>
             <a href="#pro" className="hover:text-amber-500 font-semibold transition-colors flex items-center gap-1">
-              <Sparkles className="w-3 h-3 text-amber-500" /> PRO (Coming Soon)
+              <Sparkles className="w-3 h-3 text-amber-500" /> PRO Edition
             </a>
             <a href="#editions" className="hover:text-slate-800 dark:hover:text-slate-200 transition-colors">Comparison</a>
             <a href="docs/" className="hover:text-slate-800 dark:hover:text-slate-200 transition-colors">Documentation</a>
