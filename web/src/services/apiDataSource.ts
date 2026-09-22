@@ -137,16 +137,28 @@ export const apiDataSource: FileSystemDataSource = {
       body: JSON.stringify({ root, path, new_name }),
     });
   },
-  async copyItem(root: string, source: string, destination: string): Promise<void> {
+  async copyItem(root: string, source: string, destination: string, srcRoot?: string): Promise<void> {
     return request('/fs/copy', {
       method: 'POST',
-      body: JSON.stringify({ root, source, destination }),
+      body: JSON.stringify({
+        root,
+        src_root: srcRoot || root,
+        dest_root: root,
+        source,
+        destination,
+      }),
     });
   },
-  async moveItem(root: string, source: string, destination: string): Promise<void> {
+  async moveItem(root: string, source: string, destination: string, srcRoot?: string): Promise<void> {
     return request('/fs/move', {
       method: 'POST',
-      body: JSON.stringify({ root, source, destination }),
+      body: JSON.stringify({
+        root,
+        src_root: srcRoot || root,
+        dest_root: root,
+        source,
+        destination,
+      }),
     });
   },
   async deleteItem(root: string, path: string, permanent: boolean = false): Promise<void> {

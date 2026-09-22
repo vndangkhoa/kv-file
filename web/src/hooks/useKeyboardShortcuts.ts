@@ -27,6 +27,8 @@ export function useKeyboardShortcuts() {
     toggleSplitView,
     copyToOtherPane,
     moveToOtherPane,
+    setClipboard,
+    pasteClipboard,
   } = useExplorerStore();
   const { isOpen: isSettingsOpen, openSettings } = useSettingsStore();
 
@@ -120,6 +122,31 @@ export function useKeyboardShortcuts() {
         return;
       }
 
+      // 4a. Ctrl+C or Cmd+C -> Copy
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c' && !anyModalOpen) {
+        if (selectedItems.length > 0) {
+          e.preventDefault();
+          setClipboard('copy', selectedItems);
+        }
+        return;
+      }
+
+      // 4b. Ctrl+X or Cmd+X -> Cut
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'x' && !anyModalOpen) {
+        if (selectedItems.length > 0) {
+          e.preventDefault();
+          setClipboard('cut', selectedItems);
+        }
+        return;
+      }
+
+      // 4c. Ctrl+V or Cmd+V -> Paste
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v' && !anyModalOpen) {
+        e.preventDefault();
+        pasteClipboard();
+        return;
+      }
+
       // 5. Backspace or Alt+Up -> Go Up
       if ((e.key === 'Backspace' || (e.altKey && e.key === 'ArrowUp')) && !anyModalOpen) {
         e.preventDefault();
@@ -180,5 +207,7 @@ export function useKeyboardShortcuts() {
     toggleSplitView,
     copyToOtherPane,
     moveToOtherPane,
+    setClipboard,
+    pasteClipboard,
   ]);
 }

@@ -285,50 +285,152 @@ impl FileOperations {
 
     pub async fn move_item(
         roots: &RootManager,
-        root_name: &str,
+        src_root: &str,
+        dest_root: &str,
         source_path: &str,
         dest_folder_path: &str,
     ) -> Result<()> {
-        let src_abs = roots.resolve_safe(root_name, source_path)?;
-        let dest_dir = roots.resolve_safe(root_name, dest_folder_path)?;
-
-        if !dest_dir.is_dir() {
-            return Err(AppError::BadRequest("Destination is not a directory".to_string()));
+        let src_abs = roots.resolve_safe(src_root, source_path)?;
+        if !src_abs.exists() {
+            return Err(AppError::NotFound(format!("Source item '{}' not found", source_path)));
         }
 
-        let file_name = src_abs
-            .file_name()
-            .ok_or_else(|| AppError::BadRequest("Invalid source item".to_string()))?;
+        let dest_raw = roots.resolve_safe(dest_root, dest_folder_path)?;
+        let (dest_dir, file_name) = if dest_raw.is_dir() {
+            let fname = src_abs
+                .file_name()
+                .ok_or_else(|| AppError::BadRequest("Invalid source item".to_string()))?
+                .to_string_lossy()
+                .to_string();
+            (dest_raw, fname)
+        } else if let Some(parent) = dest_raw.parent() {
+            if parent.is_dir() {
+                let fname = dest_raw
+                    .file_name()
+                    .map(|n| n.to_string_lossy().to_string())
+                    .unwrap_or_else(|| {
+                        src_abs
+                            .file_name()
+                            .map(|n| n.to_string_lossy().to_string())
+                            .unwrap_or_else(|| "moved_item".to_string())
+                    });
+                (parent.to_path_buf(), fname)
+            } else {
+                return Err(AppError::BadRequest("Destination directory not found".to_string()));
+            }
+        } else {
+            return Err(AppError::BadRequest("Destination directory not found".to_string()));
+        };
 
-        let dest_abs = dest_dir.join(file_name);
+        let dest_abs = dest_dir.join(&file_name);
+        if src_abs == dest_abs {
+            // Moving into the exact same location is a no-op
+            return Ok(());
+        }
+
+        if src_abs.is_dir() && dest_abs.starts_with(&src_abs) {
+            return Err(AppError::BadRequest("Cannot move a folder into itself".to_string()));
+        }
+
         if dest_abs.exists() {
             return Err(AppError::BadRequest("Target file already exists in destination".to_string()));
         }
 
-        tokio::fs::rename(&src_abs, &dest_abs).await?;
+        // Try fast atomic rename first; fallback to copy + remove for cross-root / cross-device moves
+        if tokio::fs::rename(&src_abs, &dest_abs).await.is_err() {
+            if src_abs.is_dir() {
+                Self::copy_dir_recursive(&src_abs, &dest_abs).await?;
+                tokio::fs::remove_dir_all(&src_abs).await?;
+            } else {
+                tokio::fs::copy(&src_abs, &dest_abs).await?;
+                tokio::fs::remove_file(&src_abs).await?;
+            }
+        }
+
         Ok(())
     }
 
     pub async fn copy_item(
         roots: &RootManager,
-        root_name: &str,
+        src_root: &str,
+        dest_root: &str,
         source_path: &str,
         dest_folder_path: &str,
     ) -> Result<()> {
-        let src_abs = roots.resolve_safe(root_name, source_path)?;
-        let dest_dir = roots.resolve_safe(root_name, dest_folder_path)?;
-
-        if !dest_dir.is_dir() {
-            return Err(AppError::BadRequest("Destination is not a directory".to_string()));
+        let src_abs = roots.resolve_safe(src_root, source_path)?;
+        if !src_abs.exists() {
+            return Err(AppError::NotFound(format!("Source item '{}' not found", source_path)));
         }
 
-        let file_name = src_abs
-            .file_name()
-            .ok_or_else(|| AppError::BadRequest("Invalid source item".to_string()))?;
+        let dest_raw = roots.resolve_safe(dest_root, dest_folder_path)?;
+        let (dest_dir, file_name) = if dest_raw.is_dir() {
+            let fname = src_abs
+                .file_name()
+                .ok_or_else(|| AppError::BadRequest("Invalid source item".to_string()))?
+                .to_string_lossy()
+                .to_string();
+            (dest_raw, fname)
+        } else if let Some(parent) = dest_raw.parent() {
+            if parent.is_dir() {
+                let fname = dest_raw
+                    .file_name()
+                    .map(|n| n.to_string_lossy().to_string())
+                    .unwrap_or_else(|| {
+                        src_abs
+                            .file_name()
+                            .map(|n| n.to_string_lossy().to_string())
+                            .unwrap_or_else(|| "copied_item".to_string())
+                    });
+                (parent.to_path_buf(), fname)
+            } else {
+                return Err(AppError::BadRequest("Destination directory not found".to_string()));
+            }
+        } else {
+            return Err(AppError::BadRequest("Destination directory not found".to_string()));
+        };
 
-        let dest_abs = dest_dir.join(file_name);
+        let mut dest_abs = dest_dir.join(&file_name);
+
+        if src_abs.is_dir() && dest_abs.starts_with(&src_abs) {
+            return Err(AppError::BadRequest("Cannot copy a folder into itself".to_string()));
+        }
+
+        // If target file already exists (e.g. copying in same folder):
+        // Automatically generate a duplicate filename: "name (copy).ext", "name (copy 2).ext"
         if dest_abs.exists() {
-            return Err(AppError::BadRequest("Target file already exists in destination".to_string()));
+            let stem = Path::new(&file_name)
+                .file_stem()
+                .and_then(|s| s.to_str())
+                .unwrap_or(&file_name);
+            let ext = Path::new(&file_name)
+                .extension()
+                .and_then(|e| e.to_str());
+
+            let mut counter = 1;
+            loop {
+                let new_name = match ext {
+                    Some(e) => {
+                        if counter == 1 {
+                            format!("{} (copy).{}", stem, e)
+                        } else {
+                            format!("{} (copy {}).{}", stem, counter, e)
+                        }
+                    }
+                    None => {
+                        if counter == 1 {
+                            format!("{} (copy)", stem)
+                        } else {
+                            format!("{} (copy {})", stem, counter)
+                        }
+                    }
+                };
+                let candidate = dest_dir.join(&new_name);
+                if !candidate.exists() {
+                    dest_abs = candidate;
+                    break;
+                }
+                counter += 1;
+            }
         }
 
         if src_abs.is_dir() {

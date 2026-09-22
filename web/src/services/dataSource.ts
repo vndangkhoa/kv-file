@@ -41,8 +41,8 @@ export interface FileSystemDataSource {
   getTree(root: string, path?: string, depth?: number, showHidden?: boolean): Promise<TreeNode>;
   createFolder(root: string, path: string): Promise<void>;
   renameItem(root: string, path: string, new_name: string): Promise<void>;
-  copyItem(root: string, source: string, destination: string): Promise<void>;
-  moveItem(root: string, source: string, destination: string): Promise<void>;
+  copyItem(root: string, source: string, destination: string, srcRoot?: string): Promise<void>;
+  moveItem(root: string, source: string, destination: string, srcRoot?: string): Promise<void>;
   deleteItem(root: string, path: string, permanent?: boolean): Promise<void>;
   searchItems(root: string, q: string): Promise<FileItem[]>;
   uploadFiles(

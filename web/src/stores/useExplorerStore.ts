@@ -619,28 +619,38 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
   copyToOtherPane: async () => {
     const { activePane, currentRoot, currentPath, rightPanePath, selectedItems, rightPaneSelectedItems } = get();
     const sourceItems = activePane === 'left' ? selectedItems : rightPaneSelectedItems;
-    const destFolder = activePane === 'left' ? rightPanePath : currentPath;
+    const destFolder = (activePane === 'left' ? rightPanePath : currentPath) || '';
     if (sourceItems.length === 0) return;
 
-    for (const item of sourceItems) {
-      const dest = destFolder ? `${destFolder}/${item.name}` : item.name;
-      await api.copyItem(currentRoot, item.path, dest);
+    try {
+      for (const item of sourceItems) {
+        const srcRoot = item.root_name || currentRoot;
+        await api.copyItem(currentRoot, item.path, destFolder, srcRoot);
+      }
+      await get().refresh();
+      await get().navigateRightPane(rightPanePath);
+    } catch (err: any) {
+      console.error('Copy to other pane failed:', err);
+      alert(`Copy failed: ${err.message || 'Unknown error'}`);
     }
-    await get().refresh();
-    await get().navigateRightPane(rightPanePath);
   },
   moveToOtherPane: async () => {
     const { activePane, currentRoot, currentPath, rightPanePath, selectedItems, rightPaneSelectedItems } = get();
     const sourceItems = activePane === 'left' ? selectedItems : rightPaneSelectedItems;
-    const destFolder = activePane === 'left' ? rightPanePath : currentPath;
+    const destFolder = (activePane === 'left' ? rightPanePath : currentPath) || '';
     if (sourceItems.length === 0) return;
 
-    for (const item of sourceItems) {
-      const dest = destFolder ? `${destFolder}/${item.name}` : item.name;
-      await api.moveItem(currentRoot, item.path, dest);
+    try {
+      for (const item of sourceItems) {
+        const srcRoot = item.root_name || currentRoot;
+        await api.moveItem(currentRoot, item.path, destFolder, srcRoot);
+      }
+      await get().refresh();
+      await get().navigateRightPane(rightPanePath);
+    } catch (err: any) {
+      console.error('Move to other pane failed:', err);
+      alert(`Move failed: ${err.message || 'Unknown error'}`);
     }
-    await get().refresh();
-    await get().navigateRightPane(rightPanePath);
   },
   syncPanes: async () => {
     const { activePane, currentPath, rightPanePath } = get();
@@ -663,21 +673,28 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
     const { clipboard, currentRoot, currentPath, isSplitView, rightPanePath } = get();
     if (!clipboard || clipboard.items.length === 0) return;
 
-    for (const item of clipboard.items) {
-      const destPath = currentPath ? `${currentPath}/${item.name}` : item.name;
-      if (clipboard.action === 'copy') {
-        await api.copyItem(currentRoot, item.path, destPath);
-      } else {
-        await api.moveItem(currentRoot, item.path, destPath);
-      }
-    }
+    const destFolder = currentPath || '';
 
-    if (clipboard.action === 'cut') {
-      set({ clipboard: null });
-    }
-    await get().refresh();
-    if (isSplitView) {
-      await get().navigateRightPane(rightPanePath);
+    try {
+      for (const item of clipboard.items) {
+        const srcRoot = item.root_name || clipboard.root || currentRoot;
+        if (clipboard.action === 'copy') {
+          await api.copyItem(currentRoot, item.path, destFolder, srcRoot);
+        } else {
+          await api.moveItem(currentRoot, item.path, destFolder, srcRoot);
+        }
+      }
+
+      if (clipboard.action === 'cut') {
+        set({ clipboard: null });
+      }
+      await get().refresh();
+      if (isSplitView) {
+        await get().navigateRightPane(rightPanePath);
+      }
+    } catch (err: any) {
+      console.error('Paste failed:', err);
+      alert(`Paste failed: ${err.message || 'Unknown error'}`);
     }
   },
 

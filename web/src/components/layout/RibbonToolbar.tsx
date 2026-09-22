@@ -22,13 +22,12 @@ import { api } from '../../services/api';
 export const RibbonToolbar: React.FC = () => {
   const {
     currentRoot,
-    currentPath,
     selectedItems,
     clipboard,
     viewMode,
     setViewMode,
     setClipboard,
-    clearClipboard,
+    pasteClipboard,
     setNewFolderOpen,
     setUploadOpen,
     setShareModalOpen,
@@ -61,20 +60,8 @@ export const RibbonToolbar: React.FC = () => {
   };
 
   const handlePaste = async () => {
-    if (!clipboard || !currentRoot) return;
-    try {
-      for (const item of clipboard.items) {
-        if (clipboard.action === 'cut') {
-          await api.moveItem(currentRoot, item.path, currentPath);
-        } else {
-          await api.copyItem(currentRoot, item.path, currentPath);
-        }
-      }
-      clearClipboard();
-      await refresh();
-    } catch (err: any) {
-      alert(`Paste failed: ${err.message}`);
-    }
+    if (!canPaste) return;
+    await pasteClipboard();
   };
 
   const handleDelete = async () => {

@@ -57,7 +57,10 @@ pub fn create_router(state: AppState) -> Router {
         .route("/api/v1/fs/search", get(fs::search_items))
         .route("/api/v1/fs/raw", get(fs::stream_file))
         .route("/api/v1/fs/download", get(fs::download_file))
-        .route("/api/v1/fs/upload", post(upload::upload_file))
+        .route(
+            "/api/v1/fs/upload",
+            post(upload::upload_file).layer(axum::extract::DefaultBodyLimit::disable()),
+        )
         // Recycle Bin
         .route("/api/v1/trash/list", get(trash::list_trash))
         .route("/api/v1/trash/restore", post(trash::restore_trash))

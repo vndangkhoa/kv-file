@@ -55,6 +55,8 @@ pub struct RenameRequest {
 #[derive(Deserialize)]
 pub struct TransferRequest {
     pub root: Option<String>,
+    pub src_root: Option<String>,
+    pub dest_root: Option<String>,
     pub source: String,
     pub destination: String,
 }
@@ -155,11 +157,21 @@ pub async fn copy_item(
     State(state): State<AppState>,
     Json(req): Json<TransferRequest>,
 ) -> Result<Response> {
-    let root_name = req
-        .root
+    let src_root = req
+        .src_root
+        .as_ref()
+        .or(req.root.as_ref())
+        .cloned()
         .unwrap_or_else(|| state.roots.get_first_root_name());
 
-    FileOperations::copy_item(&state.roots, &root_name, &req.source, &req.destination).await?;
+    let dest_root = req
+        .dest_root
+        .as_ref()
+        .or(req.root.as_ref())
+        .cloned()
+        .unwrap_or_else(|| state.roots.get_first_root_name());
+
+    FileOperations::copy_item(&state.roots, &src_root, &dest_root, &req.source, &req.destination).await?;
 
     Ok((
         StatusCode::OK,
@@ -172,11 +184,21 @@ pub async fn move_item(
     State(state): State<AppState>,
     Json(req): Json<TransferRequest>,
 ) -> Result<Response> {
-    let root_name = req
-        .root
+    let src_root = req
+        .src_root
+        .as_ref()
+        .or(req.root.as_ref())
+        .cloned()
         .unwrap_or_else(|| state.roots.get_first_root_name());
 
-    FileOperations::move_item(&state.roots, &root_name, &req.source, &req.destination).await?;
+    let dest_root = req
+        .dest_root
+        .as_ref()
+        .or(req.root.as_ref())
+        .cloned()
+        .unwrap_or_else(|| state.roots.get_first_root_name());
+
+    FileOperations::move_item(&state.roots, &src_root, &dest_root, &req.source, &req.destination).await?;
 
     Ok((
         StatusCode::OK,

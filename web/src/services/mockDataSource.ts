@@ -683,23 +683,27 @@ class MockFileSystem implements FileSystemDataSource {
     item.mod_time = new Date().toISOString();
   }
 
-  async copyItem(root: string, source: string, destination: string): Promise<void> {
-    const item = this.items.find((i) => i.root_name === root && i.path === source);
-    if (!item) throw new Error('Source not found');
+  async copyItem(root: string, source: string, destination: string, srcRoot?: string): Promise<void> {
+    const sRoot = srcRoot || root;
+    const item = this.items.find((i) => i.root_name === sRoot && i.path === source);
+    if (!item) throw new Error('File or folder not found');
 
     const newPath = destination ? `${destination}/${item.name}` : item.name;
     this.items.push({
       ...item,
+      root_name: root,
       path: newPath,
       mod_time: new Date().toISOString(),
     });
   }
 
-  async moveItem(root: string, source: string, destination: string): Promise<void> {
-    const item = this.items.find((i) => i.root_name === root && i.path === source);
-    if (!item) throw new Error('Source not found');
+  async moveItem(root: string, source: string, destination: string, srcRoot?: string): Promise<void> {
+    const sRoot = srcRoot || root;
+    const item = this.items.find((i) => i.root_name === sRoot && i.path === source);
+    if (!item) throw new Error('File or folder not found');
 
     const newPath = destination ? `${destination}/${item.name}` : item.name;
+    item.root_name = root;
     item.path = newPath;
     item.mod_time = new Date().toISOString();
   }
